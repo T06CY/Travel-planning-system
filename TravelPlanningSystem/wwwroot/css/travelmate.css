@@ -1,0 +1,498 @@
+﻿* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #ffffff;
+    color: #06143b;
+}
+
+.main-navbar {
+    height: 90px;
+    background: #ffffff;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    z-index: 100;
+}
+
+.logo-box {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    gap: 12px;
+}
+
+.logo-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #5468ff, #2746d8);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+}
+
+.logo-box h3 {
+    margin: 0;
+    font-weight: 800;
+    color: #06143b;
+    line-height: 1;
+}
+
+    .logo-box h3 span {
+        color: #435bff;
+    }
+
+.logo-box small {
+    color: #6d7895;
+    font-size: 12px;
+}
+
+.nav-menu {
+    gap: 18px;
+}
+
+    .nav-menu .nav-link {
+        color: #071437;
+        font-weight: 600;
+        padding: 12px 18px;
+        border-radius: 12px;
+    }
+
+        .nav-menu .nav-link i {
+            margin-right: 7px;
+        }
+
+        .nav-menu .nav-link:hover,
+        .nav-menu .nav-link.active {
+            background: #eef2ff;
+            color: #1d3cff;
+        }
+
+.right-menu {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.moon-btn {
+    width: 48px;
+    height: 40px;
+    border: none;
+    border-radius: 15px;
+    background: #f3f5fb;
+    font-size: 20px;
+}
+
+.btn-login {
+    border: 1.5px solid #304bff;
+    color: #304bff;
+    padding: 11px 28px;
+    border-radius: 9px;
+    font-weight: 600;
+}
+
+.btn-register {
+    background: #304bff;
+    color: white;
+    padding: 12px 28px;
+    border-radius: 9px;
+    font-weight: 600;
+}
+
+.hero {
+    position: relative;
+    min-height: 435px;
+    background: url('/images/hero-beach.jpg') center/cover no-repeat;
+    display: flex;
+    align-items: center;
+}
+
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(3,21,54,0.75), rgba(3,21,54,0.28), rgba(3,21,54,0.15));
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    color: white;
+    /* Move the whole left section to the right */
+    margin-left: 80px;
+}
+
+.script-title {
+    font-family: 'Brush Script MT', cursive;
+    font-size: 56px;
+    font-weight: 400;
+    margin-bottom: -15px;
+}
+
+.hero h1 {
+    font-size: 78px;
+    font-weight: 900;
+    line-height: 0.95;
+    margin-bottom: 12px;
+}
+
+.underline {
+    width: 120px;
+    height: 8px;
+    background: #4c5dff;
+    border-radius: 20px;
+    margin: 14px 0 28px 0;
+}
+
+.hero p {
+    font-size: 21px;
+    line-height: 1.45;
+    margin-bottom: 28px;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 20px;
+}
+
+.main-btn {
+    background: #4158ff;
+    color: white;
+    padding: 15px 36px;
+    border-radius: 15px;
+    font-weight: 700;
+}
+
+.outline-btn {
+    border: 1.5px solid white;
+    color: white;
+    padding: 15px 36px;
+    border-radius: 15px;
+    font-weight: 700;
+}
+
+    .main-btn:hover,
+    .outline-btn:hover {
+        transform: translateY(-3px);
+        color: white;
+    }
+
+.promo-card {
+    width: 310px;
+    min-height: 205px;
+    margin-left: auto;
+    margin-right: 50px;
+    background: rgba(255,255,255,0.86);
+    backdrop-filter: blur(14px);
+    border-radius: 18px;
+    padding: 28px;
+    position: relative;
+    color: #06143b;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.18);
+    margin-top: 50px;
+}
+
+    .promo-card h4 {
+        color: #4057ff;
+        font-family: 'Brush Script MT', cursive;
+        font-size: 32px;
+    }
+
+    .promo-card p {
+        color: #06143b;
+        font-size: 16px;
+    }
+
+    .promo-card a {
+        display: inline-block;
+        background: white;
+        color: #06143b;
+        text-decoration: none;
+        padding: 12px 22px;
+        border-radius: 13px;
+        font-weight: 700;
+    }
+
+.bag-img {
+    position: absolute;
+    right: 25px;
+    bottom: 20px;
+    font-size: 58px;
+}
+
+.slider-dot {
+    position: absolute;
+    right: 205px;
+    bottom: 0px;
+    margin: 0;
+    z-index: 10;
+}
+
+    .slider-dot span {
+        width: 12px;
+        height: 12px;
+        background: white;
+        border-radius: 50%;
+        display: inline-block;
+        margin: 0 6px;
+        opacity: .9;
+    }
+
+.search-wrapper {
+    margin-top: -35px;
+    position: relative;
+    z-index: 5;
+}
+
+.search-box {
+    width: 92%;
+    max-width: 1380px;
+    margin: 0 auto;
+    background: white;
+    min-height: 155px;
+    border-radius: 18px;
+    box-shadow: 0 18px 45px rgba(21,35,80,0.15);
+    display: flex;
+    align-items: center;
+    padding: 25px 35px;
+    gap: 28px;
+}
+
+/* Search box left map design */
+.map-icon {
+    width: 120px;
+    height: 80px;
+    position: relative;
+    color: #4158ff;
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .map-icon::before {
+        content: "";
+        position: absolute;
+        width: 72px;
+        height: 42px;
+        border: 2px dashed #c5cffd;
+        border-right: none;
+        border-bottom: none;
+        border-radius: 50%;
+        transform: rotate(-18deg);
+        left: 18px;
+        bottom: 8px;
+    }
+
+    .map-icon i {
+        position: relative;
+        z-index: 2;
+        font-size: 30px;
+    }
+
+.search-item {
+    flex: 1;
+    border-left: 1px solid #cfd5e6;
+    padding-left: 32px;
+}
+
+    .search-item label {
+        display: block;
+        font-weight: 800;
+        margin-bottom: 16px;
+    }
+
+    .search-item div {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+    }
+
+    .search-item input,
+    .search-item select {
+        border: none;
+        outline: none;
+        width: 100%;
+        color: #6d7895;
+        font-size: 15px;
+        background: transparent;
+    }
+
+    .search-item i {
+        font-size: 18px;
+        color: #06143b;
+    }
+
+.search-btn {
+    width: 86px;
+    height: 86px;
+    border-radius: 50%;
+    border: none;
+    background: #4057ff;
+    color: white;
+    font-size: 34px;
+    box-shadow: 0 12px 25px rgba(64,87,255,0.35);
+}
+
+.services {
+    width: 88%;
+    max-width: 1380px;
+    margin: 35px auto 40px auto;
+}
+
+.section-heading {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+    .section-heading h2 {
+        display: inline-block;
+        font-size: 31px;
+        font-weight: 900;
+        margin: 0 12px;
+    }
+
+    .section-heading i {
+        font-size: 22px;
+        color: #06143b;
+    }
+
+    .section-heading .line {
+        display: inline-block;
+        width: 45px;
+        height: 2px;
+        background: #a7b6ff;
+        vertical-align: middle;
+    }
+
+    .section-heading p {
+        margin-top: 8px;
+        color: #6d7895;
+    }
+
+.service-card {
+    min-height: 220px;
+    border-radius: 15px;
+    padding: 28px 30px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 12px 30px rgba(18,31,80,0.09);
+    transition: 0.3s;
+}
+
+    .service-card:hover {
+        transform: translateY(-8px);
+    }
+
+.service-img {
+    font-size: 78px;
+    margin-bottom: 8px;
+}
+
+.service-card h3 {
+    font-size: 21px;
+    font-weight: 900;
+}
+
+.service-card p {
+    color: #26314e;
+    font-size: 15px;
+    width: 75%;
+}
+
+.service-card a {
+    position: absolute;
+    right: 28px;
+    bottom: 28px;
+    width: 50px;
+    height: 50px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    font-size: 23px;
+}
+
+.flight-card {
+    background: linear-gradient(135deg, #eef6ff, #ffffff);
+}
+
+    .flight-card h3,
+    .flight-card a {
+        color: #254eff;
+    }
+
+.hotel-card {
+    background: linear-gradient(135deg, #f3ecff, #ffffff);
+}
+
+    .hotel-card h3,
+    .hotel-card a {
+        color: #6e3cff;
+    }
+
+.transport-card {
+    background: linear-gradient(135deg, #e9f8f4, #ffffff);
+}
+
+    .transport-card h3,
+    .transport-card a {
+        color: #17856f;
+    }
+
+.activity-card {
+    background: linear-gradient(135deg, #fff0e7, #ffffff);
+}
+
+    .activity-card h3,
+    .activity-card a {
+        color: #e56f14;
+    }
+
+.features {
+    margin: 28px auto 0;
+    text-align: center;
+    color: #5e6a88;
+    font-weight: 600;
+}
+
+    .features span {
+        margin: 0 12px;
+    }
+
+@media (max-width: 992px) {
+    .main-navbar {
+        height: auto;
+    }
+
+    .hero h1 {
+        font-size: 55px;
+    }
+
+    .script-title {
+        font-size: 42px;
+    }
+
+    .search-box {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-item {
+        border-left: none;
+        border-top: 1px solid #dce1ef;
+        padding-left: 0;
+        padding-top: 18px;
+    }
+
+    .search-btn {
+        width: 100%;
+        border-radius: 15px;
+    }
+}

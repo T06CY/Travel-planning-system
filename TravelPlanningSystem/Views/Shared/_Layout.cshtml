@@ -1,0 +1,55 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"] - TravelMate</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/travelmate.css" />
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg main-navbar">
+        <div class="container-fluid px-5">
+            <a class="navbar-brand logo-box" asp-controller="Home" asp-action="Index">
+                <div class="logo-icon">
+                    <i class="bi bi-airplane-fill"></i>
+                </div>
+                <div>
+                    <h3>Travel<span>Mate</span></h3>
+                    <small>Plan Smarter, Travel Better</small>
+                </div>
+            </a>
+
+            <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#menu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="menu">
+                <ul class="navbar-nav mx-auto nav-menu">
+                    <li><a class="nav-link active" asp-controller="Home" asp-action="Index"><i class="bi bi-house-door"></i> Home</a></li>
+                    <li><a class="nav-link" asp-controller="Flight" asp-action="Index"><i class="bi bi-airplane"></i> Flights</a></li>
+                    <li><a class="nav-link" asp-controller="Hotel" asp-action="Index"><i class="bi bi-building"></i> Hotels</a></li>
+                    <li><a class="nav-link" asp-controller="Transport" asp-action="Index"><i class="bi bi-car-front"></i> Transport</a></li>
+                    <li><a class="nav-link" asp-controller="Activity" asp-action="Index"><i class="bi bi-ticket-perforated"></i> Activities</a></li>
+                    <li><a class="nav-link" asp-controller="Booking" asp-action="Index"><i class="bi bi-calendar-event"></i> My Bookings</a></li>
+                </ul>
+
+                <div class="right-menu">
+                    <button class="moon-btn"><i class="bi bi-moon"></i></button>
+                    <a class="btn btn-login" asp-controller="Account" asp-action="Login">Login</a>
+                    <a class="btn btn-register" asp-controller="Account" asp-action="Register">Register</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        @RenderBody()
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

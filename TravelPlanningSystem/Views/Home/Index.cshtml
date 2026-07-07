@@ -1,0 +1,168 @@
+﻿@{
+    ViewData["Title"] = "Home";
+}
+
+<section class="hero">
+    <div class="hero-overlay"></div>
+
+    <div class="container-fluid px-5 hero-content">
+        <div class="row align-items-center">
+            <div class="col-lg-7">
+                <h2 class="script-title">Your Journey,</h2>
+                <h1>Our Passion</h1>
+                <div class="underline"></div>
+
+                <p>
+                    Everything you need to plan, book and enjoy<br />
+                    an unforgettable trip.
+                </p>
+
+                <div class="hero-buttons">
+                    <a class="btn main-btn" asp-controller="Flight" asp-action="Index">
+                        Plan My Trip <i class="bi bi-arrow-right"></i>
+                    </a>
+
+                    <a class="btn outline-btn" asp-controller="Activity" asp-action="Index">
+                        Explore Activities <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-5 d-none d-lg-block">
+                <div class="promo-card">
+                    <h4>Weekend Escape?</h4>
+                    <p>Find short getaways<br />near you</p>
+
+                    <a asp-controller="Activity" asp-action="Index">
+                        Discover Now <i class="bi bi-arrow-right"></i>
+                    </a>
+
+                    <div class="bag-img">🧳</div>
+                </div>
+
+                <div class="slider-dot">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="search-wrapper">
+    <div class="container-fluid px-5">
+        <div class="search-box">
+            <div class="map-icon">
+                <i class="bi bi-geo-alt-fill"></i>
+            </div>
+
+            <div class="search-item">
+                <label>Where to?</label>
+                <div>
+                    <i class="bi bi-geo-alt"></i>
+                    <input type="text" placeholder="Search destination" />
+                </div>
+            </div>
+
+            <div class="search-item">
+                <label>Check-in</label>
+                <div>
+                    <i class="bi bi-calendar3"></i>
+                    <input type="text" placeholder="Select date" />
+                </div>
+            </div>
+
+            <div class="search-item">
+                <label>Check-out</label>
+                <div>
+                    <i class="bi bi-calendar3"></i>
+                    <input type="text" placeholder="Select date" />
+                </div>
+            </div>
+
+            <div class="search-item">
+                <label>Travellers</label>
+                <div>
+                    <i class="bi bi-person"></i>
+                    <select>
+                        <option>1 Traveller</option>
+                        <option>2 Travellers</option>
+                        <option>3 Travellers</option>
+                        <option>4 Travellers</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="search-btn">
+                <i class="bi bi-search"></i>
+            </button>
+        </div>
+    </div>
+</section>
+
+<section class="services">
+    <div class="section-heading">
+        <div class="line"></div>
+        <i class="bi bi-send"></i>
+        <h2>Explore Our Services</h2>
+        <div class="line"></div>
+        <p>Choose any service to start planning your perfect trip</p>
+    </div>
+
+    <div class="container-fluid px-5">
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="service-card flight-card">
+                    <div class="service-img">✈️</div>
+                    <h3>Flight Booking</h3>
+                    <p>Find and book the best flights at amazing prices.</p>
+                    <a asp-controller="Flight" asp-action="Index">
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="service-card hotel-card">
+                    <div class="service-img">🏨</div>
+                    <h3>Hotel Reservation</h3>
+                    <p>Discover comfortable stays that suit your style.</p>
+                    <a asp-controller="Hotel" asp-action="Index">
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="service-card transport-card">
+                    <div class="service-img">🚗</div>
+                    <h3>Transportation</h3>
+                    <p>Book airport transfers, taxis, buses and more.</p>
+                    <a asp-controller="Transport" asp-action="Index">
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="service-card activity-card">
+                    <div class="service-img">🎈</div>
+                    <h3>Activities</h3>
+                    <p>Explore top attractions and fun local experiences.</p>
+                    <a asp-controller="Activity" asp-action="Index">
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="features">
+            <span><i class="bi bi-shield-check"></i> Secure Payments</span>
+            <span>•</span>
+            <span>24/7 Support</span>
+            <span>•</span>
+            <span>Best Price Guarantee</span>
+        </div>
+    </div>
+</section>
