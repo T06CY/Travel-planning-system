@@ -1,0 +1,284 @@
+﻿@model TravelPlanningSystem.Models.FlightSearchViewModel
+
+@{
+    ViewData["Title"] = "Search Flights";
+}
+
+<section class="flight-search-page">
+
+    <div class="flight-page-header">
+        <div class="container">
+            <a class="back-link"
+               asp-controller="Airline"
+               asp-action="Index">
+                <i class="bi bi-arrow-left"></i>
+                Airline Module
+            </a>
+
+            <span class="flight-label">FLIGHT DISCOVERY</span>
+
+            <h1>Where would you like to go?</h1>
+
+            <p>
+                Search available flights and choose the best route
+                for your journey.
+            </p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Search form -->
+        <form class="flight-search-box"
+              method="get"
+              asp-controller="Airline"
+              asp-action="FlightDiscovery">
+
+            <div class="flight-search-field">
+                <label for="from">From</label>
+
+                <div class="input-with-icon">
+                    <i class="bi bi-geo-alt"></i>
+
+                    <input id="from"
+                           name="from"
+                           type="text"
+                           value="@Model.From"
+                           list="airportList"
+                           placeholder="Departure city"
+                           required />
+                </div>
+            </div>
+
+            <button type="button"
+                    class="swap-route-btn"
+                    id="swapRoute"
+                    title="Swap route">
+                <i class="bi bi-arrow-left-right"></i>
+            </button>
+
+            <div class="flight-search-field">
+                <label for="to">To</label>
+
+                <div class="input-with-icon">
+                    <i class="bi bi-geo-alt-fill"></i>
+
+                    <input id="to"
+                           name="to"
+                           type="text"
+                           value="@Model.To"
+                           list="airportList"
+                           placeholder="Destination city"
+                           required />
+                </div>
+            </div>
+
+            <div class="flight-search-field">
+                <label for="departureDate">Departure date</label>
+
+                <div class="input-with-icon">
+                    <i class="bi bi-calendar3"></i>
+
+                    <input id="departureDate"
+                           name="departureDate"
+                           type="date"
+                           value="@Model.DepartureDate?.ToString("yyyy-MM-dd")"
+                           required />
+                </div>
+            </div>
+
+            <div class="flight-search-field">
+                <label for="passengers">Passengers</label>
+
+                <div class="input-with-icon">
+                    <i class="bi bi-people"></i>
+
+                    <select id="passengers" name="passengers">
+                        @for (int number = 1; number <= 5; number++)
+                        {
+                            if (Model.Passengers == number)
+                            {
+                                <option value="@number" selected>
+                                    @number Passenger@(number > 1 ? "s" : "")
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="@number">
+                                    @number Passenger@(number > 1 ? "s" : "")
+                                </option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <button class="flight-search-btn" type="submit">
+                <i class="bi bi-search"></i>
+                Search Flights
+            </button>
+
+            <datalist id="airportList">
+                <option value="Kuala Lumpur"></option>
+                <option value="Penang"></option>
+                <option value="Kuching"></option>
+                <option value="Kota Kinabalu"></option>
+                <option value="Johor Bahru"></option>
+                <option value="Langkawi"></option>
+            </datalist>
+        </form>
+
+        <!-- Search results -->
+        @if (Model.SearchPerformed)
+        {
+            <div class="flight-result-heading">
+                <div>
+                    <span>AVAILABLE FLIGHTS</span>
+
+                    <h2>
+                        @Model.From
+                        <i class="bi bi-arrow-right"></i>
+                        @Model.To
+                    </h2>
+                </div>
+
+                <p>
+                    @Model.Results.Count flight(s) found
+                </p>
+            </div>
+
+            @if (Model.Results.Any())
+            {
+                <div class="flight-results">
+                    @foreach (var flight in Model.Results)
+                    {
+                        TimeSpan duration =
+                            flight.ArrivalTime - flight.DepartureTime;
+
+                        <article class="flight-result-card">
+
+                            <div class="airline-information">
+                                <div class="airline-logo">
+                                    <i class="bi bi-airplane-fill"></i>
+                                </div>
+
+                                <div>
+                                    <h3>@flight.AirlineName</h3>
+                                    <span>@flight.FlightNumber</span>
+                                </div>
+                            </div>
+
+                            <div class="route-information">
+                                <div class="route-time">
+                                    <strong>
+                                        @flight.DepartureTime.ToString("HH:mm")
+                                    </strong>
+
+                                    <span>@flight.From</span>
+                                </div>
+
+                                <div class="flight-duration">
+                                    <span>
+                                        @duration.Hours h @duration.Minutes m
+                                    </span>
+
+                                    <div class="route-line">
+                                        <i class="bi bi-airplane"></i>
+                                    </div>
+
+                                    <small>Direct</small>
+                                </div>
+
+                                <div class="route-time">
+                                    <strong>
+                                        @flight.ArrivalTime.ToString("HH:mm")
+                                    </strong>
+
+                                    <span>@flight.To</span>
+                                </div>
+                            </div>
+
+                            <div class="flight-seat-information">
+                                <span>
+                                    <i class="bi bi-calendar3"></i>
+                                    @flight.DepartureTime.ToString("dd MMM yyyy")
+                                </span>
+
+                                <span>
+                                    <i class="bi bi-person-check"></i>
+                                    @flight.AvailableSeats seats available
+                                </span>
+                            </div>
+
+                            <div class="flight-price-section">
+                                <small>Price per passenger</small>
+
+                                <h3>RM @flight.Price.ToString("N2")</h3>
+
+                                <p>
+                                    Total:
+                                    <strong>
+                                        RM @((flight.Price * Model.Passengers)
+                                                                                    .ToString("N2"))
+                                    </strong>
+                                </p>
+
+                                <a class="select-flight-btn"
+                                   asp-controller="Airline"
+                                   asp-action="Reservation"
+                                   asp-route-flightId="@flight.FlightId">
+                                    Select Flight
+                                    <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+
+                        </article>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="no-flight-result">
+                    <i class="bi bi-airplane"></i>
+
+                    <h2>No flights found</h2>
+
+                    <p>
+                        Try changing your route, departure date or
+                        number of passengers.
+                    </p>
+
+                    <a asp-controller="Airline"
+                       asp-action="FlightDiscovery"
+                       class="btn btn-outline-primary">
+                        Clear Search
+                    </a>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="search-instruction">
+                <i class="bi bi-search"></i>
+                <h2>Start your flight search</h2>
+                <p>
+                    Enter your route, travel date and number of passengers.
+                </p>
+            </div>
+        }
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        document.getElementById("swapRoute")
+            .addEventListener("click", function () {
+                const fromInput = document.getElementById("from");
+                const toInput = document.getElementById("to");
+
+                const temporaryValue = fromInput.value;
+
+                fromInput.value = toInput.value;
+                toInput.value = temporaryValue;
+            });
+    </script>
+}
