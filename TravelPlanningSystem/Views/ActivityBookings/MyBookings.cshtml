@@ -1,0 +1,228 @@
+﻿@model IEnumerable<TravelPlanningSystem.Models.ActivityBooking>
+
+@{
+    ViewData["Title"] = "My Activity Bookings";
+}
+
+<link rel="stylesheet"
+      href="~/css/activities.css"
+      asp-append-version="true" />
+
+<div class="list-page">
+
+    <div class="container">
+
+        <div class="list-header">
+
+            <div>
+
+                <span class="eyebrow">
+                    My Travel Plans
+                </span>
+
+                <h1>
+                    Activity Bookings
+                </h1>
+
+                <p>
+                    Review your upcoming and previous activity reservations.
+                </p>
+
+            </div>
+
+
+            <a asp-controller="Activity"
+               asp-action="Index"
+               class="btn btn-view-activity">
+
+                <i class="bi bi-compass"></i>
+                Explore Activities
+
+            </a>
+
+        </div>
+
+
+        <div class="status-tabs">
+
+            <a asp-action="MyBookings"
+               class="@(string.IsNullOrEmpty(ViewBag.Status) ? "active" : "")">
+
+                All
+
+            </a>
+
+
+            @foreach (var s in Enum.GetValues<TravelPlanningSystem.Models.ActivityBookingStatus>())
+            {
+                <a asp-action="MyBookings"
+                   asp-route-status="@s"
+                   class="@(ViewBag.Status?.ToString() == s.ToString() ? "active" : "")">
+
+                    @s
+
+                </a>
+            }
+
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="empty-state">
+
+                <i class="bi bi-calendar2-heart"></i>
+
+                <h3>
+                    No Activity Bookings Yet
+                </h3>
+
+                <p>
+                    Your reserved experiences will appear here.
+                </p>
+
+
+                <a asp-controller="Activity"
+                   asp-action="Index"
+                   class="btn btn-view-activity">
+
+                    <i class="bi bi-search"></i>
+                    Explore Activities
+
+                </a>
+
+            </div>
+        }
+        else
+        {
+
+            <div class="booking-list">
+
+                @foreach (var b in Model)
+                {
+                    var photo =
+                        b.ActivitySession?.Activity?.Photos
+                            .FirstOrDefault(p => p.IsPrimary)?.PhotoUrl
+                        ?? b.ActivitySession?.Activity?.Photos
+                            .FirstOrDefault()?.PhotoUrl
+                        ?? "/images/hero-beach.jpg";
+
+
+                    var activityName =
+                        b.ActivitySession?.Activity?.ActivityName
+                        ?? "Activity";
+
+
+                    var sessionDate =
+                        b.ActivitySession?.SessionDate;
+
+
+                    var sessionTime =
+                        b.ActivitySession != null
+                            ? DateTime.Today
+                                .Add(b.ActivitySession.StartTime)
+                                .ToString("h:mm tt")
+                            : "-";
+
+
+                    <article class="booking-list-card">
+
+
+                        <!-- ACTIVITY IMAGE -->
+
+                        <img src="@photo"
+                             alt="@activityName" />
+
+
+                        <!-- MAIN BOOKING INFORMATION -->
+
+                        <div class="booking-main">
+
+                            <div class="booking-top">
+
+                                <span class="status-pill status-@b.BookingStatus.ToString().ToLower()">
+
+                                    @b.BookingStatus
+
+                                </span>
+
+
+                                <small>
+                                    @b.BookingReference
+                                </small>
+
+                            </div>
+
+
+                            <h3>
+                                @activityName
+                            </h3>
+
+
+                            <div class="booking-meta">
+
+                                <!-- DATE -->
+
+                                <span>
+
+                                    <i class="bi bi-calendar3"></i>
+
+                                    @(sessionDate?.ToString("dd MMM yyyy") ?? "-")
+
+                                </span>
+
+
+                                <!-- TIME -->
+
+                                <span>
+
+                                    <i class="bi bi-clock"></i>
+
+                                    @sessionTime
+
+                                </span>
+
+
+                                <!-- PARTICIPANTS -->
+
+                                <span>
+
+                                    <i class="bi bi-people"></i>
+
+                                    @b.ParticipantCount
+
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- PRICE + DETAILS -->
+
+                        <div class="booking-side">
+
+                            <strong>
+                                RM @b.TotalAmount.ToString("N2")
+                            </strong>
+
+
+                            <a asp-action="Details"
+                               asp-route-id="@b.ActivityBookingId">
+
+                                View Booking
+
+                                <i class="bi bi-arrow-right"></i>
+
+                            </a>
+
+                        </div>
+
+                    </article>
+                }
+
+            </div>
+        }
+
+    </div>
+
+</div>

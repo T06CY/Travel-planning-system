@@ -1,0 +1,337 @@
+﻿@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+}
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>@ViewData["Title"] - TravelMate Admin</title>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css"
+          rel="stylesheet" />
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css"
+          rel="stylesheet" />
+
+    <link rel="stylesheet"
+          href="~/css/activities.css"
+          asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="~/css/admin-activities.css"
+          asp-append-version="true" />
+
+</head>
+
+<body>
+
+    <div class="admin-wrapper">
+
+        <aside class="admin-sidebar">
+
+
+            <!-- LOGO -->
+
+            <div class="admin-logo">
+
+                <div class="admin-logo-icon">
+
+                    <i class="bi bi-airplane-fill"></i>
+
+                </div>
+
+                <div>
+
+                    <h3>
+                        Travel<span>Mate</span>
+                    </h3>
+
+                    <small>
+                        Travel Planning Administration
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <!-- ADMIN PROFILE -->
+
+            <div class="admin-profile">
+
+                <div class="admin-profile-avatar">
+
+                    <i class="bi bi-person-fill"></i>
+
+                </div>
+
+                <div class="admin-profile-info">
+
+                    <strong>
+                        Administrator
+                    </strong>
+
+                    <span>
+                        System Administrator
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <nav class="admin-navigation">
+
+
+                <!-- OVERVIEW -->
+
+                <span class="admin-menu-title">
+                    OVERVIEW
+                </span>
+
+                <a asp-controller="AdminDashboard"
+                   asp-action="Index"
+                   class="@(controller == "AdminDashboard" ? "active" : "")">
+
+                    <i class="bi bi-grid-1x2-fill"></i>
+
+                    <span>
+                        Dashboard
+                    </span>
+
+                </a>
+
+
+                <span class="admin-menu-title">
+                    FLIGHT MANAGEMENT
+                </span>
+
+                <a href="javascript:void(0)"
+                   class="module-disabled">
+
+                    <i class="bi bi-airplane"></i>
+
+                    <span>
+                        Flight Management
+                    </span>
+
+                </a>
+
+
+                <span class="admin-menu-title">
+                    HOTEL MANAGEMENT
+                </span>
+
+                <a href="javascript:void(0)"
+                   class="module-disabled">
+
+                    <i class="bi bi-building"></i>
+
+                    <span>
+                        Hotel Management
+                    </span>
+
+                </a>
+
+
+                <span class="admin-menu-title">
+                    TRANSPORTATION
+                </span>
+
+                <a href="javascript:void(0)"
+                   class="module-disabled">
+
+                    <i class="bi bi-car-front"></i>
+
+                    <span>
+                        Transportation Management
+                    </span>
+
+                </a>
+
+
+                <span class="admin-menu-title">
+                    ACTIVITY MANAGEMENT
+                </span>
+
+
+                <!-- ACTIVITY LIST -->
+
+                <a asp-controller="AdminActivities"
+                   asp-action="Index"
+                   class="@(controller == "AdminActivities" && action == "Index" ? "active" : "")">
+
+                    <i class="bi bi-ticket-perforated"></i>
+
+                    <span>
+                        Activity List
+                    </span>
+
+                </a>
+
+
+                <!-- ADD ACTIVITY -->
+
+                <a asp-controller="AdminActivities"
+                   asp-action="Create"
+                   class="@(controller == "AdminActivities" && action == "Create" ? "active" : "")">
+
+                    <i class="bi bi-plus-circle"></i>
+
+                    <span>
+                        Add Activity
+                    </span>
+
+                </a>
+
+
+                <!-- ACTIVITY BOOKINGS -->
+
+                <a asp-controller="AdminActivityBookings"
+                   asp-action="Index"
+                   class="@(controller == "AdminActivityBookings" ? "active" : "")">
+
+                    <i class="bi bi-calendar-check"></i>
+
+                    <span>
+                        Activity Bookings
+                    </span>
+
+                </a>
+
+
+            </nav>
+
+        </aside>
+
+
+
+        <div class="admin-main-area">
+
+
+            <header class="admin-topbar">
+
+
+                <!-- LEFT SIDE -->
+
+                <div class="admin-topbar-left">
+
+                    <button type="button"
+                            class="sidebar-toggle"
+                            id="sidebarToggle">
+
+                        <i class="bi bi-list"></i>
+
+                    </button>
+
+                </div>
+
+
+                <!-- RIGHT SIDE -->
+
+                <div class="admin-topbar-right">
+
+                    <div class="topbar-admin-user">
+
+
+                        <div class="topbar-avatar">
+
+                            <i class="bi bi-person-fill"></i>
+
+                        </div>
+
+
+                        <div>
+
+                            <strong>
+                                Administrator
+                            </strong>
+
+                            <small>
+                                System Administrator
+                            </small>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+
+            </header>
+
+
+            <main class="admin-content-area">
+
+                @RenderBody()
+
+            </main>
+
+
+        </div>
+
+    </div>
+
+
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+
+    <script>
+
+        document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+        const button =
+        document.getElementById(
+        "sidebarToggle"
+        );
+
+        const wrapper =
+        document.querySelector(
+        ".admin-wrapper"
+        );
+
+
+        if (button && wrapper) {
+
+        button.addEventListener(
+        "click",
+        function () {
+
+        wrapper.classList.toggle(
+        "sidebar-collapsed"
+        );
+
+        }
+        );
+
+        }
+
+        }
+        );
+
+    </script>
+
+
+    @await RenderSectionAsync(
+        "Scripts",
+        required: false
+    )
+
+</body>
+
+</html>

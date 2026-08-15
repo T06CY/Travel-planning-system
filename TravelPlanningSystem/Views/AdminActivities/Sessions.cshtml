@@ -1,0 +1,188 @@
+﻿@model TravelPlanningSystem.Models.Activity
+
+@{
+    ViewData["Title"] = "Activity Sessions";
+}
+
+<link rel="stylesheet" href="~/css/activities.css" />
+
+<div class="admin-page">
+    <div class="container">
+
+        <div class="admin-header">
+
+            <div>
+
+                <a asp-action="Details"
+                   asp-route-id="@Model.ActivityId"
+                   class="back-link">
+                    <i class="bi bi-arrow-left"></i>
+                    @Model.ActivityName
+                </a>
+
+                <h1>Session Management</h1>
+
+                <p>
+                    Create dated time slots and control activity capacity.
+                </p>
+
+            </div>
+
+        </div>
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">
+                @TempData["Error"]
+            </div>
+        }
+
+        <form asp-action="AddSession"
+              method="post"
+              class="session-create-card">
+
+            <input type="hidden"
+                   name="activityId"
+                   value="@Model.ActivityId" />
+
+            <div>
+
+                <label>Session Date</label>
+
+                <input type="date"
+                       name="sessionDate"
+                       min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                       class="form-control"
+                       required />
+
+            </div>
+
+            <div>
+
+                <label>Start Time</label>
+
+                <input type="time"
+                       name="startTime"
+                       class="form-control"
+                       required />
+
+            </div>
+
+            <div>
+
+                <label>End Time</label>
+
+                <input type="time"
+                       name="endTime"
+                       class="form-control"
+                       required />
+
+            </div>
+
+            <div>
+
+                <label>Capacity</label>
+
+                <input type="number"
+                       name="capacity"
+                       min="1"
+                       max="500"
+                       value="20"
+                       class="form-control"
+                       required />
+
+            </div>
+
+            <button type="submit"
+                    class="btn btn-view-activity">
+                <i class="bi bi-plus-lg"></i>
+                Add Session
+            </button>
+
+        </form>
+
+        <div class="admin-table-card">
+
+            <table class="table align-middle">
+
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Capacity</th>
+                        <th>Available</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @foreach (var s in Model.Sessions)
+                    {
+                        <tr>
+
+                            <td>
+
+                                <strong>
+                                    @s.SessionDate.ToString("dd MMM yyyy")
+                                </strong>
+
+                                <br />
+
+                                <small>
+                                    @s.SessionDate.ToString("dddd")
+                                </small>
+
+                            </td>
+
+                            <td>
+                                @DateTime.Today.Add(s.StartTime).ToString("h:mm tt")
+                                –
+                                @DateTime.Today.Add(s.EndTime).ToString("h:mm tt")
+                            </td>
+
+                            <td>
+                                @s.Capacity
+                            </td>
+
+                            <td>
+                                <strong>
+                                    @s.AvailableSlots
+                                </strong>
+                            </td>
+
+                            <td>
+
+                                <span class="status-pill @(s.IsActive ? "status-confirmed" : "status-cancelled")">
+                                    @(s.IsActive ? "Active" : "Inactive")
+                                </span>
+
+                            </td>
+
+                            <td class="text-end">
+
+                                <form asp-action="ToggleSession"
+                                      asp-route-id="@s.ActivitySessionId"
+                                      method="post">
+
+                                    <button type="submit"
+                                            class="btn btn-sm btn-outline-secondary">
+                                        @(s.IsActive ? "Deactivate" : "Activate")
+                                    </button>
+
+                                </form>
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+</div>

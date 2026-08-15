@@ -1,0 +1,128 @@
+﻿@model TravelPlanningSystem.Models.ActivityBooking
+
+@{
+    ViewData["Title"] = "Admin Booking Details";
+}
+
+<link rel="stylesheet" href="~/css/activities.css" />
+
+<div class="admin-page">
+    <div class="container narrow-container">
+
+        <div class="form-page-header">
+
+            <a asp-action="Index">
+                <i class="bi bi-arrow-left"></i>
+                Activity Bookings
+            </a>
+
+            <div class="booking-detail-title">
+
+                <div>
+
+                    <span class="status-pill status-@Model.BookingStatus.ToString().ToLower()">
+                        @Model.BookingStatus
+                    </span>
+
+                    <h1>@Model.BookingReference</h1>
+
+                    <p>
+                        @Model.ActivitySession?.Activity?.ActivityName
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="booking-detail-grid">
+
+            <div class="detail-card">
+
+                <h3>Customer</h3>
+
+                <dl>
+
+                    <div>
+                        <dt>Name</dt>
+                        <dd>@Model.ContactName</dd>
+                    </div>
+
+                    <div>
+                        <dt>Email</dt>
+                        <dd>@Model.ContactEmail</dd>
+                    </div>
+
+                    <div>
+                        <dt>Phone</dt>
+                        <dd>@Model.ContactPhone</dd>
+                    </div>
+
+                </dl>
+
+            </div>
+
+            <div class="detail-card">
+
+                <h3>Activity</h3>
+
+                <dl>
+
+                    <div>
+                        <dt>Date</dt>
+                        <dd>
+                            @Model.ActivitySession?.SessionDate.ToString("dd MMM yyyy")
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt>Participants</dt>
+                        <dd>@Model.ParticipantCount</dd>
+                    </div>
+
+                    <div>
+                        <dt>Total</dt>
+                        <dd>
+                            RM @Model.TotalAmount.ToString("N2")
+                        </dd>
+                    </div>
+
+                </dl>
+
+            </div>
+
+            <div class="detail-card">
+
+                <h3>Update Status</h3>
+
+                <form asp-action="UpdateStatus"
+                      asp-route-id="@Model.ActivityBookingId"
+                      method="post">
+
+                    <select name="status"
+                            class="form-select mb-3">
+
+                        @foreach (var s in Enum.GetValues<TravelPlanningSystem.Models.ActivityBookingStatus>())
+                        {
+                            <option value="@s"
+                                    selected="@(s == Model.BookingStatus ? "selected" : null)">
+                                @s
+                            </option>
+                        }
+
+                    </select>
+
+                    <button type="submit"
+                            class="btn btn-view-activity">
+                        Save Status
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>

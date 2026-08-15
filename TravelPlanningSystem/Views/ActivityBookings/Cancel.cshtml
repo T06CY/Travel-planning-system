@@ -1,0 +1,63 @@
+﻿@model TravelPlanningSystem.Models.ActivityBooking
+
+@{
+    ViewData["Title"] = "Cancel Booking";
+}
+
+<link rel="stylesheet" href="~/css/activities.css" />
+
+<div class="form-page">
+    <div class="container tiny-container">
+        <div class="form-card danger-form">
+
+            <div class="danger-icon">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+
+            <h1>Cancel this booking?</h1>
+
+            <p>
+                You are cancelling
+                <strong>@Model.ActivitySession?.Activity?.ActivityName</strong>
+                on @Model.ActivitySession?.SessionDate.ToString("dd MMM yyyy").
+                The reserved slots will be returned.
+            </p>
+
+            <form asp-action="Cancel"
+                  asp-route-id="@Model.ActivityBookingId"
+                  method="post">
+
+                <label class="form-label" for="cancellationReason">
+                    Reason for cancellation
+                </label>
+
+                <textarea id="cancellationReason"
+                          name="cancellationReason"
+                          class="form-control"
+                          rows="4"
+                          maxlength="400"
+                          required
+                          placeholder="Please tell us why you are cancelling">
+                </textarea>
+
+                <span class="text-danger">
+                    @Html.ValidationMessage("cancellationReason")
+                </span>
+
+                <div class="danger-actions">
+                    <a asp-action="Details"
+                       asp-route-id="@Model.ActivityBookingId"
+                       class="btn btn-outline-dark">
+                        Keep Booking
+                    </a>
+
+                    <button type="submit" class="btn btn-danger">
+                        Confirm Cancellation
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>

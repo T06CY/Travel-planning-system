@@ -1,0 +1,165 @@
+﻿@model IEnumerable<TravelPlanningSystem.Models.ActivityBooking>
+
+@{
+    ViewData["Title"] = "Activity Bookings";
+}
+
+<link rel="stylesheet" href="~/css/activities.css" />
+
+<div class="admin-page">
+    <div class="container-fluid px-5">
+
+        <div class="admin-header">
+
+            <div>
+
+                <span class="eyebrow">Administrator</span>
+
+                <h1>Activity Bookings</h1>
+
+                <p>
+                    Track reservations, customer details and booking statuses.
+                </p>
+
+            </div>
+
+        </div>
+
+        <form method="get"
+              class="admin-filter">
+
+            <div class="input-icon">
+
+                <i class="bi bi-search"></i>
+
+                <input name="search"
+                       value="@ViewBag.Search"
+                       class="form-control"
+                       placeholder="Reference, customer or email" />
+
+            </div>
+
+            <select name="status"
+                    class="form-select">
+
+                <option value="">All Statuses</option>
+
+                @foreach (var s in Enum.GetValues<TravelPlanningSystem.Models.ActivityBookingStatus>())
+                {
+                    <option value="@s"
+                            selected="@(ViewBag.Status?.ToString() == s.ToString() ? "selected" : null)">
+                        @s
+                    </option>
+                }
+
+            </select>
+
+            <button type="submit"
+                    class="btn btn-dark">
+                Filter
+            </button>
+
+            <a asp-action="Index"
+               class="btn btn-outline-secondary">
+                Reset
+            </a>
+
+        </form>
+
+        <div class="admin-table-card">
+
+            <table class="table align-middle">
+
+                <thead>
+                    <tr>
+                        <th>Reference</th>
+                        <th>Customer</th>
+                        <th>Activity</th>
+                        <th>Date</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @foreach (var b in Model)
+                    {
+                        <tr>
+
+                            <td>
+
+                                <strong>
+                                    @b.BookingReference
+                                </strong>
+
+                                <br />
+
+                                <small>
+                                    @b.BookingDate.ToString("dd MMM yyyy")
+                                </small>
+
+                            </td>
+
+                            <td>
+
+                                @b.ContactName
+
+                                <br />
+
+                                <small>
+                                    @b.ContactEmail
+                                </small>
+
+                            </td>
+
+                            <td>
+
+                                @b.ActivitySession?.Activity?.ActivityName
+
+                                <br />
+
+                                <small>
+                                    @b.ParticipantCount participant(s)
+                                </small>
+
+                            </td>
+
+                            <td>
+                                @b.ActivitySession?.SessionDate.ToString("dd MMM yyyy")
+                            </td>
+
+                            <td>
+                                RM @b.TotalAmount.ToString("N2")
+                            </td>
+
+                            <td>
+
+                                <span class="status-pill status-@b.BookingStatus.ToString().ToLower()">
+                                    @b.BookingStatus
+                                </span>
+
+                            </td>
+
+                            <td class="text-end">
+
+                                <a asp-action="Details"
+                                   asp-route-id="@b.ActivityBookingId"
+                                   class="btn btn-sm btn-outline-dark">
+                                    View
+                                </a>
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+</div>

@@ -1,0 +1,75 @@
+﻿@model TravelPlanningSystem.Models.ActivityBooking
+
+@{
+    ViewData["Title"] = "Booking Confirmed";
+}
+
+<link rel="stylesheet" href="~/css/activities.css" />
+
+<div class="success-page">
+    <div class="success-card">
+
+        <div class="success-icon">
+            <i class="bi bi-check-lg"></i>
+        </div>
+
+        <span class="eyebrow">Reservation confirmed</span>
+
+        <h1>Your activity is booked!</h1>
+
+        <p>
+            A confirmation has been prepared for
+            <strong>@Model.ContactEmail</strong>.
+        </p>
+
+        <div class="confirmation-box">
+            <span>Booking reference</span>
+            <strong>@Model.BookingReference</strong>
+        </div>
+
+        <div class="success-details">
+
+            <div>
+                <span>Activity</span>
+                <strong>@Model.ActivitySession?.Activity?.ActivityName</strong>
+            </div>
+
+            <div>
+                <span>Date &amp; Time</span>
+                <strong>
+                    @Model.ActivitySession?.SessionDate.ToString("dd MMM yyyy")
+                    ·
+                    @DateTime.Today.Add(Model.ActivitySession!.StartTime).ToString("h:mm tt")
+                </strong>
+            </div>
+
+            <div>
+                <span>Participants</span>
+                <strong>@Model.ParticipantCount</strong>
+            </div>
+
+            <div>
+                <span>Total</span>
+                <strong>RM @Model.TotalAmount.ToString("N2")</strong>
+            </div>
+
+        </div>
+
+        <div class="success-actions">
+
+            <a asp-action="Ticket"
+               asp-route-id="@Model.ActivityBookingId"
+               class="btn btn-confirm-booking">
+                <i class="bi bi-ticket-perforated"></i>
+                View e-ticket
+            </a>
+
+            <a asp-action="MyBookings"
+               class="btn btn-outline-dark">
+                My Bookings
+            </a>
+
+        </div>
+
+    </div>
+</div>

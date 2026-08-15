@@ -1,0 +1,72 @@
+﻿@model TravelPlanningSystem.ViewModels.ActivityReviewViewModel
+
+@{
+    ViewData["Title"] = "Activity Review";
+}
+
+<link rel="stylesheet" href="~/css/activities.css" />
+
+<div class="form-page">
+    <div class="container tiny-container">
+
+        <form asp-action="Review"
+              method="post"
+              class="form-card review-form">
+
+            <input asp-for="ActivityBookingId" type="hidden" />
+            <input asp-for="ActivityReviewId" type="hidden" />
+
+            <span class="eyebrow">Share Your Experience</span>
+
+            <h1>@Model.ActivityName</h1>
+
+            <p>
+                Your review helps other travellers make better choices.
+            </p>
+
+            <div class="rating-picker">
+
+                @for (var i = 5; i >= 1; i--)
+                {
+                    <input asp-for="Rating"
+                           type="radio"
+                           value="@i"
+                           id="star@i" />
+
+                    <label for="star@i">★</label>
+                }
+
+            </div>
+
+            <span asp-validation-for="Rating"
+                  class="text-danger">
+            </span>
+
+            <label asp-for="Comment"
+                   class="form-label">
+            </label>
+
+            <textarea asp-for="Comment"
+                      class="form-control"
+                      rows="7"
+                      placeholder="What did you enjoy? What should future travellers know?">
+            </textarea>
+
+            <span asp-validation-for="Comment"
+                  class="text-danger">
+            </span>
+
+            <button type="submit"
+                    class="btn btn-confirm-booking">
+                Save Review
+            </button>
+
+        </form>
+
+    </div>
+</div>
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,32 @@
+﻿@model TravelPlanningSystem.ViewModels.ActivityFormViewModel
+
+@{
+    ViewData["Title"] = "Edit Activity";
+}
+
+<link rel="stylesheet" href="~/css/activities.css" />
+
+<div class="admin-page">
+    <div class="container narrow-container">
+
+        <div class="form-page-header">
+
+            <a asp-action="Details"
+               asp-route-id="@Model.ActivityId">
+                <i class="bi bi-arrow-left"></i>
+                Activity Details
+            </a>
+
+            <h1>Edit Activity</h1>
+
+            <p>
+                Update activity information, pricing and availability status.
+            </p>
+
+        </div>
+
+        <partial name="_ActivityForm"
+                 model="Model" />
+
+    </div>
+</div>

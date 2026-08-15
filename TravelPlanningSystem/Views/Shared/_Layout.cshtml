@@ -1,4 +1,12 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var currentController =
+        ViewContext.RouteData.Values["controller"]?.ToString();
+
+    var currentAction =
+        ViewContext.RouteData.Values["action"]?.ToString();
+}
+
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -29,12 +37,49 @@
 
             <div class="collapse navbar-collapse" id="menu">
                 <ul class="navbar-nav mx-auto nav-menu">
-                    <li><a class="nav-link active" asp-controller="Home" asp-action="Index"><i class="bi bi-house-door"></i> Home</a></li>
-                    <li><a class="nav-link" asp-controller="Flight" asp-action="Index"><i class="bi bi-airplane"></i> Flights</a></li>
-                    <li><a class="nav-link" asp-controller="Hotel" asp-action="Index"><i class="bi bi-building"></i> Hotels</a></li>
-                    <li><a class="nav-link" asp-controller="Transport" asp-action="Index"><i class="bi bi-car-front"></i> Transport</a></li>
-                    <li><a class="nav-link" asp-controller="Activity" asp-action="Index"><i class="bi bi-ticket-perforated"></i> Activities</a></li>
-                    <li><a class="nav-link" asp-controller="Booking" asp-action="Index"><i class="bi bi-calendar-event"></i> My Bookings</a></li>
+
+                    <li>
+                        <a class="nav-link @(currentController == "Home" ? "active" : "")"
+                           asp-controller="Home" asp-action="Index">
+                            <i class="bi bi-house-door"></i> Home
+                        </a>
+                    </li>
+
+                    <li>
+                        <a class="nav-link @(currentController == "Flight" ? "active" : "")"
+                           asp-controller="Flight" asp-action="Index">
+                            <i class="bi bi-airplane"></i> Flights
+                        </a>
+                    </li>
+
+                    <li>
+                        <a class="nav-link @(currentController == "Hotel" ? "active" : "")"
+                           asp-controller="Hotel" asp-action="Index">
+                            <i class="bi bi-building"></i> Hotels
+                        </a>
+                    </li>
+
+                    <li>
+                        <a class="nav-link @(currentController == "Transport" ? "active" : "")"
+                           asp-controller="Transport" asp-action="Index">
+                            <i class="bi bi-car-front"></i> Transport
+                        </a>
+                    </li>
+
+                    <li>
+                        <a class="nav-link @(currentController == "Activity" || currentController == "ActivityBookings" ? "active" : "")"
+                           asp-controller="Activity" asp-action="Index">
+                            <i class="bi bi-ticket-perforated"></i> Activities
+                        </a>
+                    </li>
+
+                    <li>
+                        <a class="nav-link @(currentController == "Booking" ? "active" : "")"
+                           asp-controller="Booking" asp-action="Index">
+                            <i class="bi bi-calendar-event"></i> My Bookings
+                        </a>
+                    </li>
+
                 </ul>
 
                 <div class="right-menu">
@@ -50,6 +95,10 @@
         @RenderBody()
     </main>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

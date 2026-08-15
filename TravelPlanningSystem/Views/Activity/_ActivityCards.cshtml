@@ -1,0 +1,208 @@
+﻿@model TravelPlanningSystem.ViewModels.ActivitySearchViewModel
+
+<!-- Hidden value used by AJAX to update the activity count -->
+<div id="activityTotalCount"
+     data-total="@Model.TotalItems"
+     style="display:none;">
+</div>
+
+@if (!Model.Activities.Any())
+{
+    <div class="empty-state">
+
+        <i class="bi bi-binoculars"></i>
+
+        <h3>No activities found</h3>
+
+        <p>
+            Try changing your destination, date or price range.
+        </p>
+
+    </div>
+}
+else
+{
+    <div class="activity-card-grid">
+
+        @foreach (var item in Model.Activities)
+        {
+            var photo =
+                item.Photos.FirstOrDefault(p => p.IsPrimary)?.PhotoUrl
+                ?? item.Photos.FirstOrDefault()?.PhotoUrl
+                ?? "/images/hero-beach.jpg";
+
+            var rating =
+                item.Reviews.Any()
+                    ? item.Reviews.Average(r => r.Rating)
+                    : 0;
+
+            var nextSession =
+                item.Sessions
+                    .Where(s =>
+                        s.IsActive &&
+                        s.SessionDate >= DateTime.Today &&
+                        s.AvailableSlots > 0)
+                    .OrderBy(s => s.SessionDate)
+                    .ThenBy(s => s.StartTime)
+                    .FirstOrDefault();
+
+
+            <article class="activity-card">
+
+
+                <div class="card-image-wrap">
+
+                    <img src="@photo"
+                         alt="@item.ActivityName" />
+
+                    @if (item.IsFeatured)
+                    {
+                        <span class="featured-badge">
+
+                            <i class="bi bi-stars"></i>
+
+                            Popular
+
+                        </span>
+                    }
+
+                    <span class="category-badge">
+                        @item.ActivityCategory?.Name
+                    </span>
+
+                </div>
+
+
+                <div class="card-body-custom">
+
+                    <div class="location">
+
+                        <i class="bi bi-geo-alt-fill"></i>
+
+                        @item.Destination
+
+                    </div>
+
+
+                    <h3>
+                        @item.ActivityName
+                    </h3>
+
+
+                    <p class="description">
+                        @item.Description
+                    </p>
+
+
+                    <div class="meta-row">
+
+                        <span>
+
+                            <i class="bi bi-clock"></i>
+
+                            @item.DurationHours.ToString("0.#") hours
+
+                        </span>
+
+
+                        <span>
+
+                            <i class="bi bi-star-fill"></i>
+
+                            @(rating > 0
+                                ? rating.ToString("0.0")
+                                : "New")
+
+                        </span>
+
+
+                        @if (nextSession != null)
+                        {
+                            <span>
+
+                                <i class="bi bi-calendar3"></i>
+
+                                @nextSession.SessionDate.ToString("dd MMM")
+
+                            </span>
+                        }
+
+                    </div>
+
+
+                    <div class="card-footer-custom">
+
+                        <div class="price">
+
+                            <small>
+                                From
+                            </small>
+
+                            <strong>
+                                RM @item.PricePerPerson.ToString("N2")
+                            </strong>
+
+                            <span>
+                                / person
+                            </span>
+
+                        </div>
+
+
+                        <a asp-controller="Activity"
+                           asp-action="Details"
+                           asp-route-id="@item.ActivityId"
+                           class="btn btn-view-activity">
+
+                            View details
+
+                            <i class="bi bi-arrow-right"></i>
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </article>
+        }
+
+    </div>
+
+
+    @if (Model.TotalPages >= 1)
+    {
+        <nav class="activity-pagination"
+             aria-label="Activity pages">
+
+            @for (var i = 1; i <= Model.TotalPages; i++)
+            {
+                if (i == Model.Page)
+                {
+                    <span class="page-button active">
+                        @i
+                    </span>
+                }
+                else
+                {
+                    <a class="page-button"
+                       asp-controller="Activity"
+                       asp-action="Index"
+                       asp-route-Search="@Model.Search"
+                       asp-route-Destination="@Model.Destination"
+                       asp-route-Date="@Model.Date"
+                       asp-route-CategoryId="@Model.CategoryId"
+                       asp-route-MinPrice="@Model.MinPrice"
+                       asp-route-MaxPrice="@Model.MaxPrice"
+                       asp-route-Sort="@Model.Sort"
+                       asp-route-Page="@i">
+
+                        @i
+
+                    </a>
+                }
+            }
+
+        </nav>
+    }
+}

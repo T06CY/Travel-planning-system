@@ -1,0 +1,145 @@
+﻿@model TravelPlanningSystem.Models.Activity
+
+@{
+    ViewData["Title"] = "Activity Photos";
+}
+
+<link rel="stylesheet" href="~/css/activities.css" />
+
+<div class="admin-page">
+    <div class="container">
+
+        <div class="admin-header">
+
+            <div>
+
+                <a asp-action="Details"
+                   asp-route-id="@Model.ActivityId"
+                   class="back-link">
+                    <i class="bi bi-arrow-left"></i>
+                    @Model.ActivityName
+                </a>
+
+                <h1>Photo Gallery</h1>
+
+                <p>
+                    Upload multiple activity images and choose the main
+                    catalogue photo.
+                </p>
+
+            </div>
+
+        </div>
+
+        <form asp-action="UploadPhotos"
+              method="post"
+              enctype="multipart/form-data"
+              class="photo-upload-card">
+
+            <input type="hidden"
+                   name="activityId"
+                   value="@Model.ActivityId" />
+
+            <div>
+
+                <label class="form-label">
+                    Choose Photos
+                </label>
+
+                <input type="file"
+                       name="photos"
+                       accept="image/jpeg,image/png,image/webp"
+                       multiple
+                       class="form-control"
+                       required />
+
+                <small>
+                    Maximum 5 MB per image.
+                </small>
+
+            </div>
+
+            <button type="submit"
+                    class="btn btn-view-activity">
+                <i class="bi bi-cloud-arrow-up"></i>
+                Upload Photos
+            </button>
+
+        </form>
+
+        @if (!Model.Photos.Any())
+        {
+            <div class="empty-state">
+
+                <i class="bi bi-images"></i>
+
+                <h3>No Photos Uploaded</h3>
+
+                <p>
+                    Add high-quality images to improve the activity page.
+                </p>
+
+            </div>
+        }
+        else
+        {
+            <div class="photo-admin-grid">
+
+                @foreach (var p in Model.Photos)
+                {
+                    <article class="photo-admin-card">
+
+                        <img src="@p.PhotoUrl"
+                             alt="@p.Caption" />
+
+                        @if (p.IsPrimary)
+                        {
+                            <span class="featured-badge">
+                                Primary
+                            </span>
+                        }
+
+                        <div>
+
+                            <span>@p.Caption</span>
+
+                            <div class="photo-actions">
+
+                                @if (!p.IsPrimary)
+                                {
+                                    <form asp-action="SetPrimaryPhoto"
+                                          asp-route-id="@p.ActivityPhotoId"
+                                          method="post">
+
+                                        <button type="submit"
+                                                title="Set Primary">
+                                            <i class="bi bi-star"></i>
+                                        </button>
+
+                                    </form>
+                                }
+
+                                <form asp-action="DeletePhoto"
+                                      asp-route-id="@p.ActivityPhotoId"
+                                      method="post">
+
+                                    <button type="submit"
+                                            class="danger"
+                                            title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </div>
+
+                    </article>
+                }
+
+            </div>
+        }
+
+    </div>
+</div>

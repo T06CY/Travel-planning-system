@@ -1,0 +1,233 @@
+﻿@{
+    ViewData["Title"] = "My Bookings";
+}
+
+<link rel="stylesheet"
+      href="~/css/travelmate.css"
+      asp-append-version="true" />
+
+<section class="booking-hub">
+
+    <div class="booking-hub-container">
+
+        <div class="booking-hub-header">
+
+            <div>
+                <span class="booking-eyebrow">
+                    <i class="bi bi-calendar-check"></i>
+                    TRAVELMATE BOOKINGS
+                </span>
+
+                <h1>My Bookings</h1>
+
+                <p>
+                    View and manage all your travel reservations
+                    from one convenient place.
+                </p>
+            </div>
+
+            <div class="booking-header-icon">
+                <i class="bi bi-suitcase-lg"></i>
+            </div>
+
+        </div>
+
+
+        <div class="booking-module-grid">
+
+            <!-- FLIGHT -->
+            <a asp-controller="FlightBookings"
+               asp-action="MyBookings"
+               class="booking-module-card booking-flight">
+
+                <div class="booking-card-top">
+
+                    <div class="booking-module-icon">
+                        <i class="bi bi-airplane"></i>
+                    </div>
+
+                    <span class="booking-type">
+                        Flight
+                    </span>
+
+                </div>
+
+                <div class="booking-card-content">
+
+                    <h3>
+                        Flight Bookings
+                    </h3>
+
+                    <p>
+                        View flight schedules, reservation details
+                        and upcoming journeys.
+                    </p>
+
+                </div>
+
+                <div class="booking-card-footer">
+
+                    <span>
+                        Manage bookings
+                    </span>
+
+                    <i class="bi bi-arrow-up-right"></i>
+
+                </div>
+
+            </a>
+
+
+            <!-- HOTEL -->
+            <a asp-controller="HotelBookings"
+               asp-action="MyBookings"
+               class="booking-module-card booking-hotel">
+
+                <div class="booking-card-top">
+
+                    <div class="booking-module-icon">
+                        <i class="bi bi-building"></i>
+                    </div>
+
+                    <span class="booking-type">
+                        Hotel
+                    </span>
+
+                </div>
+
+                <div class="booking-card-content">
+
+                    <h3>
+                        Hotel Reservations
+                    </h3>
+
+                    <p>
+                        Manage hotel stays, reservation dates
+                        and accommodation details.
+                    </p>
+
+                </div>
+
+                <div class="booking-card-footer">
+
+                    <span>
+                        Manage bookings
+                    </span>
+
+                    <i class="bi bi-arrow-up-right"></i>
+
+                </div>
+
+            </a>
+
+
+            <!-- TRANSPORT -->
+            <a asp-controller="TransportBookings"
+               asp-action="MyBookings"
+               class="booking-module-card booking-transport">
+
+                <div class="booking-card-top">
+
+                    <div class="booking-module-icon">
+                        <i class="bi bi-car-front"></i>
+                    </div>
+
+                    <span class="booking-type">
+                        Transport
+                    </span>
+
+                </div>
+
+                <div class="booking-card-content">
+
+                    <h3>
+                        Transportation Bookings
+                    </h3>
+
+                    <p>
+                        View transportation reservations,
+                        journey information and trip details.
+                    </p>
+
+                </div>
+
+                <div class="booking-card-footer">
+
+                    <span>
+                        Manage bookings
+                    </span>
+
+                    <i class="bi bi-arrow-up-right"></i>
+
+                </div>
+
+            </a>
+
+
+            <!-- ACTIVITY -->
+            <a asp-controller="ActivityBookings"
+               asp-action="MyBookings"
+               class="booking-module-card booking-activity">
+
+                <div class="booking-card-top">
+
+                    <div class="booking-module-icon">
+                        <i class="bi bi-ticket-perforated"></i>
+                    </div>
+
+                    <span class="booking-type">
+                        Activity
+                    </span>
+
+                </div>
+
+                <div class="booking-card-content">
+
+                    <h3>
+                        Activity Bookings
+                    </h3>
+
+                    <p>
+                        Manage activity sessions, reservations,
+                        booking status and e-tickets.
+                    </p>
+
+                </div>
+
+                <div class="booking-card-footer">
+
+                    <span>
+                        Manage bookings
+                    </span>
+
+                    <i class="bi bi-arrow-up-right"></i>
+
+                </div>
+
+            </a>
+
+        </div>
+
+
+        <div class="booking-help-box">
+
+            <div class="booking-help-icon">
+                <i class="bi bi-shield-check"></i>
+            </div>
+
+            <div>
+                <strong>
+                    Manage your trip with confidence
+                </strong>
+
+                <p>
+                    Your reservations are organised by service type
+                    so you can quickly find the booking you need.
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>

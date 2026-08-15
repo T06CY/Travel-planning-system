@@ -1,0 +1,51 @@
+﻿@model TravelPlanningSystem.Models.Activity
+
+@{
+    ViewData["Title"] = "Delete Activity";
+}
+
+<link rel="stylesheet" href="~/css/activities.css" />
+
+<div class="form-page">
+    <div class="container tiny-container">
+
+        <div class="form-card danger-form">
+
+            <div class="danger-icon">
+                <i class="bi bi-trash"></i>
+            </div>
+
+            <h1>Delete @Model.ActivityName?</h1>
+
+            <p>
+                If this activity already has bookings, it will be
+                deactivated instead so that historical records remain
+                valid.
+            </p>
+
+            <form method="post">
+
+                <input type="hidden"
+                       asp-for="ActivityId" />
+
+                <div class="danger-actions">
+
+                    <a asp-action="Details"
+                       asp-route-id="@Model.ActivityId"
+                       class="btn btn-outline-dark">
+                        Cancel
+                    </a>
+
+                    <button type="submit"
+                            class="btn btn-danger">
+                        Delete or Deactivate
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+</div>

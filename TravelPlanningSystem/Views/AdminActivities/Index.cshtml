@@ -1,0 +1,180 @@
+﻿@model IEnumerable<TravelPlanningSystem.Models.Activity>
+
+@{
+    ViewData["Title"] = "Activity Management";
+}
+
+<link rel="stylesheet" href="~/css/activities.css" />
+
+<div class="admin-page">
+    <div class="container-fluid px-5">
+
+        <div class="admin-header">
+
+            <div>
+                <span class="eyebrow">Administrator</span>
+
+                <h1>Activity Management</h1>
+
+                <p>
+                    Create activities, maintain sessions and monitor availability.
+                </p>
+            </div>
+
+            <a asp-action="Create"
+               class="btn btn-view-activity">
+                <i class="bi bi-plus-lg"></i>
+                Add Activity
+            </a>
+
+        </div>
+
+        @if (TempData["Message"] != null)
+        {
+            <div class="alert alert-info">
+                @TempData["Message"]
+            </div>
+        }
+
+        <form method="get"
+              class="admin-filter">
+
+            <div class="input-icon">
+
+                <i class="bi bi-search"></i>
+
+                <input name="search"
+                       value="@ViewBag.Search"
+                       class="form-control"
+                       placeholder="Search activity or destination" />
+
+            </div>
+
+            <select name="categoryId"
+                    asp-items="ViewBag.Categories"
+                    class="form-select">
+
+                <option value="">All Categories</option>
+
+            </select>
+
+            <button type="submit"
+                    class="btn btn-dark">
+                Filter
+            </button>
+
+            <a asp-action="Index"
+               class="btn btn-outline-secondary">
+                Reset
+            </a>
+
+        </form>
+
+        <div class="admin-table-card">
+
+            <table class="table align-middle">
+
+                <thead>
+                    <tr>
+                        <th>Activity</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Upcoming Sessions</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @foreach (var a in Model)
+                    {
+                        <tr>
+
+                            <td>
+
+                                <div class="table-activity">
+
+                                    <div class="table-thumb">
+                                        <i class="bi bi-ticket-perforated"></i>
+                                    </div>
+
+                                    <div>
+                                        <strong>@a.ActivityName</strong>
+                                        <span>@a.Destination</span>
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+                            <td>
+                                @a.ActivityCategory?.Name
+                            </td>
+
+                            <td>
+                                RM @a.PricePerPerson.ToString("N2")
+                            </td>
+
+                            <td>
+                                @a.Sessions.Count(s => s.SessionDate >= DateTime.Today)
+                            </td>
+
+                            <td>
+
+                                <span class="status-pill @(a.IsActive ? "status-confirmed" : "status-cancelled")">
+                                    @(a.IsActive ? "Active" : "Inactive")
+                                </span>
+
+                            </td>
+
+                            <td class="text-end">
+
+                                <div class="table-actions">
+
+                                    <a asp-action="Details"
+                                       asp-route-id="@a.ActivityId"
+                                       title="Details">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+
+                                    <a asp-action="Edit"
+                                       asp-route-id="@a.ActivityId"
+                                       title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+
+                                    <a asp-action="Sessions"
+                                       asp-route-id="@a.ActivityId"
+                                       title="Sessions">
+                                        <i class="bi bi-calendar3"></i>
+                                    </a>
+
+                                    <a asp-action="Photos"
+                                       asp-route-id="@a.ActivityId"
+                                       title="Photos">
+                                        <i class="bi bi-images"></i>
+                                    </a>
+
+                                    <a asp-action="Delete"
+                                       asp-route-id="@a.ActivityId"
+                                       class="danger"
+                                       title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+</div>

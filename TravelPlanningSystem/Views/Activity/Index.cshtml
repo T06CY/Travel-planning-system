@@ -1,0 +1,271 @@
+﻿@model TravelPlanningSystem.ViewModels.ActivitySearchViewModel
+
+@{
+    ViewData["Title"] = "Activities";
+}
+
+<link rel="stylesheet"
+      href="~/css/activities.css"
+      asp-append-version="true" />
+
+<section class="activity-hero">
+
+    <div class="container">
+
+        <div class="hero-copy">
+
+            <span class="eyebrow">
+                <i class="bi bi-compass"></i>
+                Curated experiences
+            </span>
+
+            <h1>
+                Make every destination
+                <span>unforgettable.</span>
+            </h1>
+
+            <p>
+                Discover activities, compare prices and reserve
+                your favourite experience in a few simple steps.
+            </p>
+
+        </div>
+
+
+        <form id="activitySearchForm"
+              class="activity-search-panel"
+              method="get"
+              asp-controller="Activity"
+              asp-action="Index">
+
+            <div class="search-grid">
+
+                <div class="field field-wide">
+
+                    <label asp-for="Search">
+                        What would you like to do?
+                    </label>
+
+                    <div class="input-icon">
+
+                        <i class="bi bi-search"></i>
+
+                        <input asp-for="Search"
+                               class="form-control"
+                               placeholder="Island hopping, food tour..." />
+
+                    </div>
+
+                </div>
+
+
+                <div class="field">
+
+                    <label asp-for="Destination">
+                        Destination
+                    </label>
+
+                    <select asp-for="Destination"
+                            asp-items="Model.Destinations"
+                            class="form-select">
+
+                        <option value="">
+                            All destinations
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="field">
+
+                    <label asp-for="Date">
+                        Activity date
+                    </label>
+
+                    <input asp-for="Date"
+                           type="date"
+                           class="form-control"
+                           min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+
+                </div>
+
+
+                <button class="btn btn-activity-search"
+                        type="submit">
+
+                    <i class="bi bi-search"></i>
+                    Search
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</section>
+
+
+<section class="activity-section">
+
+    <div class="container">
+
+        <div class="content-grid">
+
+            <aside class="filter-card">
+
+                <div class="filter-heading">
+
+                    <h5>
+                        Filter activities
+                    </h5>
+
+                    <button type="button"
+                            id="clearFilters"
+                            class="btn-link-clean">
+
+                        Clear all
+
+                    </button>
+
+                </div>
+
+
+                <div class="filter-group">
+
+                    <label asp-for="CategoryId">
+                        Category
+                    </label>
+
+                    <select form="activitySearchForm"
+                            asp-for="CategoryId"
+                            asp-items="Model.Categories"
+                            class="form-select auto-filter">
+
+                        <option value="">
+                            All categories
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="filter-group">
+
+                    <label>
+                        Price range (RM)
+                    </label>
+
+                    <div class="price-row">
+
+                        <input form="activitySearchForm"
+                               asp-for="MinPrice"
+                               class="form-control auto-filter"
+                               placeholder="Min" />
+
+                        <span>–</span>
+
+                        <input form="activitySearchForm"
+                               asp-for="MaxPrice"
+                               class="form-control auto-filter"
+                               placeholder="Max" />
+
+                    </div>
+
+                </div>
+
+
+                <div class="filter-note">
+
+                    <i class="bi bi-shield-check"></i>
+
+                    <div>
+
+                        <strong>
+                            Book with confidence
+                        </strong>
+
+                        <span>
+                            Availability is checked again
+                            before confirmation.
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </aside>
+
+
+            <div>
+
+                <div class="results-toolbar">
+
+                    <div>
+
+                        <span class="results-count">
+                            @Model.TotalItems activities found
+                        </span>
+
+                        <small>
+                            Choose an experience that suits your trip.
+                        </small>
+
+                    </div>
+
+
+                    <select form="activitySearchForm"
+                            asp-for="Sort"
+                            class="form-select auto-filter sort-select">
+
+                        <option value="featured">
+                            Recommended
+                        </option>
+
+                        <option value="price-low">
+                            Price: Low to High
+                        </option>
+
+                        <option value="price-high">
+                            Price: High to Low
+                        </option>
+
+                        <option value="rating">
+                            Highest Rated
+                        </option>
+
+                        <option value="name">
+                            Name A–Z
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div id="activityResults">
+
+                    <partial name="_ActivityCards"
+                             model="Model" />
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+@section Scripts {
+
+    <script src="~/js/activity-search.js"
+            asp-append-version="true"></script>
+
+}

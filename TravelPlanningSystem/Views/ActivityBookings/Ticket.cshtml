@@ -1,0 +1,285 @@
+﻿@model TravelPlanningSystem.Models.ActivityBooking
+
+@using QRCoder
+
+@{
+    ViewData["Title"] = "Activity E-Ticket";
+
+    var activityName =
+        Model.ActivitySession?.Activity?.ActivityName ?? "Activity";
+
+    var activityLocation =
+        Model.ActivitySession?.Activity?.Location ?? "-";
+
+    var sessionDate =
+        Model.ActivitySession?.SessionDate;
+
+    var sessionTime =
+        DateTime.Today
+            .Add(Model.ActivitySession!.StartTime)
+            .ToString("h:mm tt");
+
+
+    var qrPayload =
+        $"Booking Reference: {Model.BookingReference}\n" +
+        $"Activity: {activityName}\n" +
+        $"Date: {sessionDate:dd MMM yyyy}\n" +
+        $"Time: {sessionTime}\n" +
+        $"Traveller: {Model.ContactName}\n" +
+        $"Participants: {Model.ParticipantCount}\n" +
+        $"Status: {Model.BookingStatus}";
+
+
+    var qrBytes =
+        PngByteQRCodeHelper.GetQRCode(
+            qrPayload,
+            QRCodeGenerator.ECCLevel.Q,
+            10
+        );
+
+
+    var qrBase64 =
+        Convert.ToBase64String(qrBytes);
+
+
+    var qrImage =
+        $"data:image/png;base64,{qrBase64}";
+}
+
+
+<link rel="stylesheet"
+      href="~/css/activities.css"
+      asp-append-version="true" />
+
+
+<div class="ticket-page">
+
+
+    <div class="ticket-toolbar no-print">
+
+        <a asp-action="Details"
+           asp-route-id="@Model.ActivityBookingId">
+
+            <i class="bi bi-arrow-left"></i>
+
+            Booking Details
+
+        </a>
+
+
+        <button type="button"
+                onclick="window.print()"
+                class="btn btn-view-activity">
+
+            <i class="bi bi-printer"></i>
+
+            Print / Save as PDF
+
+        </button>
+
+    </div>
+
+
+
+    <div class="ticket">
+
+
+
+        <div class="ticket-brand">
+
+            <div class="ticket-logo">
+
+                <i class="bi bi-airplane-fill"></i>
+
+            </div>
+
+
+            <div>
+
+                <h2>
+                    Travel<span>Mate</span>
+                </h2>
+
+                <small>
+                    Activity E-Ticket
+                </small>
+
+            </div>
+
+
+            <span class="status-pill status-@Model.BookingStatus.ToString().ToLower()">
+
+                @Model.BookingStatus
+
+            </span>
+
+        </div>
+
+
+
+        <div class="ticket-hero">
+
+            <span>
+                Booking Reference
+            </span>
+
+
+            <strong>
+                @Model.BookingReference
+            </strong>
+
+
+            <h1>
+                @activityName
+            </h1>
+
+
+            <p>
+
+                <i class="bi bi-geo-alt-fill"></i>
+
+                @activityLocation
+
+            </p>
+
+        </div>
+
+        <div class="ticket-grid">
+
+
+            <!-- DATE -->
+
+            <div>
+
+                <span>
+                    Date
+                </span>
+
+                <strong>
+                    @(sessionDate?.ToString("dd MMM yyyy") ?? "-")
+                </strong>
+
+            </div>
+
+
+
+            <!-- TIME -->
+
+            <div>
+
+                <span>
+                    Time
+                </span>
+
+                <strong>
+                    @sessionTime
+                </strong>
+
+            </div>
+
+
+
+            <!-- LEAD TRAVELLER -->
+
+            <div>
+
+                <span>
+                    Lead Traveller
+                </span>
+
+                <strong>
+                    @Model.ContactName
+                </strong>
+
+            </div>
+
+
+
+            <!-- PARTICIPANTS -->
+
+            <div>
+
+                <span>
+                    Participants
+                </span>
+
+                <strong>
+                    @Model.ParticipantCount
+                </strong>
+
+            </div>
+
+
+
+            <!-- TOTAL AMOUNT -->
+
+            <div>
+
+                <span>
+                    Total Amount
+                </span>
+
+                <strong>
+                    RM @Model.TotalAmount.ToString("N2")
+                </strong>
+
+            </div>
+
+
+
+            <!-- CONTACT -->
+
+            <div>
+
+                <span>
+                    Contact
+                </span>
+
+                <strong>
+                    @Model.ContactPhone
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="ticket-code">
+
+            <div class="real-qr">
+
+                <img src="@qrImage"
+                     alt="QR Code for booking @Model.BookingReference" />
+
+            </div>
+
+
+            <div>
+
+                <strong>
+                    Present this QR code at check-in
+                </strong>
+
+
+                <p>
+                    Arrive at least 15 minutes before the activity starts.
+                    The QR code or booking reference will be verified by
+                    the operator.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="ticket-footer">
+
+            Generated on
+            @DateTime.Now.ToString("dd MMM yyyy, h:mm tt")
+            · TravelMate Activities
+
+        </div>
+
+    </div>
+
+</div>

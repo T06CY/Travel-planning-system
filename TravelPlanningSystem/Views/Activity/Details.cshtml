@@ -1,0 +1,82 @@
+﻿@model TravelPlanningSystem.Models.Activity
+@{
+    ViewData["Title"] = Model.ActivityName;
+    var photos = Model.Photos.OrderByDescending(p => p.IsPrimary).ThenBy(p => p.DisplayOrder).ToList();
+    if (!photos.Any()) photos.Add(new TravelPlanningSystem.Models.ActivityPhoto { PhotoUrl = "/images/hero-beach.jpg" });
+    var avg = Model.Reviews.Any() ? Model.Reviews.Average(r => r.Rating) : 0;
+}
+<link rel="stylesheet" href="~/css/activities.css" />
+
+<div class="details-page">
+    <div class="container">
+        <div class="breadcrumb-custom"><a asp-action="Index">Activities</a><i class="bi bi-chevron-right"></i><span>@Model.Destination</span><i class="bi bi-chevron-right"></i><strong>@Model.ActivityName</strong></div>
+
+        <div class="details-header">
+            <div><span class="eyebrow">@Model.ActivityCategory?.Name</span><h1>@Model.ActivityName</h1><div class="details-sub"><span><i class="bi bi-geo-alt-fill"></i> @Model.Location</span><span><i class="bi bi-star-fill"></i> @(avg > 0 ? $"{avg:0.0} ({Model.Reviews.Count} reviews)" : "New activity")</span></div></div>
+            <a href="#book" class="btn btn-view-activity">Check availability</a>
+        </div>
+
+        <div class="photo-gallery @(photos.Count == 1 ? "single" : "")">
+            <img class="main-photo" src="@photos[0].PhotoUrl" alt="@Model.ActivityName" />
+            @foreach (var p in photos.Skip(1).Take(2))
+            {
+                <img src="@p.PhotoUrl" alt="@(p.Caption ?? Model.ActivityName)" />
+            }
+        </div>
+
+        <div class="details-layout">
+            <main class="details-content">
+                <div class="quick-facts">
+                    <div><i class="bi bi-clock-history"></i><span><small>Duration</small><strong>@Model.DurationHours.ToString("0.#") hours</strong></span></div>
+                    <div><i class="bi bi-people"></i><span><small>Group size</small><strong>Up to @Model.MaximumParticipants</strong></span></div>
+                    <div><i class="bi bi-person-check"></i><span><small>Minimum age</small><strong>@(Model.MinimumAge == 0 ? "All ages" : $"{Model.MinimumAge}+ years")</strong></span></div>
+                    <div><i class="bi bi-lightning-charge"></i><span><small>Confirmation</small><strong>Instant</strong></span></div>
+                </div>
+
+                <section class="detail-block"><h2>About this experience</h2><p>@Model.Description</p></section>
+                <section class="detail-block two-column-info">
+                    <div><h3><i class="bi bi-check2-circle"></i> What's included</h3><p>@(Model.IncludedItems ?? "Please refer to the activity description.")</p></div>
+                    <div><h3><i class="bi bi-backpack"></i> What to bring</h3><p>@(Model.WhatToBring ?? "Comfortable clothing and personal essentials.")</p></div>
+                </section>
+
+                <section class="detail-block reviews-block">
+                    <div class="section-title-row"><h2>Traveller reviews</h2><span class="rating-summary"><i class="bi bi-star-fill"></i> @(avg > 0 ? avg.ToString("0.0") : "New")</span></div>
+                    @if (!Model.Reviews.Any())
+                    {
+                        <p class="muted-copy">No reviews yet. Be the first traveller to share your experience after completing a booking.</p>
+                    }
+                    else
+                    {
+                        @foreach (var review in Model.Reviews.OrderByDescending(r => r.CreatedAt).Take(5))
+                        {
+                            <div class="review-item"><div class="review-avatar">@review.ActivityBooking?.ContactName?.Substring(0, 1).ToUpper()</div><div><div class="review-head"><strong>@review.ActivityBooking?.ContactName</strong><span>@string.Concat(Enumerable.Repeat("★", review.Rating))</span></div><p>@review.Comment</p><small>@review.CreatedAt.ToString("dd MMM yyyy")</small></div></div>
+                        }
+                    }
+                </section>
+            </main>
+
+            <aside id="book" class="booking-card-sticky">
+                <div class="booking-price"><small>From</small><strong>RM @Model.PricePerPerson.ToString("N2")</strong><span>per person</span></div>
+                <h4>Select a session</h4>
+                @if (!Model.Sessions.Any())
+                {
+                    <div class="availability-empty"><i class="bi bi-calendar-x"></i><span>No upcoming sessions available.</span></div>
+                }
+                else
+                {
+                    <div class="session-list">
+                        @foreach (var s in Model.Sessions.Take(8))
+                        {
+                            <a asp-controller="ActivityBookings" asp-action="Create" asp-route-sessionId="@s.ActivitySessionId" class="session-option">
+                                <div class="session-date"><strong>@s.SessionDate.ToString("dd")</strong><span>@s.SessionDate.ToString("MMM")</span></div>
+                                <div><strong>@s.SessionDate.ToString("dddd")</strong><span>@DateTime.Today.Add(s.StartTime).ToString("h:mm tt") – @DateTime.Today.Add(s.EndTime).ToString("h:mm tt")</span></div>
+                                <div class="slots">@s.AvailableSlots left <i class="bi bi-chevron-right"></i></div>
+                            </a>
+                        }
+                    </div>
+                }
+                <div class="booking-assurance"><i class="bi bi-shield-check"></i><span><strong>Secure reservation</strong>Your slots are checked before confirmation.</span></div>
+            </aside>
+        </div>
+    </div>
+</div>

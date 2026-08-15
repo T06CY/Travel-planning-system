@@ -1,0 +1,169 @@
+﻿@model TravelPlanningSystem.ViewModels.ActivityBookingDetailsViewModel
+
+@{
+    ViewData["Title"] = "Booking Details";
+    var b = Model.Booking;
+}
+
+<link rel="stylesheet" href="~/css/activities.css" />
+
+<div class="form-page">
+    <div class="container narrow-container">
+
+        <div class="form-page-header">
+            <a asp-action="MyBookings">
+                <i class="bi bi-arrow-left"></i>
+                Back to Bookings
+            </a>
+
+            <div class="booking-detail-title">
+                <div>
+                    <span class="status-pill status-@b.BookingStatus.ToString().ToLower()">
+                        @b.BookingStatus
+                    </span>
+
+                    <h1>@b.ActivitySession?.Activity?.ActivityName</h1>
+
+                    <p>
+                        Booking Reference:
+                        <strong>@b.BookingReference</strong>
+                    </p>
+                </div>
+
+                <a asp-action="Ticket"
+                   asp-route-id="@b.ActivityBookingId"
+                   class="btn btn-outline-dark">
+                    <i class="bi bi-ticket"></i>
+                    E-ticket
+                </a>
+            </div>
+        </div>
+
+        <div class="booking-detail-grid">
+
+            <div class="detail-card">
+                <h3>Reservation Details</h3>
+
+                <dl>
+                    <div>
+                        <dt>Date</dt>
+                        <dd>@b.ActivitySession?.SessionDate.ToString("dddd, dd MMMM yyyy")</dd>
+                    </div>
+
+                    <div>
+                        <dt>Time</dt>
+                        <dd>
+                            @DateTime.Today.Add(b.ActivitySession!.StartTime).ToString("h:mm tt")
+                            –
+                            @DateTime.Today.Add(b.ActivitySession.EndTime).ToString("h:mm tt")
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt>Location</dt>
+                        <dd>@b.ActivitySession.Activity?.Location</dd>
+                    </div>
+
+                    <div>
+                        <dt>Participants</dt>
+                        <dd>@b.ParticipantCount</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <div class="detail-card">
+                <h3>Contact Information</h3>
+
+                <dl>
+                    <div>
+                        <dt>Name</dt>
+                        <dd>@b.ContactName</dd>
+                    </div>
+
+                    <div>
+                        <dt>Email</dt>
+                        <dd>@b.ContactEmail</dd>
+                    </div>
+
+                    <div>
+                        <dt>Phone</dt>
+                        <dd>@b.ContactPhone</dd>
+                    </div>
+
+                    <div>
+                        <dt>Booked On</dt>
+                        <dd>@b.BookingDate.ToString("dd MMM yyyy, h:mm tt")</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <div class="detail-card payment-card">
+                <h3>Payment Summary</h3>
+
+                <div class="summary-line">
+                    <span>
+                        RM @b.PricePerPerson.ToString("N2") × @b.ParticipantCount
+                    </span>
+
+                    <strong>
+                        RM @b.TotalAmount.ToString("N2")
+                    </strong>
+                </div>
+
+                <div class="summary-total">
+                    <span>Total</span>
+
+                    <strong>
+                        RM @b.TotalAmount.ToString("N2")
+                    </strong>
+                </div>
+            </div>
+
+        </div>
+
+        @if (b.BookingStatus == TravelPlanningSystem.Models.ActivityBookingStatus.Cancelled)
+        {
+            <div class="cancelled-note">
+                <i class="bi bi-info-circle"></i>
+
+                <div>
+                    <strong>This reservation was cancelled.</strong>
+
+                    <p>@b.CancellationReason</p>
+                </div>
+            </div>
+        }
+
+        <div class="detail-actions">
+
+            @if (Model.CanCancel)
+            {
+                <a asp-action="Cancel"
+                   asp-route-id="@b.ActivityBookingId"
+                   class="btn btn-outline-danger">
+                    Cancel Booking
+                </a>
+            }
+
+            @if (Model.CanReview)
+            {
+                <a asp-action="Review"
+                   asp-route-bookingId="@b.ActivityBookingId"
+                   class="btn btn-view-activity">
+                    Write a Review
+                </a>
+            }
+
+            @if (Model.ExistingReview != null)
+            {
+                <a asp-action="Review"
+                   asp-route-bookingId="@b.ActivityBookingId"
+                   class="btn btn-outline-dark">
+                    Edit Review
+                </a>
+            }
+
+        </div>
+
+    </div>
+</div>

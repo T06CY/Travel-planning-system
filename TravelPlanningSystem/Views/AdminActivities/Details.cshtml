@@ -1,0 +1,127 @@
+﻿@model TravelPlanningSystem.Models.Activity
+
+@{
+    ViewData["Title"] = "Activity Details";
+
+    var photo = Model.Photos
+        .FirstOrDefault(p => p.IsPrimary)?.PhotoUrl
+        ?? Model.Photos.FirstOrDefault()?.PhotoUrl
+        ?? "/images/hero-beach.jpg";
+}
+
+<link rel="stylesheet" href="~/css/activities.css" />
+
+<div class="admin-page">
+    <div class="container">
+
+        <div class="admin-detail-hero">
+
+            <img src="@photo"
+                 alt="@Model.ActivityName" />
+
+            <div>
+
+                <span class="eyebrow">
+                    @Model.ActivityCategory?.Name
+                </span>
+
+                <h1>@Model.ActivityName</h1>
+
+                <p>
+                    <i class="bi bi-geo-alt-fill"></i>
+                    @Model.Location
+                </p>
+
+                <div class="admin-detail-actions">
+
+                    <a asp-action="Edit"
+                       asp-route-id="@Model.ActivityId"
+                       class="btn btn-view-activity">
+                        <i class="bi bi-pencil"></i>
+                        Edit
+                    </a>
+
+                    <a asp-action="Sessions"
+                       asp-route-id="@Model.ActivityId"
+                       class="btn btn-outline-dark">
+                        <i class="bi bi-calendar3"></i>
+                        Sessions
+                    </a>
+
+                    <a asp-action="Photos"
+                       asp-route-id="@Model.ActivityId"
+                       class="btn btn-outline-dark">
+                        <i class="bi bi-images"></i>
+                        Photos
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="admin-stats">
+
+            <div>
+                <span>Price</span>
+                <strong>
+                    RM @Model.PricePerPerson.ToString("N2")
+                </strong>
+            </div>
+
+            <div>
+                <span>Duration</span>
+                <strong>
+                    @Model.DurationHours.ToString("0.#") hours
+                </strong>
+            </div>
+
+            <div>
+                <span>Sessions</span>
+                <strong>@Model.Sessions.Count</strong>
+            </div>
+
+            <div>
+                <span>Reviews</span>
+                <strong>@Model.Reviews.Count</strong>
+            </div>
+
+        </div>
+
+        <div class="detail-card">
+
+            <h3>Description</h3>
+
+            <p>
+                @Model.Description
+            </p>
+
+            <div class="two-column-info">
+
+                <div>
+
+                    <h3>Included</h3>
+
+                    <p>
+                        @Model.IncludedItems
+                    </p>
+
+                </div>
+
+                <div>
+
+                    <h3>What to Bring</h3>
+
+                    <p>
+                        @Model.WhatToBring
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>

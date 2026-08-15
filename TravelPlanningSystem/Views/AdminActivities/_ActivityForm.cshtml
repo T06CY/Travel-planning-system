@@ -1,0 +1,291 @@
+﻿@model TravelPlanningSystem.ViewModels.ActivityFormViewModel
+
+<form method="post"
+      enctype="multipart/form-data"
+      class="form-card admin-form-card">
+
+    <input asp-for="ActivityId" type="hidden" />
+
+    <div asp-validation-summary="ModelOnly"
+         class="text-danger validation-summary">
+    </div>
+
+    <!-- Basic Information -->
+    <div class="form-section-title">
+        <span>1</span>
+
+        <div>
+            <h3>Basic Information</h3>
+            <p>
+                Describe what travellers will see in the activity catalogue.
+            </p>
+        </div>
+    </div>
+
+    <div class="row g-3">
+
+        <div class="col-md-8">
+            <label asp-for="ActivityName" class="form-label"></label>
+
+            <input asp-for="ActivityName"
+                   class="form-control" />
+
+            <span asp-validation-for="ActivityName"
+                  class="text-danger">
+            </span>
+        </div>
+
+        <div class="col-md-4">
+            <label asp-for="ActivityCategoryId"
+                   class="form-label">
+                Category
+            </label>
+
+            <select asp-for="ActivityCategoryId"
+                    asp-items="ViewBag.Categories"
+                    class="form-select">
+                <option value="">Select Category</option>
+            </select>
+
+            <span asp-validation-for="ActivityCategoryId"
+                  class="text-danger">
+            </span>
+        </div>
+
+        <div class="col-md-5">
+            <label asp-for="Destination"
+                   class="form-label">
+            </label>
+
+            <input asp-for="Destination"
+                   class="form-control" />
+
+            <span asp-validation-for="Destination"
+                  class="text-danger">
+            </span>
+        </div>
+
+        <div class="col-md-7">
+            <label asp-for="Location"
+                   class="form-label">
+            </label>
+
+            <input asp-for="Location"
+                   class="form-control" />
+
+            <span asp-validation-for="Location"
+                  class="text-danger">
+            </span>
+        </div>
+
+        <div class="col-12">
+            <label asp-for="Description"
+                   class="form-label">
+            </label>
+
+            <textarea asp-for="Description"
+                      class="form-control"
+                      rows="6">
+            </textarea>
+
+            <span asp-validation-for="Description"
+                  class="text-danger">
+            </span>
+        </div>
+
+    </div>
+
+    <hr />
+
+    <!-- Pricing -->
+    <div class="form-section-title">
+        <span>2</span>
+
+        <div>
+            <h3>Pricing and Participation</h3>
+            <p>
+                Set the business rules used during booking.
+            </p>
+        </div>
+    </div>
+
+    <div class="row g-3">
+
+        <div class="col-md-3">
+            <label asp-for="PricePerPerson"
+                   class="form-label">
+            </label>
+
+            <input asp-for="PricePerPerson"
+                   class="form-control" />
+
+            <span asp-validation-for="PricePerPerson"
+                  class="text-danger">
+            </span>
+        </div>
+
+        <div class="col-md-3">
+            <label asp-for="DurationHours"
+                   class="form-label">
+            </label>
+
+            <input asp-for="DurationHours"
+                   class="form-control"
+                   step="0.5" />
+
+            <span asp-validation-for="DurationHours"
+                  class="text-danger">
+            </span>
+        </div>
+
+        <div class="col-md-2">
+            <label asp-for="MinimumParticipants"
+                   class="form-label">
+                Min People
+            </label>
+
+            <input asp-for="MinimumParticipants"
+                   class="form-control" />
+
+            <span asp-validation-for="MinimumParticipants"
+                  class="text-danger">
+            </span>
+        </div>
+
+        <div class="col-md-2">
+            <label asp-for="MaximumParticipants"
+                   class="form-label">
+                Max People
+            </label>
+
+            <input asp-for="MaximumParticipants"
+                   class="form-control" />
+
+            <span asp-validation-for="MaximumParticipants"
+                  class="text-danger">
+            </span>
+        </div>
+
+        <div class="col-md-2">
+            <label asp-for="MinimumAge"
+                   class="form-label">
+                Min Age
+            </label>
+
+            <input asp-for="MinimumAge"
+                   class="form-control" />
+
+            <span asp-validation-for="MinimumAge"
+                  class="text-danger">
+            </span>
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="IncludedItems"
+                   class="form-label">
+            </label>
+
+            <textarea asp-for="IncludedItems"
+                      class="form-control"
+                      rows="3">
+            </textarea>
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="WhatToBring"
+                   class="form-label">
+            </label>
+
+            <textarea asp-for="WhatToBring"
+                      class="form-control"
+                      rows="3">
+            </textarea>
+        </div>
+
+    </div>
+
+    <hr />
+
+    <!-- Photos -->
+    <div class="form-section-title">
+        <span>3</span>
+
+        <div>
+            <h3>Photos and Visibility</h3>
+            <p>
+                Upload multiple images and control where the activity appears.
+            </p>
+        </div>
+    </div>
+
+    <div class="row g-3">
+
+        <div class="col-md-8">
+
+            <label asp-for="Photos"
+                   class="form-label">
+                Activity Photos
+            </label>
+
+            <input asp-for="Photos"
+                   type="file"
+                   class="form-control"
+                   accept="image/jpeg,image/png,image/webp"
+                   multiple />
+
+            <small class="form-text">
+                JPG, PNG or WEBP. Maximum 5 MB each.
+            </small>
+
+            <span asp-validation-for="Photos"
+                  class="text-danger">
+            </span>
+
+        </div>
+
+        <div class="col-md-4 d-flex flex-column justify-content-center gap-2">
+
+            <div class="form-check form-switch">
+                <input asp-for="IsFeatured"
+                       class="form-check-input" />
+
+                <label asp-for="IsFeatured"
+                       class="form-check-label">
+                    Featured Activity
+                </label>
+            </div>
+
+            <div class="form-check form-switch">
+                <input asp-for="IsActive"
+                       class="form-check-input" />
+
+                <label asp-for="IsActive"
+                       class="form-check-label">
+                    Active and Visible
+                </label>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="form-submit-row">
+
+        <a asp-action="Index"
+           class="btn btn-outline-secondary">
+            Cancel
+        </a>
+
+        <button type="submit"
+                class="btn btn-confirm-booking">
+            <i class="bi bi-check-lg"></i>
+            Save Activity
+        </button>
+
+    </div>
+
+</form>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
