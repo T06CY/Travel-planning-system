@@ -29,6 +29,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Folder Include="ViewModels\LoginViewModel\" />
 	  <Folder Include="wwwroot\images\activities\uploads\" />
 	</ItemGroup>
 
