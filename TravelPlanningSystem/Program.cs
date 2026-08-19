@@ -13,7 +13,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 var app = builder.Build();
 
-
+// --- THE FIX IS IN THIS BLOCK ---
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider
@@ -21,22 +21,21 @@ using (var scope = app.Services.CreateScope())
 
     // Keep migration check
     await context.Database.MigrateAsync();
-}
 
+    // ADD THIS LINE TO RUN YOUR SEEDER!
+    await SeedData.InitializeAsync(context);
+}
+// --------------------------------
 
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
-
 app.UseRouting();
-
 app.UseAuthorization();
-
 app.MapStaticAssets();
 
 app.MapControllerRoute(
