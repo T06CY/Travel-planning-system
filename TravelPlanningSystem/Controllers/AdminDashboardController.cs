@@ -61,6 +61,22 @@ public class AdminDashboardController : Controller
                 .ToListAsync()
         };
 
+        // Load users and staff for admin overview (limit to 10 each)
+        model.Users = await _context.Users
+            .AsNoTracking()
+            .OrderBy(u => u.LastName)
+            .ThenBy(u => u.FirstName)
+            .Take(10)
+            .ToListAsync();
+
+        model.StaffUsers = await _context.StaffUsers
+            .AsNoTracking()
+            .Include(s => s.StaffRole)
+            .OrderByDescending(s => s.AccessLevel)
+            .ThenBy(s => s.LastName)
+            .Take(10)
+            .ToListAsync();
+
         return View(model);
     }
 }

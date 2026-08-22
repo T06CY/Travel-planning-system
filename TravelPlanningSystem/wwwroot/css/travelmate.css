@@ -376,6 +376,69 @@ body {
 .service-card {
     min-height: 220px;
     border-radius: 15px;
+
+/* Dark mode overrides */
+html.dark-mode, body.dark-mode {
+    background: #0b0f18 !important;
+    color: #e6eef8 !important;
+}
+
+html.dark-mode .main-navbar, body.dark-mode .main-navbar {
+    background: #0f1724 !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.6) !important;
+}
+
+html.dark-mode .logo-box h3,
+html.dark-mode .logo-box small,
+html.dark-mode .nav-menu .nav-link,
+html.dark-mode .promo-card,
+html.dark-mode .promo-card p,
+html.dark-mode .promo-card h4,
+body.dark-mode .logo-box h3,
+body.dark-mode .logo-box small,
+body.dark-mode .nav-menu .nav-link,
+body.dark-mode .promo-card,
+body.dark-mode .promo-card p,
+body.dark-mode .promo-card h4 {
+    color: #e6eef8 !important;
+}
+
+html.dark-mode .nav-menu .nav-link:hover,
+html.dark-mode .nav-menu .nav-link.active,
+body.dark-mode .nav-menu .nav-link:hover,
+body.dark-mode .nav-menu .nav-link.active {
+    background: rgba(99,102,241,0.12) !important;
+    color: #a5b4fc !important;
+}
+
+html.dark-mode .right-menu .btn-login,
+body.dark-mode .right-menu .btn-login {
+    border-color: #9ca3ff !important;
+    color: #c7d2fe !important;
+}
+
+html.dark-mode .btn-register, body.dark-mode .btn-register {
+    background: #3745a8 !important;
+}
+
+/* slightly dim cards and inputs */
+html.dark-mode .promo-card,
+body.dark-mode .promo-card,
+html.dark-mode .search-box,
+body.dark-mode .search-box,
+html.dark-mode .search-item input,
+body.dark-mode .search-item input,
+html.dark-mode .search-item select,
+body.dark-mode .search-item select {
+    background: #0b1220 !important;
+    color: #dbeafe !important;
+    border-color: rgba(255,255,255,0.04) !important;
+}
+
+/* ensure avatar border/remains visible */
+body.dark-mode .rounded-circle {
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.03) inset;
+}
     padding: 28px 30px;
     position: relative;
     overflow: hidden;

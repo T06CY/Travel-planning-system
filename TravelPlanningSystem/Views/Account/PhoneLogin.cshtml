@@ -1,0 +1,61 @@
+@model TravelPlanningSystem.ViewModels.LoginViewModel.LoginViewModel
+
+@{
+    ViewData["Title"] = "Phone Login";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h2>Login with phone</h2>
+            <form asp-action="PhoneLogin" method="post">
+                <div asp-validation-summary="All" class="text-danger"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Username" class="form-label">Phone number</label>
+                    <div class="d-flex">
+                        <select id="countryCodePhone" class="form-select" style="max-width:120px;" aria-label="Country code">
+                            <option value="+60">+60</option>
+                            <option value="+1">+1</option>
+                            <option value="+44">+44</option>
+                            <option value="+61">+61</option>
+                            <option value="+65">+65</option>
+                            <option value="+91">+91</option>
+                        </select>
+                        <input asp-for="Username" class="form-control ms-2" placeholder="123456789" />
+                    </div>
+                    <span asp-validation-for="Username" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label"></label>
+                    <input asp-for="Password" class="form-control" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Login</button>
+                    <a class="btn btn-link" asp-action="Login">Back to email login</a>
+                </div>
+            </form>
+
+            @section Scripts {
+                <partial name="_ValidationScriptsPartial" />
+                <script>
+                    (function(){
+                        var form = document.querySelector('form[asp-action="PhoneLogin"]') || document.querySelector('form');
+                        if (!form) return;
+                        form.addEventListener('submit', function(){
+                            var username = document.querySelector('input[name="Username"]');
+                            var code = document.getElementById('countryCodePhone');
+                            if (username && code && username.value && username.value[0] !== '+') {
+                                username.value = code.value + username.value.replace(/\D/g,'');
+                            }
+                        });
+                    })();
+                </script>
+            }
+
+        </div>
+    </div>
+</div>

@@ -25,6 +25,148 @@
 
         </div>
 
+    <div class="section-heading mt-4">
+
+        <div>
+
+            <span class="dashboard-eyebrow">
+                USERS & STAFF
+            </span>
+
+            <h2>
+                Accounts Overview
+            </h2>
+
+            <p>
+                A quick view of registered customers and staff accounts.
+            </p>
+
+        </div>
+
+    </div>
+
+    <div class="row mb-4">
+
+        <div class="col-md-6">
+
+            <section class="dashboard-panel">
+
+                <div class="dashboard-panel-heading">
+
+                    <div>
+
+                        <h3>
+                            Recent Users
+                        </h3>
+
+                        <p>
+                            Latest registered application users.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                @if (!Model.Users.Any())
+                {
+                    <div class="dashboard-empty">
+                        <i class="bi bi-people"></i>
+                        <h4>No users</h4>
+                        <p>There are no registered users yet.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Tier</th>
+                                    <th>Points</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var u in Model.Users)
+                                {
+                                    <tr>
+                                        <td>@(u.FirstName) @u.LastName</td>
+                                        <td>@u.Email</td>
+                                        <td>@u.LoyaltyTier</td>
+                                        <td>@u.RewardPoints</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+
+            </section>
+
+        </div>
+
+        <div class="col-md-6">
+
+            <section class="dashboard-panel">
+
+                <div class="dashboard-panel-heading">
+
+                    <div>
+
+                        <h3>
+                            Staff Users
+                        </h3>
+
+                        <p>
+                            Administrative and support staff accounts.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                @if (!Model.StaffUsers.Any())
+                {
+                    <div class="dashboard-empty">
+                        <i class="bi bi-person-badge"></i>
+                        <h4>No staff users</h4>
+                        <p>There are no staff accounts yet.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Access</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var s in Model.StaffUsers)
+                                {
+                                    <tr>
+                                        <td>@(s.FirstName) @s.LastName</td>
+                                        <td>@s.Email</td>
+                                        <td>@(s.StaffRole?.RoleName ?? "-")</td>
+                                        <td>@s.AccessLevel</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+
+            </section>
+
+        </div>
+
+    </div>
+
     </div>
 
     <div class="dashboard-panel mb-4">

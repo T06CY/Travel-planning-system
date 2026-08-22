@@ -1,0 +1,51 @@
+@model TravelPlanningSystem.ViewModels.LoginViewModel.LoginViewModel
+
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h2>Login</h2>
+            <form asp-action="Login" method="post">
+                <div asp-validation-summary="All" class="text-danger"></div>
+                <div class="mb-3">
+                    <label asp-for="Username" class="form-label">Email</label>
+                    <input asp-for="Username" class="form-control" placeholder="you@example.com" />
+                    <span asp-validation-for="Username" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label"></label>
+                    <input asp-for="Password" class="form-control" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Login</button>
+                    <a class="btn btn-outline-secondary" asp-action="PhoneLogin">Login with phone</a>
+                </div>
+            </form>
+            <hr />
+            <p>Test account: <strong>Admin</strong> / <strong>admin123</strong></p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function(){
+            var form = document.querySelector('form[asp-action="Login"]') || document.querySelector('form');
+            if (!form) return;
+            form.addEventListener('submit', function(){
+                var username = document.querySelector('input[name="Username"]');
+                var code = document.getElementById('countryCodeLogin');
+                if (username && code && username.value && username.value.indexOf('@@') === -1 && username.value[0] !== '+') {
+                    username.value = code.value + username.value.replace(/\D/g,'');
+                }
+            });
+        })();
+    </script>
+}

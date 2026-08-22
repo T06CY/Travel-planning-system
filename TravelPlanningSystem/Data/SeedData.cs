@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TravelPlanningSystem.Models;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace TravelPlanningSystem.Data;
 
@@ -7,7 +9,6 @@ public static class SeedData
 {
     public static async Task InitializeAsync(AppDbContext context)
     {
-
         if (!await context.ActivityCategories.AnyAsync())
         {
             context.ActivityCategories.AddRange(
@@ -16,19 +17,16 @@ public static class SeedData
                     Name = "Adventure",
                     Description = "Exciting outdoor experiences"
                 },
-
                 new ActivityCategory
                 {
                     Name = "Culture",
                     Description = "Local heritage and cultural discovery"
                 },
-
                 new ActivityCategory
                 {
                     Name = "Nature",
                     Description = "Nature, wildlife and scenic experiences"
                 },
-
                 new ActivityCategory
                 {
                     Name = "Food & Dining",
@@ -39,17 +37,103 @@ public static class SeedData
             await context.SaveChangesAsync();
         }
 
-        var adventure = await context.ActivityCategories
-            .FirstAsync(c => c.Name == "Adventure");
+        // --- Seed user and staff data for testing ---
+        // Helper to compute a SHA256 hash for password storage (simple test-only hashing)
+        static string HashPassword(string pwd)
+        {
+            var bytes = Encoding.UTF8.GetBytes(pwd);
+            var hash = SHA256.HashData(bytes);
+            return Convert.ToHexString(hash);
+        }
 
-        var culture = await context.ActivityCategories
-            .FirstAsync(c => c.Name == "Culture");
+        // Seed application users
+        if (!await context.Users.AnyAsync())
+        {
+            context.Users.AddRange(
+                new ApplicationUser
+                {
+                    UserId = Guid.NewGuid(), // <-- ADDED
+                    Email = "yong.kq@example.com",
+                    PasswordHash = HashPassword("UserPass123!"),
+                    FirstName = "Yong",
+                    LastName = "Kai Quan",
+                    PreferredCurrency = "USD",
+                    PreferredLanguage = "en-US",
+                    LoyaltyTier = "Gold",
+                    RewardPoints = 1200,
+                    AccountStatus = "Active", // <-- ADDED
+                    CreatedAt = DateTime.UtcNow // <-- ADDED
+                },
+                new ApplicationUser
+                {
+                    UserId = Guid.NewGuid(), // <-- ADDED
+                    Email = "jane.traveler@example.com",
+                    PasswordHash = HashPassword("Traveler456!"),
+                    FirstName = "Jane",
+                    LastName = "Traveler",
+                    PreferredCurrency = "MYR",
+                    PreferredLanguage = "en-US",
+                    LoyaltyTier = "Member",
+                    RewardPoints = 150,
+                    AccountStatus = "Active", // <-- ADDED
+                    CreatedAt = DateTime.UtcNow // <-- ADDED
+                }
+            );
 
-        var nature = await context.ActivityCategories
-            .FirstAsync(c => c.Name == "Nature");
+            await context.SaveChangesAsync();
+        }
 
-        var food = await context.ActivityCategories
-            .FirstAsync(c => c.Name == "Food & Dining");
+        // Seed staff roles and staff users
+        if (!await context.StaffRoles.AnyAsync())
+        {
+            var adminRole = new StaffRole { RoleId = Guid.NewGuid(), RoleName = "Administrator" };
+            var supportRole = new StaffRole { RoleId = Guid.NewGuid(), RoleName = "Support" };
+            context.StaffRoles.AddRange(adminRole, supportRole);
+            await context.SaveChangesAsync();
+        }
+
+        if (!await context.StaffUsers.AnyAsync())
+        {
+            var adminRole = await context.StaffRoles.FirstAsync(r => r.RoleName == "Administrator");
+            var supportRole = await context.StaffRoles.FirstAsync(r => r.RoleName == "Support");
+
+            context.StaffUsers.AddRange(
+                new StaffUser
+                {
+                    StaffId = Guid.NewGuid(), // <-- ADDED
+                    Email = "admin@travel.test",
+                    PasswordHash = HashPassword("AdminPass123!"),
+                    FirstName = "System",
+                    LastName = "Admin",
+                    Department = "Operations",
+                    RoleId = adminRole.RoleId,
+                    AccessLevel = 10,
+                    Status = "Active", // <-- ADDED
+                    CreatedAt = DateTime.UtcNow // <-- ADDED
+                },
+                new StaffUser
+                {
+                    StaffId = Guid.NewGuid(), // <-- ADDED
+                    Email = "support@travel.test",
+                    PasswordHash = HashPassword("SupportPass123!"),
+                    FirstName = "Support",
+                    LastName = "Agent",
+                    Department = "Customer Support",
+                    RoleId = supportRole.RoleId,
+                    AccessLevel = 2,
+                    Status = "Active", // <-- ADDED
+                    CreatedAt = DateTime.UtcNow // <-- ADDED
+                }
+            );
+
+            await context.SaveChangesAsync();
+        }
+
+
+        var adventure = await context.ActivityCategories.FirstAsync(c => c.Name == "Adventure");
+        var culture = await context.ActivityCategories.FirstAsync(c => c.Name == "Culture");
+        var nature = await context.ActivityCategories.FirstAsync(c => c.Name == "Nature");
+        var food = await context.ActivityCategories.FirstAsync(c => c.Name == "Food & Dining");
 
         var activitySeeds = new[]
         {
@@ -58,8 +142,7 @@ public static class SeedData
                 Name = "Kuala Lumpur Heritage Walk",
                 Destination = "Kuala Lumpur",
                 Location = "Merdeka Square",
-                Description =
-                    "Discover important landmarks, hidden streets and local stories with a friendly licensed guide.",
+                Description = "Discover important landmarks, hidden streets and local stories with a friendly licensed guide.",
                 Price = 45m,
                 Duration = 3.0,
                 Min = 1,
@@ -72,14 +155,12 @@ public static class SeedData
                 Photo = "/images/activities/uploads/kl-heritage.jpg",
                 Caption = "Kuala Lumpur heritage experience"
             },
-
             new
             {
                 Name = "Langkawi Island Hopping",
                 Destination = "Langkawi",
                 Location = "Telaga Harbour, Langkawi",
-                Description =
-                    "Explore beautiful islands, crystal-clear water and scenic beaches on a guided island-hopping experience.",
+                Description = "Explore beautiful islands, crystal-clear water and scenic beaches on a guided island-hopping experience.",
                 Price = 95m,
                 Duration = 4.0,
                 Min = 1,
@@ -92,14 +173,12 @@ public static class SeedData
                 Photo = "/images/activities/uploads/langkawi-island.jpg",
                 Caption = "Langkawi island hopping"
             },
-
             new
             {
                 Name = "Penang Street Food Tour",
                 Destination = "George Town",
                 Location = "Lebuh Chulia, Penang",
-                Description =
-                    "Taste famous local dishes while learning about Penang's multicultural food heritage.",
+                Description = "Taste famous local dishes while learning about Penang's multicultural food heritage.",
                 Price = 128m,
                 Duration = 3.5,
                 Min = 1,
@@ -112,14 +191,12 @@ public static class SeedData
                 Photo = "/images/activities/uploads/penang-food.jpg",
                 Caption = "Penang street food tour"
             },
-
             new
             {
                 Name = "Sabah River Rafting",
                 Destination = "Kota Kinabalu",
                 Location = "Kiulu River, Sabah",
-                Description =
-                    "Enjoy an exciting beginner-friendly rafting adventure surrounded by beautiful tropical scenery.",
+                Description = "Enjoy an exciting beginner-friendly rafting adventure surrounded by beautiful tropical scenery.",
                 Price = 165m,
                 Duration = 5.0,
                 Min = 2,
@@ -132,14 +209,12 @@ public static class SeedData
                 Photo = "/images/activities/uploads/sabah-rafting.jpg",
                 Caption = "Sabah river rafting"
             },
-
             new
             {
                 Name = "Melaka Historical Discovery Tour",
                 Destination = "Melaka",
                 Location = "Dutch Square, Melaka",
-                Description =
-                    "Explore Melaka's historic streets, colonial landmarks and famous heritage attractions with a local guide.",
+                Description = "Explore Melaka's historic streets, colonial landmarks and famous heritage attractions with a local guide.",
                 Price = 65m,
                 Duration = 3.0,
                 Min = 1,
@@ -152,14 +227,12 @@ public static class SeedData
                 Photo = "/images/activities/uploads/melaka-history.jpg",
                 Caption = "Melaka historical tour"
             },
-
             new
             {
                 Name = "Cameron Highlands Tea Experience",
                 Destination = "Cameron Highlands",
                 Location = "Brinchang, Pahang",
-                Description =
-                    "Visit scenic tea plantations, enjoy cool mountain air and learn about Malaysia's tea production.",
+                Description = "Visit scenic tea plantations, enjoy cool mountain air and learn about Malaysia's tea production.",
                 Price = 78m,
                 Duration = 4.0,
                 Min = 1,
@@ -172,14 +245,12 @@ public static class SeedData
                 Photo = "/images/activities/uploads/cameron-tea.jpg",
                 Caption = "Cameron Highlands tea plantation"
             },
-
             new
             {
                 Name = "KL Tower Sky Experience",
                 Destination = "Kuala Lumpur",
                 Location = "KL Tower",
-                Description =
-                    "Enjoy panoramic city views from one of Kuala Lumpur's most iconic observation attractions.",
+                Description = "Enjoy panoramic city views from one of Kuala Lumpur's most iconic observation attractions.",
                 Price = 85m,
                 Duration = 2.0,
                 Min = 1,
@@ -192,14 +263,12 @@ public static class SeedData
                 Photo = "/images/activities/uploads/kl-tower.jpg",
                 Caption = "KL Tower city view"
             },
-
             new
             {
                 Name = "Sunway Lagoon Adventure Day",
                 Destination = "Selangor",
                 Location = "Sunway Lagoon",
-                Description =
-                    "Spend an exciting day enjoying water attractions, rides and adventure experiences.",
+                Description = "Spend an exciting day enjoying water attractions, rides and adventure experiences.",
                 Price = 190m,
                 Duration = 8.0,
                 Min = 1,
@@ -212,14 +281,12 @@ public static class SeedData
                 Photo = "/images/activities/uploads/sunway-lagoon.jpg",
                 Caption = "Sunway Lagoon adventure"
             },
-
             new
             {
                 Name = "Ipoh Cave Temple Discovery",
                 Destination = "Ipoh",
                 Location = "Kek Lok Tong, Ipoh",
-                Description =
-                    "Discover beautiful limestone caves, temples and peaceful gardens around Ipoh.",
+                Description = "Discover beautiful limestone caves, temples and peaceful gardens around Ipoh.",
                 Price = 55m,
                 Duration = 3.0,
                 Min = 1,
@@ -232,14 +299,12 @@ public static class SeedData
                 Photo = "/images/activities/uploads/ipoh-cave.jpg",
                 Caption = "Ipoh cave temple"
             },
-
             new
             {
                 Name = "Kuching Wildlife Experience",
                 Destination = "Kuching",
                 Location = "Semenggoh Wildlife Centre",
-                Description =
-                    "Discover Sarawak wildlife and observe orangutans in a protected natural environment.",
+                Description = "Discover Sarawak wildlife and observe orangutans in a protected natural environment.",
                 Price = 110m,
                 Duration = 4.0,
                 Min = 1,
@@ -256,9 +321,7 @@ public static class SeedData
 
         foreach (var seed in activitySeeds)
         {
-            var activity = await context.Activities
-                .FirstOrDefaultAsync(a =>
-                    a.ActivityName == seed.Name);
+            var activity = await context.Activities.FirstOrDefaultAsync(a => a.ActivityName == seed.Name);
 
             if (activity == null)
             {
@@ -281,14 +344,10 @@ public static class SeedData
                 };
 
                 context.Activities.Add(activity);
-
                 await context.SaveChangesAsync();
             }
 
-            var existingPhoto = await context.ActivityPhotos
-                .FirstOrDefaultAsync(p =>
-                    p.ActivityId == activity.ActivityId &&
-                    p.IsPrimary);
+            var existingPhoto = await context.ActivityPhotos.FirstOrDefaultAsync(p => p.ActivityId == activity.ActivityId && p.IsPrimary);
 
             if (existingPhoto == null)
             {
@@ -312,71 +371,45 @@ public static class SeedData
 
             await context.SaveChangesAsync();
 
-
-            await EnsureFutureSessionsAsync(
-                context,
-                activity
-            );
+            await EnsureFutureSessionsAsync(context, activity);
         }
 
         await context.SaveChangesAsync();
     }
 
-    private static async Task EnsureFutureSessionsAsync(
-        AppDbContext context,
-        Activity activity)
+    private static async Task EnsureFutureSessionsAsync(AppDbContext context, Activity activity)
     {
-        var existingFutureSessions =
-            await context.ActivitySessions
-                .Where(s =>
-                    s.ActivityId == activity.ActivityId &&
-                    s.IsActive &&
-                    s.SessionDate >= DateTime.Today)
-                .OrderBy(s => s.SessionDate)
-                .ToListAsync();
+        var existingFutureSessions = await context.ActivitySessions
+            .Where(s =>
+                s.ActivityId == activity.ActivityId &&
+                s.IsActive &&
+                s.SessionDate >= DateTime.Today)
+            .OrderBy(s => s.SessionDate)
+            .ToListAsync();
 
         // Always maintain at least 6 future sessions
-        var sessionsNeeded =
-            Math.Max(
-                0,
-                6 - existingFutureSessions.Count
-            );
+        var sessionsNeeded = Math.Max(0, 6 - existingFutureSessions.Count);
 
         if (sessionsNeeded == 0)
         {
             return;
         }
 
-        var lastDate =
-            existingFutureSessions.Any()
-                ? existingFutureSessions
-                    .Max(s => s.SessionDate)
-                : DateTime.Today;
+        var lastDate = existingFutureSessions.Any()
+            ? existingFutureSessions.Max(s => s.SessionDate)
+            : DateTime.Today;
 
         for (var i = 1; i <= sessionsNeeded; i++)
         {
-            var sessionDate =
-                lastDate.AddDays(i * 2);
+            var sessionDate = lastDate.AddDays(i * 2);
+            var startTime = new TimeSpan(9, 0, 0);
+            var duration = TimeSpan.FromHours(activity.DurationHours);
 
-            var startTime =
-                new TimeSpan(9, 0, 0);
-
-            var duration =
-                TimeSpan.FromHours(
-                    activity.DurationHours
-                );
-
-            var exists =
-                await context.ActivitySessions
-                    .AnyAsync(s =>
-                        s.ActivityId ==
-                        activity.ActivityId &&
-
-                        s.SessionDate.Date ==
-                        sessionDate.Date &&
-
-                        s.StartTime ==
-                        startTime);
+            var exists = await context.ActivitySessions
+                .AnyAsync(s =>
+                    s.ActivityId == activity.ActivityId &&
+                    s.SessionDate.Date == sessionDate.Date &&
+                    s.StartTime == startTime);
 
             if (exists)
             {
@@ -386,26 +419,13 @@ public static class SeedData
             context.ActivitySessions.Add(
                 new ActivitySession
                 {
-                    ActivityId =
-                        activity.ActivityId,
-
-                    SessionDate =
-                        sessionDate.Date,
-
-                    StartTime =
-                        startTime,
-
-                    EndTime =
-                        startTime.Add(duration),
-
-                    Capacity =
-                        activity.MaximumParticipants,
-
-                    AvailableSlots =
-                        activity.MaximumParticipants,
-
-                    IsActive =
-                        true
+                    ActivityId = activity.ActivityId,
+                    SessionDate = sessionDate.Date,
+                    StartTime = startTime,
+                    EndTime = startTime.Add(duration),
+                    Capacity = activity.MaximumParticipants,
+                    AvailableSlots = activity.MaximumParticipants,
+                    IsActive = true
                 }
             );
         }

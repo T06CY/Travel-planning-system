@@ -1,0 +1,93 @@
+@model TravelPlanningSystem.ViewModels.RegisterViewModel.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Register";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h2>Create an account</h2>
+
+            <form asp-action="Register" method="post">
+                <div asp-validation-summary="All" class="text-danger"></div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="FirstName" class="form-label"></label>
+                        <input asp-for="FirstName" class="form-control" />
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="LastName" class="form-label"></label>
+                        <input asp-for="LastName" class="form-control" />
+                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label"></label>
+                    <input asp-for="Password" class="form-control" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ConfirmPassword" class="form-label"></label>
+                    <input asp-for="ConfirmPassword" class="form-control" />
+                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="PhoneNumber" class="form-label"></label>
+                    <div class="d-flex">
+                        <select id="countryCode" class="form-select" style="max-width:120px;" aria-label="Country code">
+                            <option value="+60">+60 Malaysia</option>
+                            <option value="+1">+1 USA</option>
+                            <option value="+44">+44 UK</option>
+                            <option value="+61">+61 Australia</option>
+                            <option value="+65">+65 Singapore</option>
+                            <option value="+91">+91 India</option>
+                        </select>
+                        <input asp-for="PhoneNumber" class="form-control ms-2" placeholder="123456789" />
+                    </div>
+                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="DateOfBirth" class="form-label"></label>
+                    <input asp-for="DateOfBirth" class="form-control" />
+                    <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Register</button>
+                    <a class="btn btn-secondary" asp-controller="Account" asp-action="Login">Back to Login</a>
+                </div>
+            </form>
+
+            @section Scripts {
+                <partial name="_ValidationScriptsPartial" />
+                <script>
+                    (function(){
+                        var form = document.querySelector('form[asp-action="Register"]') || document.querySelector('form');
+                        if (!form) return;
+                        form.addEventListener('submit', function(){
+                            var phone = document.querySelector('input[name="PhoneNumber"]');
+                            var code = document.getElementById('countryCode');
+                            if (phone && code && phone.value && phone.value[0] !== '+') {
+                                phone.value = code.value + phone.value.replace(/\D/g,'');
+                            }
+                        });
+                    })();
+                </script>
+            }
+
+        </div>
+    </div>
+</div>

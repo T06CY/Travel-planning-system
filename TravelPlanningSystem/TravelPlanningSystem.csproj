@@ -6,6 +6,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<RazorCompileOnBuild>true</RazorCompileOnBuild>
 		<RazorCompileOnPublish>true</RazorCompileOnPublish>
+		<UserSecretsId>044698ab-7b84-4bb6-b648-285fc8051ed0</UserSecretsId>
 	</PropertyGroup>
 
 	<ItemGroup>
