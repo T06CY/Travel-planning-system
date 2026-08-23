@@ -374,6 +374,59 @@ public static class SeedData
             await EnsureFutureSessionsAsync(context, activity);
         }
 
+        // Hotel demo data powers the hotel catalogue, availability search, reservations and reviews.
+        var hotelSeeds = new[]
+        {
+            new { Hotel = "The Majestic Kuala Lumpur", Room = "Colonial Deluxe King", Destination = "Kuala Lumpur", Address = "5 Jalan Sultan Hishamuddin", Description = "A refined city stay with heritage character, spacious interiors and effortless access to KL Sentral.", Price = 420m, Capacity = 2, Inventory = 6, Stars = 5, Featured = true, Amenities = "Breakfast, Wi-Fi, Pool, Gym, Airport transfer", Photo = "/images/activities/uploads/kl-tower.jpg" },
+            new { Hotel = "The Majestic Kuala Lumpur", Room = "Family Heritage Suite", Destination = "Kuala Lumpur", Address = "5 Jalan Sultan Hishamuddin", Description = "A generous suite for families seeking a comfortable base near the city's historic quarter.", Price = 680m, Capacity = 4, Inventory = 3, Stars = 5, Featured = false, Amenities = "Breakfast, Wi-Fi, Pool, Bathtub, Family lounge", Photo = "/images/activities/uploads/kl-heritage.jpg" },
+            new { Hotel = "Bayview Beach Resort", Room = "Ocean View Double", Destination = "Langkawi", Address = "Pantai Tengah, Langkawi", Description = "Wake up to sea views and unwind steps away from the beach in a bright, relaxed room.", Price = 310m, Capacity = 2, Inventory = 8, Stars = 4, Featured = true, Amenities = "Beach access, Breakfast, Wi-Fi, Pool, Balcony", Photo = "/images/activities/uploads/langkawi-island.jpg" },
+            new { Hotel = "Campbell House", Room = "George Town Loft", Destination = "George Town", Address = "106 Lebuh Campbell, Penang", Description = "A charming boutique loft in the heart of UNESCO-listed George Town, ideal for food and culture lovers.", Price = 285m, Capacity = 2, Inventory = 4, Stars = 4, Featured = true, Amenities = "Wi-Fi, Breakfast, Restaurant, Heritage district", Photo = "/images/activities/uploads/penang-food.jpg" },
+            new { Hotel = "Cameron Highlands Resort", Room = "Tea Garden Twin", Destination = "Cameron Highlands", Address = "By The Golf Course, Tanah Rata", Description = "Cool mountain air and peaceful tea-garden surroundings make this a restorative highland escape.", Price = 360m, Capacity = 2, Inventory = 5, Stars = 4, Featured = true, Amenities = "Wi-Fi, Breakfast, Spa, Garden view, Parking", Photo = "/images/activities/uploads/cameron-tea.jpg" },
+            new { Hotel = "Riverside Melaka Hotel", Room = "Heritage Courtyard Room", Destination = "Melaka", Address = "Jalan Kampung Hulu, Melaka", Description = "A relaxed heritage stay near the river, local cafés and Melaka's most-loved historic landmarks.", Price = 220m, Capacity = 3, Inventory = 7, Stars = 3, Featured = false, Amenities = "Wi-Fi, Parking, Family rooms, City view", Photo = "/images/activities/uploads/melaka-history.jpg" }
+        };
+
+        foreach (var seed in hotelSeeds)
+        {
+            var room = await context.HotelRooms.FirstOrDefaultAsync(r => r.HotelName == seed.Hotel && r.RoomName == seed.Room);
+            if (room == null)
+            {
+                room = new HotelRoom
+                {
+                    HotelName = seed.Hotel, RoomName = seed.Room, Destination = seed.Destination,
+                    Address = seed.Address, Description = seed.Description, PricePerNight = seed.Price,
+                    Capacity = seed.Capacity, TotalRooms = seed.Inventory, StarRating = seed.Stars,
+                    IsFeatured = seed.Featured, IsActive = true, Amenities = seed.Amenities
+                };
+                context.HotelRooms.Add(room);
+                await context.SaveChangesAsync();
+            }
+
+            if (!await context.HotelRoomPhotos.AnyAsync(p => p.HotelRoomId == room.HotelRoomId))
+            {
+                context.HotelRoomPhotos.AddRange(
+                    new HotelRoomPhoto { HotelRoomId = room.HotelRoomId, PhotoUrl = seed.Photo, Caption = seed.Room, IsPrimary = true, DisplayOrder = 0 },
+                    new HotelRoomPhoto { HotelRoomId = room.HotelRoomId, PhotoUrl = "/images/hero-beach.jpg", Caption = "Hotel ambience", IsPrimary = false, DisplayOrder = 1 });
+            }
+        }
+
+        await context.SaveChangesAsync();
+
+        // One past reviewed stay and one forthcoming stay make both reservation states visible in the UI.
+        var reviewRoom = await context.HotelRooms.FirstAsync(r => r.HotelName == "Bayview Beach Resort" && r.RoomName == "Ocean View Double");
+        if (!await context.HotelReservations.AnyAsync(r => r.ReservationReference == "HTLDEMO001"))
+        {
+            var completed = new HotelReservation { ReservationReference = "HTLDEMO001", UserId = 1, HotelRoomId = reviewRoom.HotelRoomId, CheckInDate = DateTime.Today.AddDays(-20), CheckOutDate = DateTime.Today.AddDays(-17), GuestCount = 2, PricePerNight = reviewRoom.PricePerNight, TotalAmount = reviewRoom.PricePerNight * 3, ReservationDate = DateTime.Today.AddDays(-35), ContactName = "Yong Kai Quan", ContactEmail = "yong.kq@example.com", ContactPhone = "012-3456789", ReservationStatus = HotelReservationStatus.Completed };
+            context.HotelReservations.Add(completed);
+            await context.SaveChangesAsync();
+            context.HotelReviews.Add(new HotelReview { HotelRoomId = reviewRoom.HotelRoomId, HotelReservationId = completed.HotelReservationId, UserId = 1, Rating = 5, Comment = "Lovely beach location, attentive staff and a very comfortable room." });
+        }
+
+        var upcomingRoom = await context.HotelRooms.FirstAsync(r => r.HotelName == "The Majestic Kuala Lumpur" && r.RoomName == "Colonial Deluxe King");
+        if (!await context.HotelReservations.AnyAsync(r => r.ReservationReference == "HTLDEMO002"))
+        {
+            context.HotelReservations.Add(new HotelReservation { ReservationReference = "HTLDEMO002", UserId = 1, HotelRoomId = upcomingRoom.HotelRoomId, CheckInDate = DateTime.Today.AddDays(14), CheckOutDate = DateTime.Today.AddDays(17), GuestCount = 2, PricePerNight = upcomingRoom.PricePerNight, TotalAmount = upcomingRoom.PricePerNight * 3, ReservationDate = DateTime.Today, ContactName = "Yong Kai Quan", ContactEmail = "yong.kq@example.com", ContactPhone = "012-3456789", ReservationStatus = HotelReservationStatus.Confirmed });
+        }
+
         await context.SaveChangesAsync();
     }
 
