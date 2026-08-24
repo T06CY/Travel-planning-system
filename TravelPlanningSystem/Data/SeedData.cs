@@ -377,42 +377,74 @@ public static class SeedData
         // Hotel demo data powers the hotel catalogue, availability search, reservations and reviews.
         var hotelSeeds = new[]
         {
-            new { Hotel = "The Majestic Kuala Lumpur", Room = "Colonial Deluxe King", Destination = "Kuala Lumpur", Address = "5 Jalan Sultan Hishamuddin", Description = "A refined city stay with heritage character, spacious interiors and effortless access to KL Sentral.", Price = 420m, Capacity = 2, Inventory = 6, Stars = 5, Featured = true, Amenities = "Breakfast, Wi-Fi, Pool, Gym, Airport transfer", Photo = "/images/activities/uploads/kl-tower.jpg" },
-            new { Hotel = "The Majestic Kuala Lumpur", Room = "Family Heritage Suite", Destination = "Kuala Lumpur", Address = "5 Jalan Sultan Hishamuddin", Description = "A generous suite for families seeking a comfortable base near the city's historic quarter.", Price = 680m, Capacity = 4, Inventory = 3, Stars = 5, Featured = false, Amenities = "Breakfast, Wi-Fi, Pool, Bathtub, Family lounge", Photo = "/images/activities/uploads/kl-heritage.jpg" },
-            new { Hotel = "Bayview Beach Resort", Room = "Ocean View Double", Destination = "Langkawi", Address = "Pantai Tengah, Langkawi", Description = "Wake up to sea views and unwind steps away from the beach in a bright, relaxed room.", Price = 310m, Capacity = 2, Inventory = 8, Stars = 4, Featured = true, Amenities = "Beach access, Breakfast, Wi-Fi, Pool, Balcony", Photo = "/images/activities/uploads/langkawi-island.jpg" },
-            new { Hotel = "Campbell House", Room = "George Town Loft", Destination = "George Town", Address = "106 Lebuh Campbell, Penang", Description = "A charming boutique loft in the heart of UNESCO-listed George Town, ideal for food and culture lovers.", Price = 285m, Capacity = 2, Inventory = 4, Stars = 4, Featured = true, Amenities = "Wi-Fi, Breakfast, Restaurant, Heritage district", Photo = "/images/activities/uploads/penang-food.jpg" },
-            new { Hotel = "Cameron Highlands Resort", Room = "Tea Garden Twin", Destination = "Cameron Highlands", Address = "By The Golf Course, Tanah Rata", Description = "Cool mountain air and peaceful tea-garden surroundings make this a restorative highland escape.", Price = 360m, Capacity = 2, Inventory = 5, Stars = 4, Featured = true, Amenities = "Wi-Fi, Breakfast, Spa, Garden view, Parking", Photo = "/images/activities/uploads/cameron-tea.jpg" },
-            new { Hotel = "Riverside Melaka Hotel", Room = "Heritage Courtyard Room", Destination = "Melaka", Address = "Jalan Kampung Hulu, Melaka", Description = "A relaxed heritage stay near the river, local cafés and Melaka's most-loved historic landmarks.", Price = 220m, Capacity = 3, Inventory = 7, Stars = 3, Featured = false, Amenities = "Wi-Fi, Parking, Family rooms, City view", Photo = "/images/activities/uploads/melaka-history.jpg" }
+            new { Hotel = "The Lakehouse Cameron Highlands", Destination = "Cameron Highlands", Address = "30th Mile, Jalan Ringlet - Sg Koyan, 39000 Ringlet, Pahang", Stars = 4 },
+            new { Hotel = "Cameron Highlands Resort", Destination = "Cameron Highlands", Address = "By The Golf Course, Brinchang, 39000 Tanah Rata, Pahang", Stars = 5 },
+            new { Hotel = "Zenith Hotel Cameron", Destination = "Cameron Highlands", Address = "Jalan Majlis, 39000 Tanah Rata, Pahang", Stars = 4 },
+            new { Hotel = "Copthorne Cameron Highlands", Destination = "Cameron Highlands", Address = "Kea Farm, Brinchang, 39100 Tanah Rata, Pahang", Stars = 4 },
+            new { Hotel = "The Smokehouse Hotel & Restaurant", Destination = "Cameron Highlands", Address = "By the Golf Course, Tanah Rata, 39000 Tanah Rata, Pahang", Stars = 4 },
+            new { Hotel = "Hotel Malaysia", Destination = "George Town", Address = "7, Jalan Penang, 10000 George Town, Pulau Pinang", Stars = 3 },
+            new { Hotel = "Eastern & Oriental Hotel", Destination = "George Town", Address = "10, Lebuh Farquhar, 10200 George Town, Pulau Pinang", Stars = 5 },
+            new { Hotel = "The Prestige Hotel Penang", Destination = "George Town", Address = "8, Gat Lebuh Gereja, 10300 George Town, Pulau Pinang", Stars = 5 },
+            new { Hotel = "JEN Penang Georgetown by Shangri-La", Destination = "George Town", Address = "Magazine Road, George Town, 10300 George Town, Pulau Pinang", Stars = 4 },
+            new { Hotel = "G Hotel Gurney", Destination = "George Town", Address = "168A, Persiaran Gurney, 10250 George Town, Pulau Pinang", Stars = 5 },
+            new { Hotel = "Seeds Hotel Danau Kota PV12", Destination = "Kuala Lumpur", Address = "21, Jln PV12, Taman Danau Kota, Setapak, 53300 Kuala Lumpur", Stars = 3 },
+            new { Hotel = "Mandarin Oriental, Kuala Lumpur", Destination = "Kuala Lumpur", Address = "Kuala Lumpur City Centre, 50088 Kuala Lumpur", Stars = 5 },
+            new { Hotel = "The Ritz-Carlton, Kuala Lumpur", Destination = "Kuala Lumpur", Address = "168, Jalan Imbi, Bukit Bintang, 55100 Kuala Lumpur", Stars = 5 },
+            new { Hotel = "Shangri-La Kuala Lumpur", Destination = "Kuala Lumpur", Address = "11, Jalan Sultan Ismail, 50250 Kuala Lumpur", Stars = 5 },
+            new { Hotel = "The St. Regis Kuala Lumpur", Destination = "Kuala Lumpur", Address = "No 6, Jalan Stesen Sentral 2, Kuala Lumpur Sentral, 50470 Kuala Lumpur", Stars = 5 },
+            new { Hotel = "Hotel Seri Malaysia Langkawi", Destination = "Langkawi", Address = "Lot PT 214 & 215, Mukim Kedawang, Pantai Cenang, 07000 Langkawi, Kedah", Stars = 3 },
+            new { Hotel = "PARKROYAL Langkawi Resort", Destination = "Langkawi", Address = "Lot 60199, Pantai Tengah, Bandar Padang Matsirat, 07000 Langkawi, Kedah", Stars = 5 },
+            new { Hotel = "The Ritz-Carlton, Langkawi", Destination = "Langkawi", Address = "Jalan Pantai Kok, Teluk Nibong, 07000 Langkawi, Kedah", Stars = 5 },
+            new { Hotel = "Pelangi Beach Resort & Spa, Langkawi", Destination = "Langkawi", Address = "Pantai Cenang, 07000 Langkawi, Kedah", Stars = 5 },
+            new { Hotel = "Berjaya Langkawi Resort", Destination = "Langkawi", Address = "Karong Berkunci 200, Burau Bay, 07000 Langkawi, Kedah", Stars = 5 },
+            new { Hotel = "Hotel Seri Malaysia Melaka", Destination = "Melaka", Address = "Lebuh Ayer Keroh, Bandar Melaka, 75450 Melaka", Stars = 3 },
+            new { Hotel = "Hatten Hotel Melaka", Destination = "Melaka", Address = "Hatten Square, Jalan Merdeka, Bandar Hilir, 75000 Melaka", Stars = 5 },
+            new { Hotel = "DoubleTree by Hilton Melaka", Destination = "Melaka", Address = "Hatten City, Jalan Melaka Raya 23, 75000 Melaka", Stars = 5 },
+            new { Hotel = "Courtyard by Marriott Melaka", Destination = "Melaka", Address = "Lorong Haji Bachee, Kampung Bukit China, 75100 Melaka", Stars = 4 },
+            new { Hotel = "The Majestic Malacca Hotel", Destination = "Melaka", Address = "188, Jalan Bunga Raya, 75100 Melaka", Stars = 5 }
         };
 
         foreach (var seed in hotelSeeds)
         {
-            var room = await context.HotelRooms.FirstOrDefaultAsync(r => r.HotelName == seed.Hotel && r.RoomName == seed.Room);
+            var room = await context.HotelRooms.FirstOrDefaultAsync(r => r.HotelName == seed.Hotel);
             if (room == null)
             {
                 room = new HotelRoom
                 {
-                    HotelName = seed.Hotel, RoomName = seed.Room, Destination = seed.Destination,
-                    Address = seed.Address, Description = seed.Description, PricePerNight = seed.Price,
-                    Capacity = seed.Capacity, TotalRooms = seed.Inventory, StarRating = seed.Stars,
-                    IsFeatured = seed.Featured, IsActive = true, Amenities = seed.Amenities
+                    HotelName = seed.Hotel, RoomName = "Standard Room", Destination = seed.Destination,
+                    Address = seed.Address, Description = "A comfortable hotel stay in a convenient location.",
+                    PricePerNight = 120m + (seed.Stars * 75m), Capacity = 2, TotalRooms = 8,
+                    StarRating = seed.Stars, IsFeatured = seed.Stars >= 5, IsActive = true,
+                    Amenities = "Wi-Fi, Air conditioning, Breakfast, Parking"
                 };
                 context.HotelRooms.Add(room);
                 await context.SaveChangesAsync();
             }
 
-            if (!await context.HotelRoomPhotos.AnyAsync(p => p.HotelRoomId == room.HotelRoomId))
+            room.Destination = seed.Destination;
+            room.Address = seed.Address;
+            room.StarRating = seed.Stars;
+
+            var photos = await context.HotelRoomPhotos.Where(p => p.HotelRoomId == room.HotelRoomId).ToListAsync();
+            if (photos.Count == 0)
             {
-                context.HotelRoomPhotos.AddRange(
-                    new HotelRoomPhoto { HotelRoomId = room.HotelRoomId, PhotoUrl = seed.Photo, Caption = seed.Room, IsPrimary = true, DisplayOrder = 0 },
-                    new HotelRoomPhoto { HotelRoomId = room.HotelRoomId, PhotoUrl = "/images/hero-beach.jpg", Caption = "Hotel ambience", IsPrimary = false, DisplayOrder = 1 });
+                context.HotelRoomPhotos.Add(new HotelRoomPhoto { HotelRoomId = room.HotelRoomId, PhotoUrl = "/images/hotels/uploads/no-image.jpg", Caption = "Demo hotel placeholder", IsPrimary = true, DisplayOrder = 0 });
+            }
+            else if (photos.All(p => p.Caption == room.RoomName || p.Caption == "Hotel ambience"))
+            {
+                foreach (var photo in photos)
+                {
+                    photo.PhotoUrl = "/images/hotels/uploads/no-image.jpg";
+                    photo.Caption = "Demo hotel placeholder";
+                }
+                photos[0].IsPrimary = true;
             }
         }
 
         await context.SaveChangesAsync();
 
         // One past reviewed stay and one forthcoming stay make both reservation states visible in the UI.
-        var reviewRoom = await context.HotelRooms.FirstAsync(r => r.HotelName == "Bayview Beach Resort" && r.RoomName == "Ocean View Double");
+        var reviewRoom = await context.HotelRooms.FirstAsync(r => r.HotelName == "PARKROYAL Langkawi Resort");
         if (!await context.HotelReservations.AnyAsync(r => r.ReservationReference == "HTLDEMO001"))
         {
             var completed = new HotelReservation { ReservationReference = "HTLDEMO001", UserId = 1, HotelRoomId = reviewRoom.HotelRoomId, CheckInDate = DateTime.Today.AddDays(-20), CheckOutDate = DateTime.Today.AddDays(-17), GuestCount = 2, PricePerNight = reviewRoom.PricePerNight, TotalAmount = reviewRoom.PricePerNight * 3, ReservationDate = DateTime.Today.AddDays(-35), ContactName = "Yong Kai Quan", ContactEmail = "yong.kq@example.com", ContactPhone = "012-3456789", ReservationStatus = HotelReservationStatus.Completed };
@@ -421,7 +453,7 @@ public static class SeedData
             context.HotelReviews.Add(new HotelReview { HotelRoomId = reviewRoom.HotelRoomId, HotelReservationId = completed.HotelReservationId, UserId = 1, Rating = 5, Comment = "Lovely beach location, attentive staff and a very comfortable room." });
         }
 
-        var upcomingRoom = await context.HotelRooms.FirstAsync(r => r.HotelName == "The Majestic Kuala Lumpur" && r.RoomName == "Colonial Deluxe King");
+        var upcomingRoom = await context.HotelRooms.FirstAsync(r => r.HotelName == "Mandarin Oriental, Kuala Lumpur");
         if (!await context.HotelReservations.AnyAsync(r => r.ReservationReference == "HTLDEMO002"))
         {
             context.HotelReservations.Add(new HotelReservation { ReservationReference = "HTLDEMO002", UserId = 1, HotelRoomId = upcomingRoom.HotelRoomId, CheckInDate = DateTime.Today.AddDays(14), CheckOutDate = DateTime.Today.AddDays(17), GuestCount = 2, PricePerNight = upcomingRoom.PricePerNight, TotalAmount = upcomingRoom.PricePerNight * 3, ReservationDate = DateTime.Today, ContactName = "Yong Kai Quan", ContactEmail = "yong.kq@example.com", ContactPhone = "012-3456789", ReservationStatus = HotelReservationStatus.Confirmed });

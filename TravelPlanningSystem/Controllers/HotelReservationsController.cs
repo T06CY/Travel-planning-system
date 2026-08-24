@@ -11,19 +11,21 @@ public class HotelReservationsController(AppDbContext context) : Controller
     [HttpGet] public async Task<IActionResult> Create(int roomId, DateTime? checkIn, DateTime? checkOut)
     {
         var room = await context.HotelRooms.AsNoTracking().FirstOrDefaultAsync(r => r.HotelRoomId == roomId && r.IsActive); if (room is null) return NotFound();
-        return View(new HotelReservationViewModel { HotelRoomId = roomId, HotelName = room.HotelName, RoomName = room.RoomName, PricePerNight = room.PricePerNight, Capacity = room.Capacity, CheckInDate = checkIn?.Date > DateTime.Today ? checkIn!.Value.Date : DateTime.Today.AddDays(1), CheckOutDate = checkOut?.Date > DateTime.Today.AddDays(1) ? checkOut!.Value.Date : DateTime.Today.AddDays(2) });
+        return View(new HotelReservationViewModel { HotelRoomId = roomId, HotelName = room.HotelName, RoomName = room.RoomName, PricePerNight = room.PricePerNight, Capacity = room.Capacity, CheckInDate = checkIn?.Date >= DateTime.Today ? checkIn!.Value.Date : DateTime.Today.AddDays(1), CheckOutDate = checkOut?.Date >= DateTime.Today ? checkOut!.Value.Date : DateTime.Today.AddDays(2) });
     }
     [HttpPost, ValidateAntiForgeryToken] public async Task<IActionResult> Create(HotelReservationViewModel model)
     {
         var room = await context.HotelRooms.FirstOrDefaultAsync(r => r.HotelRoomId == model.HotelRoomId && r.IsActive); if (room is null) return NotFound();
         model.HotelName = room.HotelName; model.RoomName = room.RoomName; model.PricePerNight = room.PricePerNight; model.Capacity = room.Capacity;
-        if (model.CheckInDate.Date < DateTime.Today || model.CheckOutDate.Date <= model.CheckInDate.Date) ModelState.AddModelError(nameof(model.CheckOutDate), "Check-out must be after check-in, and check-in cannot be in the past.");
+        var checkInAt = model.CheckInDate.Date.Add(model.CheckInTime);
+        var checkOutAt = model.CheckOutDate.Date.Add(model.CheckOutTime);
+        if (model.CheckInDate.Date < DateTime.Today || checkOutAt <= checkInAt) ModelState.AddModelError(nameof(model.CheckOutDate), "Check-out date and time must be after check-in, and check-in cannot be in the past.");
         if (model.GuestCount > room.Capacity) ModelState.AddModelError(nameof(model.GuestCount), $"This room allows up to {room.Capacity} guest(s).");
-        var occupied = await context.HotelReservations.CountAsync(b => b.HotelRoomId == room.HotelRoomId && b.ReservationStatus != HotelReservationStatus.Cancelled && b.CheckInDate < model.CheckOutDate.Date && b.CheckOutDate > model.CheckInDate.Date);
+        var occupied = await context.HotelReservations.CountAsync(b => b.HotelRoomId == room.HotelRoomId && b.ReservationStatus != HotelReservationStatus.Cancelled && b.CheckInDate.Add(b.CheckInTime) < checkOutAt && b.CheckOutDate.Add(b.CheckOutTime) > checkInAt);
         if (occupied >= room.TotalRooms) ModelState.AddModelError("", "This room is no longer available for those dates.");
         if (!ModelState.IsValid) return View(model);
-        var nights = (model.CheckOutDate.Date - model.CheckInDate.Date).Days;
-        var reservation = new HotelReservation { ReservationReference = $"HTL{DateTime.Now:yyMMdd}{Guid.NewGuid().ToString("N")[..6].ToUpperInvariant()}", UserId = CurrentUserId, HotelRoomId = room.HotelRoomId, CheckInDate = model.CheckInDate.Date, CheckOutDate = model.CheckOutDate.Date, GuestCount = model.GuestCount, PricePerNight = room.PricePerNight, TotalAmount = room.PricePerNight * nights, ContactName = model.ContactName.Trim(), ContactEmail = model.ContactEmail.Trim(), ContactPhone = model.ContactPhone.Trim() };
+        var nights = Math.Max(1, (int)Math.Ceiling((checkOutAt - checkInAt).TotalDays));
+        var reservation = new HotelReservation { ReservationReference = $"HTL{DateTime.Now:yyMMdd}{Guid.NewGuid().ToString("N")[..6].ToUpperInvariant()}", UserId = CurrentUserId, HotelRoomId = room.HotelRoomId, CheckInDate = model.CheckInDate.Date, CheckOutDate = model.CheckOutDate.Date, CheckInTime = model.CheckInTime, CheckOutTime = model.CheckOutTime, GuestCount = model.GuestCount, PricePerNight = room.PricePerNight, TotalAmount = room.PricePerNight * nights, ContactName = model.ContactName.Trim(), ContactEmail = model.ContactEmail.Trim(), ContactPhone = model.ContactPhone.Trim() };
         context.HotelReservations.Add(reservation); await context.SaveChangesAsync(); return RedirectToAction(nameof(Details), new { id = reservation.HotelReservationId });
     }
     public async Task<IActionResult> MyReservations(string? status)

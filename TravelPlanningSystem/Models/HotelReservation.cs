@@ -12,6 +12,8 @@ public class HotelReservation
     public HotelRoom? HotelRoom { get; set; }
     public DateTime CheckInDate { get; set; }
     public DateTime CheckOutDate { get; set; }
+    public TimeSpan CheckInTime { get; set; } = new(15, 0, 0);
+    public TimeSpan CheckOutTime { get; set; } = new(12, 0, 0);
     [Range(1, 20)] public int GuestCount { get; set; }
     [Column(TypeName = "decimal(10,2)")] public decimal PricePerNight { get; set; }
     [Column(TypeName = "decimal(12,2)")] public decimal TotalAmount { get; set; }

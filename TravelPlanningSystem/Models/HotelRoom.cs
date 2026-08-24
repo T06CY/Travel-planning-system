@@ -9,6 +9,8 @@ public class HotelRoom
     [Key] public int HotelRoomId { get; set; }
     [Required, StringLength(120)] public string HotelName { get; set; } = string.Empty;
     [Required, StringLength(120)] public string RoomName { get; set; } = string.Empty;
+    [NotMapped]
+    [Required, StringLength(30)] public string RoomType { get; set; } = "Master Room";
     [Required, StringLength(80)] public string Destination { get; set; } = string.Empty;
     [Required, StringLength(180)] public string Address { get; set; } = string.Empty;
     [Required, StringLength(2000)] public string Description { get; set; } = string.Empty;
