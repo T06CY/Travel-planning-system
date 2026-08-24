@@ -17,6 +17,10 @@ public class AppDbContext : DbContext
     public DbSet<ActivityPhoto> ActivityPhotos { get; set; }
     public DbSet<ActivityBooking> ActivityBookings { get; set; }
     public DbSet<ActivityReview> ActivityReviews { get; set; }
+    public DbSet<HotelRoom> HotelRooms { get; set; }
+    public DbSet<HotelRoomPhoto> HotelRoomPhotos { get; set; }
+    public DbSet<HotelReservation> HotelReservations { get; set; }
+    public DbSet<HotelReview> HotelReviews { get; set; }
 
     // User and staff tables
     public DbSet<ApplicationUser> Users { get; set; }
@@ -31,6 +35,12 @@ public class AppDbContext : DbContext
             .HasOne(r => r.ActivityBooking)
             .WithMany()
             .HasForeignKey(r => r.ActivityBookingId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<HotelReview>()
+            .HasOne(r => r.HotelReservation)
+            .WithOne(b => b.Review)
+            .HasForeignKey<HotelReview>(r => r.HotelReservationId)
             .OnDelete(DeleteBehavior.NoAction);
 
         // Set unique constraint on Email addresses

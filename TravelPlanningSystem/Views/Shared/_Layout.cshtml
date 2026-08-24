@@ -89,9 +89,9 @@
                     </li>
 
                     <li>
-                        <a class="nav-link @(currentController == "Booking" ? "active" : "")"
+                        <a class="nav-link @(currentController == "Booking" || currentController == "HotelReservations" ? "active" : "")"
                            asp-controller="Booking" asp-action="Index">
-                            <i class="bi bi-calendar-event"></i> My Bookings
+                           <i class="bi bi-calendar-event"></i> My Bookings
                         </a>
                     </li>
 

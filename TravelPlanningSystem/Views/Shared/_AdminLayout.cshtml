@@ -115,8 +115,9 @@
                     FLIGHT MANAGEMENT
                 </span>
 
-                <a href="javascript:void(0)"
-                   class="module-disabled">
+                <a asp-controller="AdminRooms"
+                   asp-action="Index"
+                   class="@(controller == "AdminRooms" && action == "Index" ? "active" : "")">
 
                     <i class="bi bi-airplane"></i>
 
@@ -137,9 +138,16 @@
                     <i class="bi bi-building"></i>
 
                     <span>
-                        Hotel Management
+                        Room Management
                     </span>
 
+                </a>
+
+                <a asp-controller="AdminRooms"
+                   asp-action="Create"
+                   class="@(controller == "AdminRooms" && action == "Create" ? "active" : "")">
+                    <i class="bi bi-plus-circle"></i>
+                    <span>Add Hotel Room</span>
                 </a>
 
 

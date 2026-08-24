@@ -1,0 +1,3 @@
+@model TravelPlanningSystem.ViewModels.HotelReviewViewModel
+<div class="container py-5"><h1>Review @Model.RoomName</h1><form asp-action="Review" method="post" class="card p-4"><input asp-for="HotelReservationId" type="hidden" /><div class="mb-3"><label asp-for="Rating" class="form-label"></label><select asp-for="Rating" class="form-select">@for(var i=5;i>=1;i--){<option value="@i">@i star@(i>1?"s":"")</option>}</select></div><div class="mb-3"><label asp-for="Comment" class="form-label"></label><textarea asp-for="Comment" class="form-control" rows="5"></textarea><span asp-validation-for="Comment" class="text-danger"></span></div><button class="btn btn-primary">Save review</button></form></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }
