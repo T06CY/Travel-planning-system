@@ -6,6 +6,10 @@
 
 <div class="dashboard-page">
 
+    <!-- ===================================================== -->
+    <!-- PAGE HEADING                                           -->
+    <!-- ===================================================== -->
+
     <div class="dashboard-heading">
 
         <div>
@@ -25,12 +29,19 @@
 
         </div>
 
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- USERS & STAFF                                          -->
+    <!-- ===================================================== -->
+
     <div class="section-heading mt-4">
 
         <div>
 
             <span class="dashboard-eyebrow">
-                USERS & STAFF
+                USERS &amp; STAFF
             </span>
 
             <h2>
@@ -45,11 +56,14 @@
 
     </div>
 
-    <div class="row mb-4">
 
-        <div class="col-md-6">
+    <div class="row g-4 mb-4">
 
-            <section class="dashboard-panel">
+        <!-- RECENT USERS -->
+
+        <div class="col-12 col-xl-6">
+
+            <section class="dashboard-panel h-100">
 
                 <div class="dashboard-panel-heading">
 
@@ -67,38 +81,83 @@
 
                 </div>
 
+
                 @if (!Model.Users.Any())
                 {
                     <div class="dashboard-empty">
+
                         <i class="bi bi-people"></i>
-                        <h4>No users</h4>
-                        <p>There are no registered users yet.</p>
+
+                        <h4>
+                            No users
+                        </h4>
+
+                        <p>
+                            There are no registered users yet.
+                        </p>
+
                     </div>
                 }
                 else
                 {
                     <div class="table-responsive">
+
                         <table class="table dashboard-table">
+
                             <thead>
+
                                 <tr>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Tier</th>
-                                    <th>Points</th>
+
+                                    <th>
+                                        Name
+                                    </th>
+
+                                    <th>
+                                        Email
+                                    </th>
+
+                                    <th>
+                                        Tier
+                                    </th>
+
+                                    <th>
+                                        Points
+                                    </th>
+
                                 </tr>
+
                             </thead>
+
+
                             <tbody>
+
                                 @foreach (var u in Model.Users)
                                 {
                                     <tr>
-                                        <td>@(u.FirstName) @u.LastName</td>
-                                        <td>@u.Email</td>
-                                        <td>@u.LoyaltyTier</td>
-                                        <td>@u.RewardPoints</td>
+
+                                        <td>
+                                            @(u.FirstName) @u.LastName
+                                        </td>
+
+                                        <td>
+                                            @u.Email
+                                        </td>
+
+                                        <td>
+                                            @u.LoyaltyTier
+                                        </td>
+
+                                        <td>
+                                            @u.RewardPoints
+                                        </td>
+
                                     </tr>
                                 }
+
                             </tbody>
+
                         </table>
+
                     </div>
                 }
 
@@ -106,9 +165,12 @@
 
         </div>
 
-        <div class="col-md-6">
 
-            <section class="dashboard-panel">
+        <!-- STAFF USERS -->
+
+        <div class="col-12 col-xl-6">
+
+            <section class="dashboard-panel h-100">
 
                 <div class="dashboard-panel-heading">
 
@@ -126,38 +188,83 @@
 
                 </div>
 
+
                 @if (!Model.StaffUsers.Any())
                 {
                     <div class="dashboard-empty">
+
                         <i class="bi bi-person-badge"></i>
-                        <h4>No staff users</h4>
-                        <p>There are no staff accounts yet.</p>
+
+                        <h4>
+                            No staff users
+                        </h4>
+
+                        <p>
+                            There are no staff accounts yet.
+                        </p>
+
                     </div>
                 }
                 else
                 {
                     <div class="table-responsive">
+
                         <table class="table dashboard-table">
+
                             <thead>
+
                                 <tr>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Role</th>
-                                    <th>Access</th>
+
+                                    <th>
+                                        Name
+                                    </th>
+
+                                    <th>
+                                        Email
+                                    </th>
+
+                                    <th>
+                                        Role
+                                    </th>
+
+                                    <th>
+                                        Access
+                                    </th>
+
                                 </tr>
+
                             </thead>
+
+
                             <tbody>
+
                                 @foreach (var s in Model.StaffUsers)
                                 {
                                     <tr>
-                                        <td>@(s.FirstName) @s.LastName</td>
-                                        <td>@s.Email</td>
-                                        <td>@(s.StaffRole?.RoleName ?? "-")</td>
-                                        <td>@s.AccessLevel</td>
+
+                                        <td>
+                                            @(s.FirstName) @s.LastName
+                                        </td>
+
+                                        <td>
+                                            @s.Email
+                                        </td>
+
+                                        <td>
+                                            @(s.StaffRole?.RoleName ?? "-")
+                                        </td>
+
+                                        <td>
+                                            @s.AccessLevel
+                                        </td>
+
                                     </tr>
                                 }
+
                             </tbody>
+
                         </table>
+
                     </div>
                 }
 
@@ -167,7 +274,10 @@
 
     </div>
 
-    </div>
+
+    <!-- ===================================================== -->
+    <!-- SYSTEM MANAGEMENT                                      -->
+    <!-- ===================================================== -->
 
     <div class="dashboard-panel mb-4">
 
@@ -189,7 +299,6 @@
 
 
         <div class="team-module-grid">
-
 
             <!-- FLIGHT -->
 
@@ -218,7 +327,9 @@
 
             <!-- HOTEL -->
 
-            <div class="team-module-card">
+            <a asp-controller="AdminRooms"
+               asp-action="Index"
+               class="team-module-card text-decoration-none">
 
                 <div class="team-module-icon hotel-module">
 
@@ -238,7 +349,7 @@
 
                 </div>
 
-            </div>
+            </a>
 
 
             <!-- TRANSPORTATION -->
@@ -301,6 +412,10 @@
     </div>
 
 
+    <!-- ===================================================== -->
+    <!-- ACTIVITY MANAGEMENT                                    -->
+    <!-- ===================================================== -->
+
     <div class="section-heading">
 
         <div>
@@ -333,8 +448,12 @@
 
     </div>
 
-    <div class="dashboard-stat-grid">
 
+    <!-- ===================================================== -->
+    <!-- ACTIVITY STATISTICS                                    -->
+    <!-- ===================================================== -->
+
+    <div class="dashboard-stat-grid">
 
         <!-- TOTAL ACTIVITIES -->
 
@@ -453,8 +572,12 @@
 
     </div>
 
-    <div class="booking-status-grid">
 
+    <!-- ===================================================== -->
+    <!-- BOOKING STATUS                                         -->
+    <!-- ===================================================== -->
+
+    <div class="booking-status-grid">
 
         <!-- PENDING -->
 
@@ -569,8 +692,12 @@
 
     </div>
 
-    <div class="dashboard-lower-grid">
 
+    <!-- ===================================================== -->
+    <!-- LOWER DASHBOARD                                        -->
+    <!-- ===================================================== -->
+
+    <div class="dashboard-lower-grid">
 
         <!-- RECENT ACTIVITY BOOKINGS -->
 
@@ -662,8 +789,6 @@
                             {
                                 <tr>
 
-                                    <!-- REFERENCE -->
-
                                     <td>
 
                                         <strong>
@@ -676,8 +801,6 @@
 
                                     </td>
 
-
-                                    <!-- CUSTOMER -->
 
                                     <td>
 
@@ -692,16 +815,12 @@
                                     </td>
 
 
-                                    <!-- ACTIVITY -->
-
                                     <td>
 
                                         @booking.ActivitySession?.Activity?.ActivityName
 
                                     </td>
 
-
-                                    <!-- TOTAL -->
 
                                     <td>
 
@@ -711,8 +830,6 @@
 
                                     </td>
 
-
-                                    <!-- STATUS -->
 
                                     <td>
 
@@ -724,8 +841,6 @@
 
                                     </td>
 
-
-                                    <!-- VIEW -->
 
                                     <td>
 
@@ -752,6 +867,9 @@
 
         </section>
 
+
+        <!-- QUICK ACTIONS -->
+
         <section class="dashboard-panel quick-action-panel">
 
             <div class="dashboard-panel-heading">
@@ -772,7 +890,6 @@
 
 
             <div class="quick-action-list">
-
 
                 <!-- ADD ACTIVITY -->
 
@@ -864,3 +981,50 @@
     </div>
 
 </div>
+
+
+<style>
+
+    /* Fix top section sizing */
+    .dashboard-heading {
+        display: block !important;
+        width: 100%;
+        margin-bottom: 24px;
+    }
+
+        .dashboard-heading > div {
+            width: 100%;
+        }
+
+    /* Keep Accounts Overview on its own row */
+    .section-heading {
+        width: 100%;
+    }
+
+    /* Prevent the user/staff cards from becoming too narrow */
+    .dashboard-panel {
+        min-width: 0;
+    }
+
+        .dashboard-panel .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+    .dashboard-table {
+        width: 100%;
+    }
+
+    /* Better spacing for the two account cards */
+    @@media (min-width: 1200px) {
+
+        .row.g-4 > .col-xl-6 {
+            display: flex;
+        }
+
+            .row.g-4 > .col-xl-6 > .dashboard-panel {
+                width: 100%;
+            }
+    }
+
+</style>

@@ -1,3 +1,723 @@
 @model IEnumerable<TravelPlanningSystem.Models.HotelReservation>
-@{ ViewData["Title"] = "My hotel reservations"; }
-<link rel="stylesheet" href="~/css/hotels.css" /><div class="container py-5"><h1>My hotel reservations</h1><div class="mb-4"><a asp-route-status="Confirmed">Confirmed</a> · <a asp-route-status="Completed">Completed</a> · <a asp-route-status="Cancelled">Cancelled</a> · <a asp-action="MyReservations">All</a></div>@if(!Model.Any()){<p>No hotel reservations found.</p>}else{<div class="row g-3">@foreach(var booking in Model){var photo=booking.HotelRoom?.Photos.FirstOrDefault(p=>p.IsPrimary)?.PhotoUrl ?? "/images/hero-beach.jpg";<div class="col-md-6"><div class="card h-100"><img src="@photo" class="card-img-top hotel-thumb" alt="@booking.HotelRoom?.RoomName" /><div class="card-body"><span class="badge text-bg-secondary">@booking.ReservationStatus</span><h4>@booking.HotelRoom?.HotelName</h4><p>@booking.HotelRoom?.RoomName<br />@booking.CheckInDate.ToString("dd MMM yyyy") – @booking.CheckOutDate.ToString("dd MMM yyyy")</p><a asp-action="Details" asp-route-id="@booking.HotelReservationId" class="btn btn-outline-primary">View reservation</a></div></div></div>}</div>}</div>
+
+@{
+    ViewData["Title"] = "My Hotel Reservations";
+
+    var currentStatus = Context.Request.Query["status"].ToString();
+
+    string TabClass(string status)
+    {
+        if (string.IsNullOrEmpty(status) && string.IsNullOrEmpty(currentStatus))
+        {
+            return "booking-filter active";
+        }
+
+        return currentStatus.Equals(
+            status,
+            StringComparison.OrdinalIgnoreCase)
+                ? "booking-filter active"
+                : "booking-filter";
+    }
+}
+
+
+<style>
+
+    /* =========================================================
+       PAGE
+    ========================================================= */
+
+    .hotel-bookings-page {
+        min-height: calc(100vh - 80px);
+        padding: 46px 0 80px;
+        background: #f7f8fb;
+    }
+
+    .hotel-bookings-container {
+        width: min(1280px, calc(100% - 48px));
+        margin: 0 auto;
+    }
+
+
+    /* =========================================================
+       HEADER
+    ========================================================= */
+
+    .booking-page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 30px;
+        margin-bottom: 32px;
+    }
+
+    .booking-header-left {
+        max-width: 700px;
+    }
+
+    .booking-eyebrow {
+        display: block;
+        margin-bottom: 8px;
+        color: #ff5b63;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+
+    .booking-header-left h1 {
+        margin: 0 0 8px;
+        color: #1d2940;
+        font-size: 42px;
+        font-weight: 800;
+        line-height: 1.15;
+    }
+
+    .booking-header-left p {
+        margin: 0;
+        color: #667085;
+        font-size: 15px;
+    }
+
+
+    /* =========================================================
+       BROWSE BUTTON
+    ========================================================= */
+
+    .explore-hotels-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 50px;
+        padding: 0 22px;
+        border: 0;
+        border-radius: 13px;
+        background: #ff5b63;
+        color: white;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 800;
+        box-shadow: 0 10px 25px rgba(255, 91, 99, 0.22);
+        transition: 0.2s ease;
+    }
+
+        .explore-hotels-btn:hover {
+            background: #ef4c55;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+
+    /* =========================================================
+       FILTER BUTTONS
+    ========================================================= */
+
+    .booking-filters {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+    }
+
+    .booking-filter {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 0 18px;
+        border: 1px solid #e3e7ee;
+        border-radius: 999px;
+        background: white;
+        color: #687386;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+        transition: 0.2s ease;
+    }
+
+        .booking-filter:hover {
+            color: #1d2940;
+            background: #f1f3f7;
+        }
+
+        .booking-filter.active {
+            border-color: #1c263b;
+            background: #1c263b;
+            color: white;
+        }
+
+
+    /* =========================================================
+       LIST
+    ========================================================= */
+
+    .hotel-booking-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+
+    /* =========================================================
+       BOOKING CARD
+    ========================================================= */
+
+    .hotel-booking-card {
+        display: grid;
+        grid-template-columns: 145px minmax(0, 1fr) 190px;
+        align-items: center;
+        min-height: 132px;
+        padding: 14px;
+        border: 1px solid #e2e6ec;
+        border-radius: 17px;
+        background: white;
+        box-shadow: 0 3px 10px rgba(30, 45, 70, 0.025);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .hotel-booking-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(30, 45, 70, 0.08);
+        }
+
+
+    /* =========================================================
+       IMAGE
+    ========================================================= */
+
+    .booking-hotel-image {
+        width: 145px;
+        height: 103px;
+        overflow: hidden;
+        border-radius: 12px;
+        background: #edf1f4;
+    }
+
+        .booking-hotel-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+
+    /* =========================================================
+       INFO
+    ========================================================= */
+
+    .booking-main-info {
+        min-width: 0;
+        padding: 0 18px;
+    }
+
+    .booking-top-line {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 8px;
+    }
+
+
+    /* =========================================================
+       STATUS
+    ========================================================= */
+
+    .booking-status {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 5px 11px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+        .booking-status.confirmed {
+            background: #e5f7ef;
+            color: #118458;
+        }
+
+        .booking-status.completed {
+            background: #e7efff;
+            color: #3c63cb;
+        }
+
+        .booking-status.cancelled {
+            background: #ffe8eb;
+            color: #d44a59;
+        }
+
+        .booking-status.pending {
+            background: #fff4d9;
+            color: #a66c00;
+        }
+
+
+    /* =========================================================
+       REFERENCE
+    ========================================================= */
+
+    .booking-reference {
+        color: #4f5d70;
+        font-size: 12px;
+    }
+
+
+    /* =========================================================
+       HOTEL NAME
+    ========================================================= */
+
+    .booking-main-info h3 {
+        margin: 0 0 9px;
+        overflow: hidden;
+        color: #1e2a40;
+        font-size: 23px;
+        font-weight: 800;
+        line-height: 1.2;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+
+    /* =========================================================
+       META
+    ========================================================= */
+
+    .booking-meta {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        flex-wrap: wrap;
+        color: #8792a5;
+        font-size: 12px;
+    }
+
+        .booking-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .booking-meta i {
+            color: #ff5b63;
+        }
+
+
+    /* =========================================================
+       RIGHT SIDE
+    ========================================================= */
+
+    .booking-price-area {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: center;
+        height: 100%;
+        padding-right: 10px;
+    }
+
+    .booking-total-label {
+        margin-bottom: 3px;
+        color: #929cad;
+        font-size: 11px;
+    }
+
+    .booking-total-price {
+        margin-bottom: 15px;
+        color: #17233a;
+        font-size: 20px;
+        font-weight: 800;
+    }
+
+    .booking-view-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        color: #ff5b63;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+        .booking-view-btn:hover {
+            color: #e5454e;
+        }
+
+
+    /* =========================================================
+       EMPTY STATE
+    ========================================================= */
+
+    .hotel-empty-state {
+        padding: 65px 25px;
+        border: 1px solid #e2e6ec;
+        border-radius: 18px;
+        background: white;
+        text-align: center;
+    }
+
+    .hotel-empty-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 70px;
+        height: 70px;
+        margin: 0 auto 18px;
+        border-radius: 50%;
+        background: #fff0f1;
+        color: #ff5b63;
+        font-size: 28px;
+    }
+
+    .hotel-empty-state h3 {
+        margin-bottom: 7px;
+        color: #1d2940;
+        font-weight: 800;
+    }
+
+    .hotel-empty-state p {
+        margin-bottom: 20px;
+        color: #7e8999;
+    }
+
+
+    /* =========================================================
+       RESPONSIVE
+    ========================================================= */
+
+    @@media (max-width: 900px) {
+
+        .hotel-booking-card {
+            grid-template-columns: 125px minmax(0, 1fr);
+        }
+
+        .booking-hotel-image {
+            width: 125px;
+        }
+
+        .booking-price-area {
+            grid-column: 2;
+            align-items: flex-start;
+            padding: 8px 18px 4px;
+        }
+    }
+
+
+    @@media (max-width: 650px) {
+
+        .hotel-bookings-container {
+            width: min(100% - 28px, 1280px);
+        }
+
+        .booking-page-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .booking-header-left h1 {
+            font-size: 32px;
+        }
+
+        .hotel-booking-card {
+            grid-template-columns: 1fr;
+        }
+
+        .booking-hotel-image {
+            width: 100%;
+            height: 190px;
+        }
+
+        .booking-main-info {
+            padding: 16px 4px 8px;
+        }
+
+        .booking-price-area {
+            grid-column: auto;
+            align-items: flex-start;
+            padding: 10px 4px;
+        }
+    }
+
+</style>
+
+
+
+<section class="hotel-bookings-page">
+
+    <div class="hotel-bookings-container">
+
+
+        <!-- =====================================================
+             HEADER
+        ====================================================== -->
+        <div class="booking-page-header">
+
+            <div class="booking-header-left">
+
+                <span class="booking-eyebrow">
+                    MY TRAVEL PLANS
+                </span>
+
+                <h1>
+                    Hotel Reservations
+                </h1>
+
+                <p>
+                    Review your upcoming and previous hotel reservations.
+                </p>
+
+            </div>
+
+
+            <a asp-controller="Hotel"
+               asp-action="Index"
+               class="explore-hotels-btn">
+
+                <i class="bi bi-compass"></i>
+
+                Explore Hotels
+
+            </a>
+
+        </div>
+
+
+
+        <!-- =====================================================
+             FILTERS
+        ====================================================== -->
+        <div class="booking-filters">
+
+            <a asp-action="MyReservations"
+               class="@TabClass("")">
+                All
+            </a>
+
+
+            <a asp-action="MyReservations"
+               asp-route-status="Pending"
+               class="@TabClass("Pending")">
+                Pending
+            </a>
+
+
+            <a asp-action="MyReservations"
+               asp-route-status="Confirmed"
+               class="@TabClass("Confirmed")">
+                Confirmed
+            </a>
+
+
+            <a asp-action="MyReservations"
+               asp-route-status="Completed"
+               class="@TabClass("Completed")">
+                Completed
+            </a>
+
+
+            <a asp-action="MyReservations"
+               asp-route-status="Cancelled"
+               class="@TabClass("Cancelled")">
+                Cancelled
+            </a>
+
+        </div>
+
+
+
+        <!-- =====================================================
+             RESERVATIONS
+        ====================================================== -->
+        @if (Model == null || !Model.Any())
+        {
+
+            <div class="hotel-empty-state">
+
+                <div class="hotel-empty-icon">
+                    <i class="bi bi-building"></i>
+                </div>
+
+
+                <h3>
+                    No hotel reservations found
+                </h3>
+
+
+                <p>
+                    Your hotel reservations will appear here.
+                </p>
+
+
+                <a asp-controller="Hotel"
+                   asp-action="Index"
+                   class="explore-hotels-btn">
+
+                    Explore Hotels
+
+                </a>
+
+            </div>
+
+        }
+        else
+        {
+
+            <div class="hotel-booking-list">
+
+
+                @foreach (var reservation in Model)
+                {
+
+                    var room = reservation.HotelRoom;
+
+
+                    var primaryPhoto =
+                        room?.Photos?
+                            .OrderByDescending(p => p.IsPrimary)
+                            .ThenBy(p => p.DisplayOrder)
+                            .FirstOrDefault();
+
+
+                    var photoUrl =
+                        primaryPhoto?.PhotoUrl ??
+                        "/images/hotels/uploads/no-image.jpg";
+
+
+                    var statusText =
+                        reservation.ReservationStatus.ToString();
+
+
+                    var statusClass =
+                        statusText.ToLower();
+
+
+                    <div class="hotel-booking-card">
+
+
+                        <!-- =====================================
+                             IMAGE
+                        ====================================== -->
+                        <div class="booking-hotel-image">
+
+                            <img src="@photoUrl"
+                                 alt="@(room?.HotelName ?? "Hotel")"
+                                 onerror="this.src='/images/hotels/uploads/no-image.jpg';" />
+
+                        </div>
+
+
+
+                        <!-- =====================================
+                             INFORMATION
+                        ====================================== -->
+                        <div class="booking-main-info">
+
+
+                            <div class="booking-top-line">
+
+
+                                <span class="booking-status @statusClass">
+                                    @statusText
+                                </span>
+
+
+                                <span class="booking-reference">
+                                    @reservation.ReservationReference
+                                </span>
+
+
+                            </div>
+
+
+
+                            <h3>
+                                @(room?.HotelName ?? "Hotel Reservation")
+                            </h3>
+
+
+
+                            <div class="booking-meta">
+
+
+                                <span>
+
+                                    <i class="bi bi-calendar3"></i>
+
+                                    @reservation.CheckInDate.ToString("dd MMM yyyy")
+
+                                    -
+
+                                    @reservation.CheckOutDate.ToString("dd MMM yyyy")
+
+                                </span>
+
+
+                                <span>
+
+                                    <i class="bi bi-people"></i>
+
+                                    @reservation.GuestCount
+
+                                </span>
+
+
+                                <span>
+
+                                    <i class="bi bi-geo-alt"></i>
+
+                                    @(room?.Destination ?? "Malaysia")
+
+                                </span>
+
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- =====================================
+                             PRICE / BUTTON
+                        ====================================== -->
+                        <div class="booking-price-area">
+
+
+                            <span class="booking-total-label">
+                                Total
+                            </span>
+
+
+                            <div class="booking-total-price">
+                                RM @reservation.TotalAmount.ToString("N2")
+                            </div>
+
+
+                            <a asp-controller="HotelReservations"
+                               asp-action="Details"
+                               asp-route-id="@reservation.HotelReservationId"
+                               class="booking-view-btn">
+
+                                View Booking
+
+                                <i class="bi bi-arrow-right"></i>
+
+                            </a>
+
+
+                        </div>
+
+
+                    </div>
+
+                }
+
+            </div>
+
+        }
+
+
+    </div>
+
+</section>

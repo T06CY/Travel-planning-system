@@ -1,0 +1,119 @@
+@model IEnumerable<TravelPlanningSystem.Models.HotelReservation>
+
+@{
+    ViewData["Title"] = "Hotel Reservations";
+    var selectedStatus = ViewBag.Status as string;
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="mb-1">Hotel Reservations</h1>
+        <p class="text-muted mb-0">Review and manage hotel reservation records.</p>
+    </div>
+
+    <a asp-controller="AdminRooms" asp-action="Index" class="btn btn-outline-primary">
+        <i class="bi bi-building"></i> Hotel Rooms
+    </a>
+</div>
+
+<form method="get" class="row g-2 mb-4">
+    <div class="col-md-5">
+        <input name="search"
+               value="@ViewBag.Search"
+               class="form-control"
+               placeholder="Reference, guest, email, hotel or room" />
+    </div>
+
+    <div class="col-md-3">
+        <select name="status" class="form-select">
+            <option value="">All statuses</option>
+            @foreach (var value in Enum.GetValues<TravelPlanningSystem.Models.HotelReservationStatus>())
+            {
+                <option value="@value" selected="@(selectedStatus == value.ToString())">@value</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-search"></i> Filter
+        </button>
+    </div>
+
+    <div class="col-auto">
+        <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
+    </div>
+</form>
+
+@if (TempData["Message"] is string message)
+{
+    <div class="alert alert-info">@message</div>
+}
+
+@if (!Model.Any())
+{
+    <div class="card border-0 shadow-sm p-5 text-center">
+        <i class="bi bi-calendar-x fs-1 text-muted"></i>
+        <h4 class="mt-3">No hotel reservations found</h4>
+    </div>
+}
+else
+{
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Reference</th>
+                        <th>Hotel / Room</th>
+                        <th>Guest</th>
+                        <th>Stay</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var reservation in Model)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@reservation.ReservationReference</strong><br />
+                                <small class="text-muted">@reservation.ReservationDate.ToString("dd MMM yyyy")</small>
+                            </td>
+                            <td>
+                                <strong>@reservation.HotelRoom?.HotelName</strong><br />
+                                <small class="text-muted">@reservation.HotelRoom?.RoomName</small>
+                            </td>
+                            <td>
+                                @reservation.ContactName<br />
+                                <small class="text-muted">@reservation.ContactEmail</small>
+                            </td>
+                            <td>
+                                @reservation.CheckInDate.ToString("dd MMM yyyy")<br />
+                                <small class="text-muted">to @reservation.CheckOutDate.ToString("dd MMM yyyy")</small>
+                            </td>
+                            <td>RM @reservation.TotalAmount.ToString("N2")</td>
+                            <td>
+                                <span class="badge @(reservation.ReservationStatus switch {
+                                    TravelPlanningSystem.Models.HotelReservationStatus.Confirmed => "text-bg-primary",
+                                    TravelPlanningSystem.Models.HotelReservationStatus.Completed => "text-bg-success",
+                                    _ => "text-bg-secondary"
+                                })">
+                                    @reservation.ReservationStatus
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="Details"
+                                   asp-route-id="@reservation.HotelReservationId"
+                                   class="btn btn-sm btn-outline-primary">
+                                    View
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

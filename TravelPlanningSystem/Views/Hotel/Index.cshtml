@@ -1,58 +1,561 @@
 @model TravelPlanningSystem.ViewModels.HotelSearchViewModel
-@{ ViewData["Title"] = "Hotels"; }
-<link rel="stylesheet" href="~/css/hotels.css" asp-append-version="true" />
+
+@{
+    ViewData["Title"] = "Hotels";
+}
+
+<link rel="stylesheet"
+      href="~/css/hotels.css"
+      asp-append-version="true" />
+
+
+<!-- =========================================================
+     HOTEL HERO
+========================================================= -->
 <section class="hotel-hero">
     <div class="container">
-        <span class="eyebrow"><i class="bi bi-buildings"></i> Stay your way</span>
-        <h1>Find your perfect <span>hotel room.</span></h1>
-        <p>Search room availability, compare stays and reserve in minutes.</p>
-        <form id="hotelSearchForm" class="hotel-search-panel" method="get" asp-controller="Hotel" asp-action="Index">
+
+        <span class="eyebrow">
+            <i class="bi bi-buildings"></i>
+            Stay your way
+        </span>
+
+        <h1>
+            Find your perfect
+            <span>hotel room.</span>
+        </h1>
+
+        <p>
+            Search room availability, compare stays and reserve in minutes.
+        </p>
+
+
+        <!-- =====================================================
+             HOTEL SEARCH FORM
+        ====================================================== -->
+        <form id="hotelSearchForm"
+              class="hotel-search-panel"
+              method="get"
+              asp-controller="Hotel"
+              asp-action="Index">
+
             <div class="search-grid">
-                <div class="field field-wide"><label>Where are you staying?</label><input asp-for="Search" class="form-control" placeholder="Hotel, room or destination" /></div>
-                <div class="field"><label asp-for="CheckIn">Check-in</label><input asp-for="CheckIn" type="date" class="form-control" min="@DateTime.Today.ToString("yyyy-MM-dd")" /><input asp-for="CheckInTime" type="time" class="form-control mt-1" /></div>
-                <div class="field"><label asp-for="CheckOut">Check-out</label><input asp-for="CheckOut" type="date" class="form-control" min="@DateTime.Today.ToString("yyyy-MM-dd")" /><input asp-for="CheckOutTime" type="time" class="form-control mt-1" /></div>
-                <div class="field occupancy-field">
-                    <label>Occupancy</label>
-                    <button type="button" class="occupancy-summary" aria-expanded="false" aria-controls="occupancyMenu">
-                        <span class="occupancy-summary-icon"><i class="bi bi-people"></i></span>
-                        <span class="occupancy-summary-text"><strong><span id="adultSummary">@(Model.Adults ?? 2)</span> adults</strong><small><span id="roomSummary">@(Model.RequestedRooms ?? 1)</span> room@(Model.RequestedRooms == 1 ? "" : "s")</small></span>
-                        <i class="bi bi-chevron-down occupancy-chevron"></i>
-                    </button>
-                    <input form="hotelSearchForm" asp-for="Adults" type="hidden" />
-                    <input form="hotelSearchForm" asp-for="Children" type="hidden" />
-                    <input form="hotelSearchForm" asp-for="RequestedRooms" type="hidden" />
-                    <div id="occupancyMenu" class="occupancy-menu" hidden>
-                        <div class="occupancy-row"><div><strong>Room</strong></div><div class="occupancy-stepper"><button type="button" class="occ-decrement" data-target="RequestedRooms" aria-label="Decrease rooms">−</button><output id="roomValue">@(Model.RequestedRooms ?? 1)</output><button type="button" class="occ-increment" data-target="RequestedRooms" aria-label="Increase rooms">+</button></div></div>
-                        <div class="occupancy-row"><div><strong>Adults</strong><small>Ages 18 or above</small></div><div class="occupancy-stepper"><button type="button" class="occ-decrement" data-target="Adults" aria-label="Decrease adults">−</button><output id="adultValue">@(Model.Adults ?? 2)</output><button type="button" class="occ-increment" data-target="Adults" aria-label="Increase adults">+</button></div></div>
-                        <div class="occupancy-row"><div><strong>Children</strong><small>Ages 0-17</small></div><div class="occupancy-stepper"><button type="button" class="occ-decrement" data-target="Children" aria-label="Decrease children">−</button><output id="childrenValue">@(Model.Children ?? 0)</output><button type="button" class="occ-increment" data-target="Children" aria-label="Increase children">+</button></div></div>
-                    </div>
+
+
+                <!-- =============================================
+                     SEARCH TEXT
+                ============================================== -->
+                <div class="field field-wide">
+
+                    <label asp-for="Search">
+                        Where are you staying?
+                    </label>
+
+                    <input asp-for="Search"
+                           class="form-control"
+                           placeholder="Hotel, room or destination" />
+
                 </div>
-                <button class="btn btn-activity-search"><i class="bi bi-search"></i> Search</button>
+
+
+                <!-- =============================================
+                     CHECK-IN
+                ============================================== -->
+                <div class="field">
+
+                    <label asp-for="CheckIn">
+                        Check-in
+                    </label>
+
+                    <input asp-for="CheckIn"
+                           type="date"
+                           class="form-control"
+                           min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+
+                    <input asp-for="CheckInTime"
+                           type="time"
+                           class="form-control mt-1" />
+
+                </div>
+
+
+                <!-- =============================================
+                     CHECK-OUT
+                ============================================== -->
+                <div class="field">
+
+                    <label asp-for="CheckOut">
+                        Check-out
+                    </label>
+
+                    <input asp-for="CheckOut"
+                           type="date"
+                           class="form-control"
+                           min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+
+                    <input asp-for="CheckOutTime"
+                           type="time"
+                           class="form-control mt-1" />
+
+                </div>
+
+
+                <!-- =============================================
+                     OCCUPANCY
+                ============================================== -->
+                <div class="field occupancy-field">
+
+                    <label>
+                        Occupancy
+                    </label>
+
+
+                    <button type="button"
+                            class="occupancy-summary"
+                            aria-expanded="false"
+                            aria-controls="occupancyMenu">
+
+                        <span class="occupancy-summary-icon">
+                            <i class="bi bi-people"></i>
+                        </span>
+
+                        <span class="occupancy-summary-text">
+
+                            <strong>
+                                <span id="adultSummary">
+                                    @(Model.Adults ?? 2)
+                                </span>
+                                adults
+                            </strong>
+
+                            <small>
+                                <span id="roomSummary">
+                                    @(Model.RequestedRooms ?? 1)
+                                </span>
+
+                                room@(Model.RequestedRooms == 1 ? "" : "s")
+                            </small>
+
+                        </span>
+
+                        <i class="bi bi-chevron-down occupancy-chevron"></i>
+
+                    </button>
+
+
+                    <!-- Hidden values submitted with the main form -->
+                    <input asp-for="Adults"
+                           type="hidden" />
+
+                    <input asp-for="Children"
+                           type="hidden" />
+
+                    <input asp-for="RequestedRooms"
+                           type="hidden" />
+
+
+                    <!-- Occupancy popup -->
+                    <div id="occupancyMenu"
+                         class="occupancy-menu"
+                         hidden>
+
+
+                        <!-- Rooms -->
+                        <div class="occupancy-row">
+
+                            <div>
+                                <strong>Room</strong>
+                            </div>
+
+                            <div class="occupancy-stepper">
+
+                                <button type="button"
+                                        class="occ-decrement"
+                                        data-target="RequestedRooms"
+                                        aria-label="Decrease rooms">
+                                    −
+                                </button>
+
+                                <output id="roomValue">
+                                    @(Model.RequestedRooms ?? 1)
+                                </output>
+
+                                <button type="button"
+                                        class="occ-increment"
+                                        data-target="RequestedRooms"
+                                        aria-label="Increase rooms">
+                                    +
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Adults -->
+                        <div class="occupancy-row">
+
+                            <div>
+                                <strong>Adults</strong>
+                                <small>Ages 18 or above</small>
+                            </div>
+
+                            <div class="occupancy-stepper">
+
+                                <button type="button"
+                                        class="occ-decrement"
+                                        data-target="Adults"
+                                        aria-label="Decrease adults">
+                                    −
+                                </button>
+
+                                <output id="adultValue">
+                                    @(Model.Adults ?? 2)
+                                </output>
+
+                                <button type="button"
+                                        class="occ-increment"
+                                        data-target="Adults"
+                                        aria-label="Increase adults">
+                                    +
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Children -->
+                        <div class="occupancy-row">
+
+                            <div>
+                                <strong>Children</strong>
+                                <small>Ages 0-17</small>
+                            </div>
+
+                            <div class="occupancy-stepper">
+
+                                <button type="button"
+                                        class="occ-decrement"
+                                        data-target="Children"
+                                        aria-label="Decrease children">
+                                    −
+                                </button>
+
+                                <output id="childrenValue">
+                                    @(Model.Children ?? 0)
+                                </output>
+
+                                <button type="button"
+                                        class="occ-increment"
+                                        data-target="Children"
+                                        aria-label="Increase children">
+                                    +
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =============================================
+                     SEARCH BUTTON
+                ============================================== -->
+                <button type="submit"
+                        class="btn btn-activity-search">
+
+                    <i class="bi bi-search"></i>
+                    Search
+
+                </button>
+
             </div>
+
         </form>
+
     </div>
 </section>
 
+
+
+<!-- =========================================================
+     HOTEL RESULTS SECTION
+========================================================= -->
 <section class="activity-section hotel-section">
+
     <div class="container">
+
         <div class="content-grid hotel-content-grid">
+
+
+            <!-- =================================================
+                 SIDEBAR
+            ================================================== -->
             <aside class="hotel-sidebar">
-                <div class="map-card"><div id="hotelMap" style="width:100%;height:220px;border-radius:8px;overflow:hidden;"></div></div>
+
+
+                <!-- =============================================
+                     GOOGLE MAP
+                ============================================== -->
+                <div class="map-card">
+
+                    <div id="hotelMap"
+                         style="
+                        width:100%;
+                        height:220px;
+                        border-radius:8px;
+                        overflow:hidden;">
+                    </div>
+
+                </div>
+
+
+
+                <!-- =============================================
+                     FILTER CARD
+                ============================================== -->
                 <aside class="filter-card">
-                    <div class="filter-heading"><h5>Filter rooms</h5><button type="button" id="clearFilters" class="btn-link-clean">Clear all</button></div>
-                    <div class="filter-group"><label>Destination</label><select form="hotelSearchForm" asp-for="Destination" class="form-select auto-filter"><option value="">All destinations</option>@foreach(var destination in Model.Destinations) { <option value="@destination">@destination</option> }</select></div>
-                    <div class="filter-group price-filter-group"><label>Maximum price</label><div class="price-filter-popover-wrap"><button type="button" class="price-filter-trigger" aria-expanded="false"><span class="price-filter-currency">@Model.Currency</span><span class="price-filter-trigger-value">@(Model.MaxPrice ?? 300)</span><i class="bi bi-chevron-down"></i></button><div class="price-filter-popover"><div class="price-control"><button type="button" class="btn btn-outline-secondary currency-toggle">@Model.Currency</button><input form="hotelSearchForm" asp-for="MaxPrice" type="number" step="0.01" value="@(Model.MaxPrice ?? 300)" class="form-control price-number" /><input form="hotelSearchForm" asp-for="Currency" type="hidden" /><input type="range" class="form-range price-range" min="0" max="1000" step="1" value="@(Model.MaxPrice ?? 300)" /></div></div></div></div></aside>
+
+
+                    <div class="filter-heading">
+
+                        <h5>
+                            Filter rooms
+                        </h5>
+
+                        <button type="button"
+                                id="clearFilters"
+                                class="btn-link-clean">
+                            Clear all
+                        </button>
+
+                    </div>
+
+
+
+                    <!-- =========================================
+                         DESTINATION
+                    ========================================== -->
+                    <div class="filter-group">
+
+                        <label asp-for="Destination">
+                            Destination
+                        </label>
+
+
+                        <select asp-for="Destination"
+                                form="hotelSearchForm"
+                                class="form-select auto-filter">
+
+                            <option value="">
+                                All destinations
+                            </option>
+
+
+                            @foreach (var destination in Model.Destinations)
+                            {
+                                <option value="@destination">
+                                    @destination
+                                </option>
+                            }
+
+                        </select>
+
+                    </div>
+
+
+
+                    <!-- =========================================
+                         MAX PRICE
+                    ========================================== -->
+                    <div class="filter-group price-filter-group">
+
+                        <label asp-for="MaxPrice">
+                            Maximum price
+                        </label>
+
+
+                        <div class="price-filter-popover-wrap">
+
+
+                            <button type="button"
+                                    class="price-filter-trigger"
+                                    aria-expanded="false">
+
+                                <span class="price-filter-currency">
+                                    @Model.Currency
+                                </span>
+
+
+                                <span class="price-filter-trigger-value">
+                                    @(Model.MaxPrice.HasValue
+                                        ? Model.MaxPrice.Value.ToString("0")
+                                        : "Any")
+                                </span>
+
+
+                                <i class="bi bi-chevron-down"></i>
+
+                            </button>
+
+
+
+                            <div class="price-filter-popover">
+
+                                <div class="price-control">
+
+
+                                    <!-- Currency button -->
+                                    <button type="button"
+                                            class="btn btn-outline-secondary currency-toggle">
+
+                                        @Model.Currency
+
+                                    </button>
+
+
+                                    <!-- Price number -->
+                                    <input asp-for="MaxPrice"
+                                           form="hotelSearchForm"
+                                           type="number"
+                                           step="0.01"
+                                           min="0"
+                                           placeholder="Any price"
+                                           class="form-control price-number" />
+
+
+                                    <!-- Currency hidden -->
+                                    <input asp-for="Currency"
+                                           form="hotelSearchForm"
+                                           type="hidden" />
+
+
+                                    <!-- Range control -->
+                                    <input type="range"
+                                           class="form-range price-range"
+                                           min="0"
+                                           max="1500"
+                                           step="10"
+                                           value="@(Model.MaxPrice ?? 1500)" />
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </aside>
+
             </aside>
+
+
+
+            <!-- =================================================
+                 HOTEL RESULTS
+            ================================================== -->
             <main class="hotel-results">
-                <div class="results-toolbar"><div><span class="results-count">@Model.TotalItems rooms found</span><small>Availability is confirmed before reservation.</small></div><select form="hotelSearchForm" asp-for="Sort" class="form-select auto-filter sort-select"><option value="featured">Recommended</option><option value="price-low">Price: Low to High</option><option value="price-high">Price: High to Low</option><option value="rating">Highest Rated</option><option value="name">Name A–Z</option></select></div>
-                <div id="hotelResults"><partial name="_HotelCards" model="Model" /></div>
+
+
+                <!-- =============================================
+                     RESULTS TOOLBAR
+                ============================================== -->
+                <div class="results-toolbar">
+
+
+                    <div>
+
+                        <span class="results-count">
+                            @Model.TotalItems rooms found
+                        </span>
+
+                        <small>
+                            Availability is confirmed before reservation.
+                        </small>
+
+                    </div>
+
+
+
+                    <!-- =========================================
+                         SORT
+                    ========================================== -->
+                    <select asp-for="Sort"
+                            form="hotelSearchForm"
+                            class="form-select auto-filter sort-select">
+
+                        <option value="featured">
+                            Recommended
+                        </option>
+
+                        <option value="price-low">
+                            Price: Low to High
+                        </option>
+
+                        <option value="price-high">
+                            Price: High to Low
+                        </option>
+
+                        <option value="rating">
+                            Highest Rated
+                        </option>
+
+                        <option value="name">
+                            Name A–Z
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+
+                <!-- =============================================
+                     HOTEL CARDS
+                ============================================== -->
+                <div id="hotelResults">
+
+                    <partial name="_HotelCards"
+                             model="Model" />
+
+                </div>
+
+
             </main>
+
         </div>
+
     </div>
+
 </section>
 
+
+
+<!-- =========================================================
+     SCRIPTS
+========================================================= -->
 @section Scripts {
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initHotelMap" async defer></script>
-    <script src="~/js/hotel-search.js" asp-append-version="true"></script>
-    <script src="~/js/hotel-map.js" asp-append-version="true"></script>
+
+    <!-- Hotel search / filters -->
+    <script src="~/js/hotel-search.js"
+            asp-append-version="true">
+    </script>
+
+
+    <!-- Map function MUST load before Google callback -->
+    <script src="~/js/hotel-map.js"
+            asp-append-version="true">
+    </script>
+
+
+    <!-- Google Maps -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDZt4aH9v55yJ4Bbvh26AfyjWmC4gJv_S8&callback=initHotelMap"
+            async
+            defer>
+    </script>
 }

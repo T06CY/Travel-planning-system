@@ -1,6 +1,14 @@
-﻿@{
-    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
-    var action = ViewContext.RouteData.Values["action"]?.ToString();
+@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
+    var action = ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty;
+
+    var isDashboard = controller == "AdminDashboard";
+    var isRoomManagement = controller == "AdminRooms" && action != "Create";
+    var isAddHotelRoom = controller == "AdminRooms" && action == "Create";
+    var isHotelReservations = controller == "AdminHotelReservations";
+    var isActivityList = controller == "AdminActivities" && action == "Index";
+    var isAddActivity = controller == "AdminActivities" && action == "Create";
+    var isActivityBookings = controller == "AdminActivityBookings";
 }
 
 <!DOCTYPE html>
@@ -100,7 +108,7 @@
 
                 <a asp-controller="AdminDashboard"
                    asp-action="Index"
-                   class="@(controller == "AdminDashboard" ? "active" : "")">
+                   class="@(isDashboard ? "active" : "")">
 
                     <i class="bi bi-grid-1x2-fill"></i>
 
@@ -115,16 +123,10 @@
                     FLIGHT MANAGEMENT
                 </span>
 
-                <a asp-controller="AdminRooms"
-                   asp-action="Index"
-                   class="@(controller == "AdminRooms" && action == "Index" ? "active" : "")">
-
+                <a href="javascript:void(0)"
+                   class="module-disabled">
                     <i class="bi bi-airplane"></i>
-
-                    <span>
-                        Flight Management
-                    </span>
-
+                    <span>Flight Management</span>
                 </a>
 
 
@@ -132,22 +134,25 @@
                     HOTEL MANAGEMENT
                 </span>
 
-                <a href="javascript:void(0)"
-                   class="module-disabled">
-
+                <a asp-controller="AdminRooms"
+                   asp-action="Index"
+                   class="@(isRoomManagement ? "active" : "")">
                     <i class="bi bi-building"></i>
-
-                    <span>
-                        Room Management
-                    </span>
-
+                    <span>Room Management</span>
                 </a>
 
                 <a asp-controller="AdminRooms"
                    asp-action="Create"
-                   class="@(controller == "AdminRooms" && action == "Create" ? "active" : "")">
+                   class="@(isAddHotelRoom ? "active" : "")">
                     <i class="bi bi-plus-circle"></i>
                     <span>Add Hotel Room</span>
+                </a>
+
+                <a asp-controller="AdminHotelReservations"
+                   asp-action="Index"
+                   class="@(isHotelReservations ? "active" : "")">
+                    <i class="bi bi-calendar2-check"></i>
+                    <span>Hotel Reservations</span>
                 </a>
 
 
@@ -176,7 +181,7 @@
 
                 <a asp-controller="AdminActivities"
                    asp-action="Index"
-                   class="@(controller == "AdminActivities" && action == "Index" ? "active" : "")">
+                   class="@(isActivityList ? "active" : "")">
 
                     <i class="bi bi-ticket-perforated"></i>
 
@@ -191,7 +196,7 @@
 
                 <a asp-controller="AdminActivities"
                    asp-action="Create"
-                   class="@(controller == "AdminActivities" && action == "Create" ? "active" : "")">
+                   class="@(isAddActivity ? "active" : "")">
 
                     <i class="bi bi-plus-circle"></i>
 
@@ -206,7 +211,7 @@
 
                 <a asp-controller="AdminActivityBookings"
                    asp-action="Index"
-                   class="@(controller == "AdminActivityBookings" ? "active" : "")">
+                   class="@(isActivityBookings ? "active" : "")">
 
                     <i class="bi bi-calendar-check"></i>
 

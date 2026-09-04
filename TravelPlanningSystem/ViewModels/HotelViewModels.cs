@@ -37,7 +37,8 @@ public class HotelSearchViewModel : IValidatableObject
     public int? RequestedRooms { get; set; }
     // Backing property for simple forms that bind a single Guests field
     public int? Guests { get; set; }
-    public decimal? MaxPrice { get; set; } = 300m;
+    // Default to null so search does not unintentionally filter out seeded rooms
+    public decimal? MaxPrice { get; set; } = null;
     public string Currency { get; set; } = "MYR";
     public string Sort { get; set; } = "featured";
     public int Page { get; set; } = 1;
