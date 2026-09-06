@@ -1,0 +1,62 @@
+@model TravelPlanningSystem.Models.FlightBooking
+@using TravelPlanningSystem.Models
+@{ ViewData["Title"] = "Manage Flight Booking"; }
+<link rel="stylesheet" href="~/css/flight.css" asp-append-version="true" />
+<div class="flight-admin-page"><div class="admin-page-header"><div><span class="flight-eyebrow">BOOKING ADMINISTRATION</span><h1>@Model.BookingReference</h1><p>Review the complete reservation and update its status.</p></div><a asp-action="Index" class="secondary-flight-btn">← Booking list</a></div>
+@if(TempData["Message"] is not null){<div class="flight-alert success">@TempData["Message"]</div>}@if(TempData["Error"] is not null){<div class="flight-alert error">@TempData["Error"]</div>}
+<form asp-action="UpdateStatus" method="post" class="admin-status-panel">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@Model.FlightBookingId" />
+    <div>
+        <label>Booking status</label>
+        <select name="status">
+            @foreach (var status in Enum.GetValues<FlightBookingStatus>())
+            {
+                if (Model.Status == status)
+                {
+                    <option value="@status" selected>@status</option>
+                }
+                else
+                {
+                    <option value="@status">@status</option>
+                }
+            }
+        </select>
+    </div>
+    <button class="primary-flight-btn">Update status</button>
+</form>
+<partial name="~/Views/FlightBookings/_BookingSummary.cshtml" model="Model" />
+
+<section class="admin-flight-card admin-seat-assignment">
+    <div class="card-heading">
+        <i class="bi bi-grid-3x3-gap-fill"></i>
+        <div><h2>Passenger seat assignments</h2><p>Review selected seats and assign a replacement when required.</p></div>
+    </div>
+    <div class="admin-table-wrap">
+        <table class="admin-flight-table">
+            <thead><tr><th>Passenger</th><th>Type</th><th>Outbound seat</th>@if (Model.TripType == "Return"){<th>Return seat</th>}<th>Assign seats</th></tr></thead>
+            <tbody>
+            @foreach (var passenger in Model.Passengers)
+            {
+                <tr>
+                    <td><strong>@passenger.FirstName @passenger.LastName</strong><small class="table-subtext">@passenger.PassportNumber</small></td>
+                    <td>@passenger.PassengerType</td>
+                    <td><span class="seat-assignment-badge">@passenger.SeatNumber</span></td>
+                    @if (Model.TripType == "Return") { <td><span class="seat-assignment-badge">@(passenger.ReturnSeatNumber ?? "Not assigned")</span></td> }
+                    <td>
+                        <form asp-action="AssignSeat" method="post" class="admin-seat-form">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.FlightBookingId" />
+                            <input type="hidden" name="passengerId" value="@passenger.FlightPassengerId" />
+                            <input name="seatNumber" value="@passenger.SeatNumber" maxlength="5" pattern="[1-9][0-9]{0,2}[A-Fa-f]" required />
+                            @if (Model.TripType == "Return") { <input name="returnSeatNumber" value="@passenger.ReturnSeatNumber" maxlength="5" pattern="[1-9][0-9]{0,2}[A-Fa-f]" placeholder="Return" required /> }
+                            <button type="submit" class="secondary-flight-btn small-btn">Save seat</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>
+</div>

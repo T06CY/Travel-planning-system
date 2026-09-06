@@ -302,7 +302,9 @@
 
             <!-- FLIGHT -->
 
-            <div class="team-module-card">
+            <a asp-controller="AdminFlights"
+               asp-action="Index"
+               class="team-module-card text-decoration-none">
 
                 <div class="team-module-icon flight-module">
 
@@ -322,7 +324,7 @@
 
                 </div>
 
-            </div>
+            </a>
 
 
             <!-- HOTEL -->
@@ -410,6 +412,464 @@
         </div>
 
     </div>
+
+
+    <!-- ===================================================== -->
+    <!-- FLIGHT MANAGEMENT                                      -->
+    <!-- ===================================================== -->
+
+    <div class="section-heading mt-5">
+
+        <div>
+
+            <span class="dashboard-eyebrow">
+                FLIGHT MANAGEMENT
+            </span>
+
+            <h2>
+                Flight Overview
+            </h2>
+
+            <p>
+                Current statistics for flights and flight bookings.
+            </p>
+
+        </div>
+
+        <a asp-controller="AdminFlights"
+           asp-action="Create"
+           class="dashboard-add-button">
+
+            <i class="bi bi-plus-lg"></i>
+
+            Add Flight
+
+        </a>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- FLIGHT STATISTICS                                      -->
+    <!-- ===================================================== -->
+
+    <div class="dashboard-stat-grid">
+
+        <!-- TOTAL FLIGHTS -->
+
+        <div class="dashboard-stat-card stat-blue">
+
+            <div>
+
+                <span>
+                    Total Flights
+                </span>
+
+                <h2>
+                    @Model.TotalFlights
+                </h2>
+
+                <small>
+                    @Model.ActiveFlights active flights
+                </small>
+
+            </div>
+
+            <div class="stat-icon">
+
+                <i class="bi bi-airplane"></i>
+
+            </div>
+
+        </div>
+
+
+        <!-- FLIGHT BOOKINGS -->
+
+        <div class="dashboard-stat-card stat-green">
+
+            <div>
+
+                <span>
+                    Flight Bookings
+                </span>
+
+                <h2>
+                    @Model.FlightBookings
+                </h2>
+
+                <small>
+                    All flight reservations
+                </small>
+
+            </div>
+
+            <div class="stat-icon">
+
+                <i class="bi bi-calendar-check"></i>
+
+            </div>
+
+        </div>
+
+
+        <!-- FLIGHT REVENUE -->
+
+        <div class="dashboard-stat-card stat-purple">
+
+            <div>
+
+                <span>
+                    Flight Revenue
+                </span>
+
+                <h2>
+                    RM @Model.FlightRevenue.ToString("N2")
+                </h2>
+
+                <small>
+                    Excluding cancelled bookings
+                </small>
+
+            </div>
+
+            <div class="stat-icon">
+
+                <i class="bi bi-cash-stack"></i>
+
+            </div>
+
+        </div>
+
+
+        <!-- RESERVED SEATS -->
+
+        <div class="dashboard-stat-card stat-pink">
+
+            <div>
+
+                <span>
+                    Seats Reserved
+                </span>
+
+                <h2>
+                    @Model.ReservedFlightSeats
+                </h2>
+
+                <small>
+                    Passenger seats assigned
+                </small>
+
+            </div>
+
+            <div class="stat-icon">
+
+                <i class="bi bi-person-check"></i>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- FLIGHT BOOKING STATUS                                  -->
+    <!-- ===================================================== -->
+
+    <div class="booking-status-grid mb-4">
+
+        <!-- PENDING -->
+
+        <a asp-controller="AdminFlightBookings"
+           asp-action="Index"
+           asp-route-status="Pending"
+           class="booking-status-card">
+
+            <div class="booking-status-icon pending-icon">
+
+                <i class="bi bi-hourglass-split"></i>
+
+            </div>
+
+            <div>
+
+                <span>
+                    Pending
+                </span>
+
+                <strong>
+                    @Model.FlightPendingBookings
+                </strong>
+
+            </div>
+
+        </a>
+
+
+        <!-- CONFIRMED -->
+
+        <a asp-controller="AdminFlightBookings"
+           asp-action="Index"
+           asp-route-status="Confirmed"
+           class="booking-status-card">
+
+            <div class="booking-status-icon confirmed-icon">
+
+                <i class="bi bi-check-circle"></i>
+
+            </div>
+
+            <div>
+
+                <span>
+                    Confirmed
+                </span>
+
+                <strong>
+                    @Model.FlightConfirmedBookings
+                </strong>
+
+            </div>
+
+        </a>
+
+
+        <!-- COMPLETED -->
+
+        <a asp-controller="AdminFlightBookings"
+           asp-action="Index"
+           asp-route-status="Completed"
+           class="booking-status-card">
+
+            <div class="booking-status-icon completed-icon">
+
+                <i class="bi bi-check2-all"></i>
+
+            </div>
+
+            <div>
+
+                <span>
+                    Completed
+                </span>
+
+                <strong>
+                    @Model.FlightCompletedBookings
+                </strong>
+
+            </div>
+
+        </a>
+
+
+        <!-- CANCELLED -->
+
+        <a asp-controller="AdminFlightBookings"
+           asp-action="Index"
+           asp-route-status="Cancelled"
+           class="booking-status-card">
+
+            <div class="booking-status-icon cancelled-icon">
+
+                <i class="bi bi-x-circle"></i>
+
+            </div>
+
+            <div>
+
+                <span>
+                    Cancelled
+                </span>
+
+                <strong>
+                    @Model.FlightCancelledBookings
+                </strong>
+
+            </div>
+
+        </a>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- RECENT FLIGHT BOOKINGS                                 -->
+    <!-- ===================================================== -->
+
+    <section class="dashboard-panel mb-5">
+
+        <div class="dashboard-panel-heading">
+
+            <div>
+
+                <h3>
+                    Recent Flight Bookings
+                </h3>
+
+                <p>
+                    Latest customer flight reservations.
+                </p>
+
+            </div>
+
+
+            <a asp-controller="AdminFlightBookings"
+               asp-action="Index">
+
+                View All
+
+                <i class="bi bi-arrow-right"></i>
+
+            </a>
+
+        </div>
+
+
+        @if (!Model.RecentFlightBookings.Any())
+        {
+            <div class="dashboard-empty">
+
+                <i class="bi bi-airplane"></i>
+
+                <h4>
+                    No flight bookings yet
+                </h4>
+
+                <p>
+                    Flight bookings will appear here.
+                </p>
+
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+
+                <table class="table dashboard-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Reference
+                            </th>
+
+                            <th>
+                                Customer
+                            </th>
+
+                            <th>
+                                Route
+                            </th>
+
+                            <th>
+                                Total
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                            <th></th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        @foreach (var booking in Model.RecentFlightBookings)
+                        {
+                            var firstFlight =
+                                booking.Segments
+                                    .OrderBy(s => s.SegmentOrder)
+                                    .FirstOrDefault()?.Flight;
+
+                            var lastFlight =
+                                booking.Segments
+                                    .OrderBy(s => s.SegmentOrder)
+                                    .LastOrDefault()?.Flight;
+
+                            <tr>
+
+                                <td>
+
+                                    <strong>
+                                        @booking.BookingReference
+                                    </strong>
+
+                                    <small>
+                                        @booking.BookingDate.ToString("dd MMM yyyy")
+                                    </small>
+
+                                </td>
+
+
+                                <td>
+
+                                    <strong>
+                                        @booking.ContactName
+                                    </strong>
+
+                                    <small>
+                                        @booking.ContactEmail
+                                    </small>
+
+                                </td>
+
+
+                                <td>
+                                    @firstFlight?.From → @lastFlight?.To
+                                </td>
+
+
+                                <td>
+
+                                    <strong>
+                                        RM @booking.TotalAmount.ToString("N2")
+                                    </strong>
+
+                                </td>
+
+
+                                <td>
+
+                                    <span class="status-pill status-@booking.Status.ToString().ToLower()">
+
+                                        @booking.Status
+
+                                    </span>
+
+                                </td>
+
+
+                                <td>
+
+                                    <a asp-controller="AdminFlightBookings"
+                                       asp-action="Details"
+                                       asp-route-id="@booking.FlightBookingId"
+                                       class="dashboard-view-button">
+
+                                        <i class="bi bi-eye"></i>
+
+                                    </a>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        }
+
+    </section>
 
 
     <!-- ===================================================== -->
@@ -691,6 +1151,7 @@
         </a>
 
     </div>
+
 
     <!-- ===================================================== -->
     <!-- LOWER DASHBOARD                                        -->
@@ -981,7 +1442,7 @@
 
 
     <!-- ===================================================== -->
-    <!-- HOTEL MANAGEMENT                                        -->
+    <!-- HOTEL MANAGEMENT                                       -->
     <!-- ===================================================== -->
 
     <div class="section-heading mt-5">
@@ -1031,6 +1492,7 @@
 
         </div>
 
+
         <div class="dashboard-stat-card stat-green">
 
             <div>
@@ -1045,6 +1507,7 @@
 
         </div>
 
+
         <div class="dashboard-stat-card stat-pink">
 
             <div>
@@ -1058,6 +1521,7 @@
             </div>
 
         </div>
+
 
         <div class="dashboard-stat-card stat-purple">
 
@@ -1082,39 +1546,71 @@
            asp-action="Index"
            asp-route-status="Confirmed"
            class="booking-status-card">
+
             <div class="booking-status-icon confirmed-icon">
+
                 <i class="bi bi-check-circle"></i>
+
             </div>
+
             <div>
+
                 <span>Confirmed</span>
-                <strong>@Model.ConfirmedHotelReservations</strong>
+
+                <strong>
+                    @Model.ConfirmedHotelReservations
+                </strong>
+
             </div>
+
         </a>
+
 
         <a asp-controller="AdminHotelReservations"
            asp-action="Index"
            asp-route-status="Completed"
            class="booking-status-card">
+
             <div class="booking-status-icon completed-icon">
+
                 <i class="bi bi-check2-all"></i>
+
             </div>
+
             <div>
+
                 <span>Completed</span>
-                <strong>@Model.CompletedHotelReservations</strong>
+
+                <strong>
+                    @Model.CompletedHotelReservations
+                </strong>
+
             </div>
+
         </a>
+
 
         <a asp-controller="AdminHotelReservations"
            asp-action="Index"
            asp-route-status="Cancelled"
            class="booking-status-card">
+
             <div class="booking-status-icon cancelled-icon">
+
                 <i class="bi bi-x-circle"></i>
+
             </div>
+
             <div>
+
                 <span>Cancelled</span>
-                <strong>@Model.CancelledHotelReservations</strong>
+
+                <strong>
+                    @Model.CancelledHotelReservations
+                </strong>
+
             </div>
+
         </a>
 
     </div>
@@ -1123,73 +1619,165 @@
     <section class="dashboard-panel mb-5">
 
         <div class="dashboard-panel-heading">
+
             <div>
-                <h3>Recent Hotel Reservations</h3>
-                <p>Latest customer hotel reservations.</p>
+
+                <h3>
+                    Recent Hotel Reservations
+                </h3>
+
+                <p>
+                    Latest customer hotel reservations.
+                </p>
+
             </div>
 
             <a asp-controller="AdminHotelReservations"
                asp-action="Index">
+
                 View All
+
                 <i class="bi bi-arrow-right"></i>
+
             </a>
+
         </div>
+
 
         @if (!Model.RecentHotelReservations.Any())
         {
             <div class="dashboard-empty">
+
                 <i class="bi bi-calendar2-x"></i>
-                <h4>No hotel reservations yet</h4>
-                <p>Hotel reservations will appear here.</p>
+
+                <h4>
+                    No hotel reservations yet
+                </h4>
+
+                <p>
+                    Hotel reservations will appear here.
+                </p>
+
             </div>
         }
         else
         {
             <div class="table-responsive">
+
                 <table class="table dashboard-table">
+
                     <thead>
+
                         <tr>
+
                             <th>Reference</th>
+
                             <th>Customer</th>
+
                             <th>Room</th>
+
                             <th>Check-in</th>
+
                             <th>Total</th>
+
                             <th>Status</th>
+
                             <th></th>
+
                         </tr>
+
                     </thead>
+
                     <tbody>
+
                         @foreach (var reservation in Model.RecentHotelReservations)
                         {
                             <tr>
+
                                 <td>
-                                    <strong>@reservation.ReservationReference</strong>
-                                    <small>@reservation.ReservationDate.ToString("dd MMM yyyy")</small>
+
+                                    <strong>
+                                        @reservation.ReservationReference
+                                    </strong>
+
+                                    <small>
+                                        @reservation.ReservationDate.ToString("dd MMM yyyy")
+                                    </small>
+
                                 </td>
+
+
                                 <td>
-                                    <strong>@reservation.ContactName</strong>
-                                    <small>@reservation.ContactEmail</small>
+
+                                    <strong>
+                                        @reservation.ContactName
+                                    </strong>
+
+                                    <small>
+                                        @reservation.ContactEmail
+                                    </small>
+
                                 </td>
-                                <td>@reservation.HotelRoom?.HotelName<br /><small>@reservation.HotelRoom?.RoomName</small></td>
-                                <td>@reservation.CheckInDate.ToString("dd MMM yyyy")</td>
-                                <td><strong>RM @reservation.TotalAmount.ToString("N2")</strong></td>
+
+
                                 <td>
+
+                                    @reservation.HotelRoom?.HotelName
+
+                                    <br />
+
+                                    <small>
+                                        @reservation.HotelRoom?.RoomName
+                                    </small>
+
+                                </td>
+
+
+                                <td>
+                                    @reservation.CheckInDate.ToString("dd MMM yyyy")
+                                </td>
+
+
+                                <td>
+
+                                    <strong>
+                                        RM @reservation.TotalAmount.ToString("N2")
+                                    </strong>
+
+                                </td>
+
+
+                                <td>
+
                                     <span class="status-pill status-@reservation.ReservationStatus.ToString().ToLower()">
+
                                         @reservation.ReservationStatus
+
                                     </span>
+
                                 </td>
+
+
                                 <td>
+
                                     <a asp-controller="AdminHotelReservations"
                                        asp-action="Details"
                                        asp-route-id="@reservation.HotelReservationId"
                                        class="dashboard-view-button">
+
                                         <i class="bi bi-eye"></i>
+
                                     </a>
+
                                 </td>
+
                             </tr>
                         }
+
                     </tbody>
+
                 </table>
+
             </div>
         }
 
@@ -1201,6 +1789,7 @@
 <style>
 
     /* Fix top section sizing */
+
     .dashboard-heading {
         display: block !important;
         width: 100%;
@@ -1211,12 +1800,16 @@
             width: 100%;
         }
 
+
     /* Keep Accounts Overview on its own row */
+
     .section-heading {
         width: 100%;
     }
 
+
     /* Prevent the user/staff cards from becoming too narrow */
+
     .dashboard-panel {
         min-width: 0;
     }
@@ -1230,7 +1823,9 @@
         width: 100%;
     }
 
+
     /* Better spacing for the two account cards */
+
     @@media (min-width: 1200px) {
 
         .row.g-4 > .col-xl-6 {

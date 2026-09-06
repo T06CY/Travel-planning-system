@@ -21,6 +21,56 @@ public class AdminDashboardController : Controller
     {
         var model = new AdminDashboardViewModel
         {
+            // =====================================================
+            // FLIGHT MANAGEMENT
+            // =====================================================
+
+            TotalFlights = await _context.Flights.CountAsync(),
+
+            ActiveFlights = await _context.Flights
+                .CountAsync(f => f.IsActive),
+
+            FlightBookings = await _context.FlightBookings.CountAsync(),
+
+            ReservedFlightSeats = await _context.FlightPassengers
+                .CountAsync(p =>
+                    p.FlightBooking != null &&
+                    p.FlightBooking.Status != FlightBookingStatus.Cancelled),
+
+            FlightRevenue = await _context.FlightBookings
+                .Where(b =>
+                    b.Status != FlightBookingStatus.Cancelled)
+                .SumAsync(b => (decimal?)b.TotalAmount) ?? 0,
+
+            FlightPendingBookings = await _context.FlightBookings
+                .CountAsync(b =>
+                    b.Status == FlightBookingStatus.Pending),
+
+            FlightConfirmedBookings = await _context.FlightBookings
+                .CountAsync(b =>
+                    b.Status == FlightBookingStatus.Confirmed),
+
+            FlightCompletedBookings = await _context.FlightBookings
+                .CountAsync(b =>
+                    b.Status == FlightBookingStatus.Completed),
+
+            FlightCancelledBookings = await _context.FlightBookings
+                .CountAsync(b =>
+                    b.Status == FlightBookingStatus.Cancelled),
+
+            RecentFlightBookings = await _context.FlightBookings
+                .AsNoTracking()
+                .Include(b => b.Segments)
+                    .ThenInclude(s => s.Flight)
+                .OrderByDescending(b => b.BookingDate)
+                .Take(5)
+                .ToListAsync(),
+
+
+            // =====================================================
+            // ACTIVITY MANAGEMENT
+            // =====================================================
+
             TotalActivities = await _context.Activities.CountAsync(),
 
             ActiveActivities = await _context.Activities
@@ -54,6 +104,11 @@ public class AdminDashboardController : Controller
                 .CountAsync(b =>
                     b.BookingStatus == ActivityBookingStatus.Cancelled),
 
+
+            // =====================================================
+            // HOTEL MANAGEMENT
+            // =====================================================
+
             TotalHotelRooms = await _context.HotelRooms.CountAsync(),
 
             ActiveHotelRooms = await _context.HotelRooms
@@ -83,6 +138,11 @@ public class AdminDashboardController : Controller
                 .CountAsync(r =>
                     r.ReservationStatus == HotelReservationStatus.Cancelled),
 
+
+            // =====================================================
+            // RECENT ACTIVITY BOOKINGS
+            // =====================================================
+
             RecentBookings = await _context.ActivityBookings
                 .AsNoTracking()
                 .Include(b => b.ActivitySession)
@@ -90,6 +150,11 @@ public class AdminDashboardController : Controller
                 .OrderByDescending(b => b.BookingDate)
                 .Take(6)
                 .ToListAsync(),
+
+
+            // =====================================================
+            // RECENT HOTEL RESERVATIONS
+            // =====================================================
 
             RecentHotelReservations = await _context.HotelReservations
                 .AsNoTracking()
@@ -99,6 +164,11 @@ public class AdminDashboardController : Controller
                 .ToListAsync()
         };
 
+
+        // =====================================================
+        // USERS
+        // =====================================================
+
         // Load users and staff for admin overview (limit to 10 each)
         model.Users = await _context.Users
             .AsNoTracking()
@@ -106,6 +176,11 @@ public class AdminDashboardController : Controller
             .ThenBy(u => u.FirstName)
             .Take(10)
             .ToListAsync();
+
+
+        // =====================================================
+        // STAFF USERS
+        // =====================================================
 
         model.StaffUsers = await _context.StaffUsers
             .AsNoTracking()

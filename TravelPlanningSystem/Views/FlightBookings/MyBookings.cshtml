@@ -1,0 +1,40 @@
+@model TravelPlanningSystem.ViewModels.FlightBookingHistoryViewModel
+@{
+    ViewData["Title"] = "My Flight Bookings";
+}
+<link rel="stylesheet" href="~/css/flight.css" asp-append-version="true" />
+
+<main class="flight-shell booking-page">
+    <div class="page-title-row"><div><span class="flight-eyebrow">MY JOURNEYS</span><h1>Flight bookings</h1><p>Manage upcoming reservations and review your travel history.</p></div><a asp-controller="Flight" asp-action="Index" class="primary-flight-btn"><i class="bi bi-plus-lg"></i> Book a flight</a></div>
+    @if (TempData["Message"] is not null) { <div class="flight-alert success">@TempData["Message"]</div> }
+
+    <div class="booking-tabs" role="tablist">
+        <button class="active" data-booking-tab="upcoming">Upcoming <span>@Model.Upcoming.Count</span></button>
+        <button data-booking-tab="past">Past flights <span>@Model.Past.Count</span></button>
+        <button data-booking-tab="cancelled">Cancelled <span>@Model.Cancelled.Count</span></button>
+    </div>
+
+    <section class="booking-tab-panel active" data-booking-panel="upcoming">
+        @if (Model.Upcoming.Count == 0) { <div class="flight-welcome-state compact"><i class="bi bi-calendar2-plus"></i><h2>No upcoming flights</h2><p>Your next reservation will appear here.</p></div> }
+        else { <div class="history-list">@foreach (var booking in Model.Upcoming) { <partial name="_BookingCard" model="booking" /> }</div> }
+    </section>
+    <section class="booking-tab-panel" data-booking-panel="past">
+        @if (Model.Past.Count == 0) { <div class="flight-welcome-state compact"><i class="bi bi-clock-history"></i><h2>No past flights</h2><p>Completed journeys will appear here.</p></div> }
+        else { <div class="history-list">@foreach (var booking in Model.Past) { <partial name="_BookingCard" model="booking" /> }</div> }
+    </section>
+    <section class="booking-tab-panel" data-booking-panel="cancelled">
+        @if (Model.Cancelled.Count == 0) { <div class="flight-welcome-state compact"><i class="bi bi-calendar-x"></i><h2>No cancelled bookings</h2></div> }
+        else { <div class="history-list">@foreach (var booking in Model.Cancelled) { <partial name="_BookingCard" model="booking" /> }</div> }
+    </section>
+</main>
+
+@section Scripts {
+<script>
+document.querySelectorAll("[data-booking-tab]").forEach(button => button.addEventListener("click", function () {
+    document.querySelectorAll("[data-booking-tab]").forEach(x => x.classList.remove("active"));
+    document.querySelectorAll("[data-booking-panel]").forEach(x => x.classList.remove("active"));
+    button.classList.add("active");
+    document.querySelector(`[data-booking-panel="${button.dataset.bookingTab}"]`).classList.add("active");
+}));
+</script>
+}

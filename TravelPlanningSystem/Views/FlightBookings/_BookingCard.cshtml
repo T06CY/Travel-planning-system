@@ -1,0 +1,25 @@
+@model TravelPlanningSystem.Models.FlightBooking
+@{
+    var first = Model.Segments.OrderBy(s => s.SegmentOrder).FirstOrDefault()?.Flight;
+    var last = Model.Segments.OrderBy(s => s.SegmentOrder).LastOrDefault()?.Flight;
+}
+
+<article class="history-card">
+    <div class="history-card-top">
+        <div><span>@Model.BookingReference</span><strong>@first?.From <i class="bi bi-arrow-right"></i> @last?.To</strong></div>
+        <span class="booking-status status-@Model.Status.ToString().ToLowerInvariant()">@Model.Status</span>
+    </div>
+    <div class="history-card-body">
+        <div><i class="bi bi-calendar3"></i><span><small>Departure</small><strong>@first?.DepartureTime.ToString("dd MMM yyyy · HH:mm")</strong></span></div>
+        <div><i class="bi bi-airplane"></i><span><small>Journey</small><strong>@Model.Segments.Count segment(s) · @Model.TripType</strong></span></div>
+        <div><i class="bi bi-people"></i><span><small>Passengers</small><strong>@Model.Passengers.Count</strong></span></div>
+        <div><i class="bi bi-wallet2"></i><span><small>Total</small><strong>RM @Model.TotalAmount.ToString("N2")</strong></span></div>
+    </div>
+    <div class="history-card-actions">
+        <a asp-action="Details" asp-route-id="@Model.FlightBookingId" class="secondary-flight-btn">View details</a>
+        @if (Model.Status != TravelPlanningSystem.Models.FlightBookingStatus.Cancelled)
+        {
+            <a asp-action="Ticket" asp-route-id="@Model.FlightBookingId" class="primary-flight-btn"><i class="bi bi-qr-code"></i> E-ticket</a>
+        }
+    </div>
+</article>

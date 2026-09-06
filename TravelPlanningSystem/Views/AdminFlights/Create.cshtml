@@ -1,0 +1,8 @@
+@model TravelPlanningSystem.ViewModels.FlightFormViewModel
+@{ ViewData["Title"] = "Add Flight"; }
+<link rel="stylesheet" href="~/css/flight.css" asp-append-version="true" />
+<div class="flight-admin-page"><div class="admin-page-header"><div><span class="flight-eyebrow">NEW SCHEDULE</span><h1>Add flight</h1><p>Create a future flight schedule and initial seat capacity.</p></div><a asp-action="Index" class="secondary-flight-btn">← Flight list</a></div><form method="post" enctype="multipart/form-data" class="admin-flight-card admin-form-card">@Html.AntiForgeryToken()<partial name="_FlightForm" model="Model" /><div class="admin-form-actions"><a asp-action="Index" class="secondary-flight-btn">Cancel</a><button class="primary-flight-btn" type="submit"><i class="bi bi-check-lg"></i> Create flight</button></div></form></div>
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+}

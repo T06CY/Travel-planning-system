@@ -1,0 +1,74 @@
+@model IEnumerable<TravelPlanningSystem.Models.Flight>
+@using TravelPlanningSystem.Models
+@{
+    ViewData["Title"] = "Flight Management";
+}
+<link rel="stylesheet" href="~/css/flight.css" asp-append-version="true" />
+
+<div class="flight-admin-page">
+    <div class="admin-page-header"><div><span class="flight-eyebrow">AIRLINE OPERATIONS</span><h1>Flight Management</h1><p>Maintain schedules, capacity, pricing, airline images and flight status.</p></div><a asp-action="Create" class="primary-flight-btn"><i class="bi bi-plus-lg"></i> Add flight</a></div>
+    @if (TempData["Message"] is not null)
+    {
+        <div class="flight-alert success">@TempData["Message"]</div>
+    }
+
+    <div class="admin-flight-card">
+        <form method="get" class="admin-filter-bar">
+            <div class="flight-field"><label>Search</label><input name="search" value="@ViewBag.Search" placeholder="Flight, airline or route" /></div>
+            <div class="flight-field"><label>Status</label><select name="status"><option value="">All statuses</option>@foreach (var item in Enum.GetValues<FlightStatus>()){if (ViewBag.Status?.ToString() == item.ToString()){
+                <option value="@item" selected>@item</option>
+            }else
+            {
+
+                <option value="@item">@item</option>
+            }
+        }
+    </select></div>
+    <div class="flight-field"><label>Departure date</label><input type="date" name="date" value="@ViewBag.Date" /></div>
+    <button class="primary-flight-btn" type="submit"><i class="bi bi-search"></i> Filter</button>
+    <a asp-action="Index" class="secondary-flight-btn">Clear</a>
+</form>
+
+<div class="admin-table-wrap">
+    <table class="admin-flight-table">
+        <thead><tr><th>Flight</th><th>Route</th><th>Schedule</th><th>Price</th><th>Capacity</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+            @if (!Model.Any())
+            {
+                <tr><td colspan="7"><div class="empty-flights"><i class="bi bi-airplane"></i><div><strong>No flights found</strong><p>Add a schedule or change the filters.</p></div></div></td></tr>
+            }
+            @foreach (var flight in Model)
+            {
+                <tr>
+                    <td><div class="admin-airline-cell">@if(!string.IsNullOrWhiteSpace(flight.FlightLogoUrl ?? flight.Airline?.LogoUrl)){
+                        <img src="@(flight.FlightLogoUrl ?? flight.Airline?.LogoUrl)" alt="" />
+                    }else
+                    {
+
+                        <span class="airline-fallback">@flight.Airline?.AirlineCode</span>
+                    }
+                    <div><strong>@flight.FlightNumber</strong><small>@flight.Airline?.AirlineName</small></div></div></td>
+                    <td><strong>@flight.From → @flight.To</strong><small class="table-subtext">@flight.AircraftModel</small></td>
+                    <td><strong>@flight.DepartureTime.ToString("dd MMM yyyy")</strong><small class="table-subtext">@flight.DepartureTime.ToString("HH:mm") – @flight.ArrivalTime.ToString("HH:mm")</small></td>
+                    <td>RM @flight.Price.ToString("N2")</td>
+                    <td><strong>@flight.AvailableSeats / @flight.SeatCapacity</strong><small class="table-subtext">available</small></td>
+                    <td><form asp-action="UpdateStatus" method="post" class="status-form">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@flight.FlightId" /><select name="status" onchange="this.form.submit()">@foreach(var status in Enum.GetValues<FlightStatus>()){if(flight.Status == status){
+                        <option value="@status" selected>@status</option>
+                    }else
+                    {
+
+                        <option value="@status">@status</option>
+                    }
+                }
+            </select></form>@if(!flight.IsActive){
+            <small class="inactive-label">Inactive</small>
+        }
+    </td>
+    <td><div class="table-actions"><a asp-action="Edit" asp-route-id="@flight.FlightId" title="Edit"><i class="bi bi-pencil"></i></a><a asp-action="Delete" asp-route-id="@flight.FlightId" class="danger" title="Delete"><i class="bi bi-trash"></i></a></div></td>
+</tr>
+            }
+</tbody>
+</table>
+</div>
+</div>
+</div>

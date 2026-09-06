@@ -1,0 +1,66 @@
+@model TravelPlanningSystem.Models.FlightBooking
+
+<section class="booking-form-card booking-detail-card">
+    <div class="booking-reference-row">
+        <div><span>BOOKING REFERENCE</span><h2>@Model.BookingReference</h2></div>
+        <span class="booking-status status-@Model.Status.ToString().ToLowerInvariant()">@Model.Status</span>
+    </div>
+
+    <div class="detail-segments">
+        @foreach (var segment in Model.Segments.OrderBy(s => s.SegmentOrder))
+        {
+            var flight = segment.Flight;
+            if (flight is not null)
+            {
+                <article class="detail-segment">
+                    <div class="detail-airline">
+                        @if (!string.IsNullOrWhiteSpace(flight.Airline?.LogoUrl))
+                        {
+                            <img src="@flight.Airline.LogoUrl" alt="@flight.Airline.AirlineName" />
+                        }
+                        else
+                        {
+                            <span class="airline-fallback">@flight.Airline?.AirlineCode</span>
+                        }
+                        <div><strong>@flight.Airline?.AirlineName</strong><small>@flight.FlightNumber · @flight.AircraftModel</small></div>
+                    </div>
+                    <div class="detail-route">
+                        <div><strong>@flight.DepartureTime.ToString("HH:mm")</strong><span>@flight.From</span><small>@flight.DepartureTime.ToString("dd MMM yyyy")</small></div>
+                        <div class="duration-block"><small>@((int)flight.Duration.TotalHours) h @flight.Duration.Minutes m</small><span></span><small>@flight.Status</small></div>
+                        <div><strong>@flight.ArrivalTime.ToString("HH:mm")</strong><span>@flight.To</span><small>@flight.ArrivalTime.ToString("dd MMM yyyy")</small></div>
+                    </div>
+                </article>
+            }
+        }
+    </div>
+
+    <div class="detail-grid">
+        <div><span>Contact passenger</span><strong>@Model.ContactName</strong><small>@Model.ContactEmail · @Model.ContactPhone</small></div>
+        <div><span>Trip type</span><strong>@Model.TripType</strong><small>Booked @Model.BookingDate.ToString("dd MMM yyyy")</small></div>
+        <div><span>Total paid</span><strong>RM @Model.TotalAmount.ToString("N2")</strong><small>@Model.Passengers.Count passenger(s)</small></div>
+    </div>
+
+    <h3 class="passenger-list-title">Passenger and preferences</h3>
+    <div class="passenger-table-wrap">
+        <table class="passenger-table">
+            <thead><tr><th>Passenger</th><th>Type</th><th>Travel document</th><th>Outbound seat</th>@if (Model.TripType == "Return") {
+                <th>Return seat</th>
+            }
+            <th>Meal</th></tr></thead>
+            <tbody>
+                @foreach (var passenger in Model.Passengers)
+                {
+                    <tr><td><strong>@passenger.FirstName @passenger.LastName</strong><small>@passenger.Nationality</small></td><td>@passenger.PassengerType</td><td>@passenger.PassportNumber</td><td><span class="seat-pill">@passenger.SeatNumber</span></td>@if (Model.TripType == "Return") {
+                        <td><span class="seat-pill">@(passenger.ReturnSeatNumber ?? "Not assigned")</span></td>
+                    }
+                    <td>@passenger.MealPreference</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (Model.Status == TravelPlanningSystem.Models.FlightBookingStatus.Cancelled)
+    {
+        <div class="cancelled-note"><i class="bi bi-info-circle"></i><div><strong>Booking cancelled</strong><p>@Model.CancellationReason</p></div></div>
+    }
+</section>

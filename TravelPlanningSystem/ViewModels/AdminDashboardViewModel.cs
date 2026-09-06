@@ -4,6 +4,29 @@ namespace TravelPlanningSystem.ViewModels;
 
 public class AdminDashboardViewModel
 {
+
+    public int TotalFlights { get; set; }
+
+    public int ActiveFlights { get; set; }
+
+    public int FlightBookings { get; set; }
+
+    public int ReservedFlightSeats { get; set; }
+
+    public decimal FlightRevenue { get; set; }
+
+    public int FlightPendingBookings { get; set; }
+
+    public int FlightConfirmedBookings { get; set; }
+
+    public int FlightCompletedBookings { get; set; }
+
+    public int FlightCancelledBookings { get; set; }
+
+    public List<FlightBooking> RecentFlightBookings { get; set; }
+        = new List<FlightBooking>();
+
+
     public int TotalActivities { get; set; }
 
     public int ActiveActivities { get; set; }
@@ -24,6 +47,7 @@ public class AdminDashboardViewModel
 
     public List<ActivityBooking> RecentBookings { get; set; }
         = new List<ActivityBooking>();
+
 
     public int TotalHotelRooms { get; set; }
 
@@ -46,9 +70,13 @@ public class AdminDashboardViewModel
     public List<HotelReservation> RecentHotelReservations { get; set; }
         = new List<HotelReservation>();
 
+
     // List of application users for admin overview
-    public List<ApplicationUser> Users { get; set; } = new List<ApplicationUser>();
+    public List<ApplicationUser> Users { get; set; }
+        = new List<ApplicationUser>();
+
 
     // List of staff users for admin overview
-    public List<StaffUser> StaffUsers { get; set; } = new List<StaffUser>();
+    public List<StaffUser> StaffUsers { get; set; }
+        = new List<StaffUser>();
 }

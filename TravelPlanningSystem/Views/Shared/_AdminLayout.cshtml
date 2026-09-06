@@ -3,13 +3,22 @@
     var action = ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty;
 
     var isDashboard = controller == "AdminDashboard";
+    var isUserManagement = controller == "AdminUserManagement";
+
+    // Flight
+    var isFlightManagement = controller == "AdminFlights" && action != "Create";
+    var isAddFlight = controller == "AdminFlights" && action == "Create";
+    var isFlightBookings = controller == "AdminFlightBookings";
+
+    // Hotel
     var isRoomManagement = controller == "AdminRooms" && action != "Create";
     var isAddHotelRoom = controller == "AdminRooms" && action == "Create";
     var isHotelReservations = controller == "AdminHotelReservations";
+
+    // Activity
     var isActivityList = controller == "AdminActivities" && action == "Index";
     var isAddActivity = controller == "AdminActivities" && action == "Create";
     var isActivityBookings = controller == "AdminActivityBookings";
-    var isUserManagement = controller == "AdminUserManagement";
 }
 
 <!DOCTYPE html>
@@ -122,21 +131,69 @@
                 <a asp-controller="AdminUserManagement"
                    asp-action="Index"
                    class="@(isUserManagement ? "active" : "")">
+
                     <i class="bi bi-people"></i>
-                    <span>User Management</span>
+
+                    <span>
+                        User Management
+                    </span>
+
                 </a>
 
+
+                <!-- FLIGHT MANAGEMENT -->
 
                 <span class="admin-menu-title">
                     FLIGHT MANAGEMENT
                 </span>
 
-                <a href="javascript:void(0)"
-                   class="module-disabled">
+
+                <!-- FLIGHT LIST -->
+
+                <a asp-controller="AdminFlights"
+                   asp-action="Index"
+                   class="@(isFlightManagement ? "active" : "")">
+
                     <i class="bi bi-airplane"></i>
-                    <span>Flight Management</span>
+
+                    <span>
+                        Flight Management
+                    </span>
+
                 </a>
 
+
+                <!-- ADD FLIGHT -->
+
+                <a asp-controller="AdminFlights"
+                   asp-action="Create"
+                   class="@(isAddFlight ? "active" : "")">
+
+                    <i class="bi bi-plus-circle"></i>
+
+                    <span>
+                        Add Flight
+                    </span>
+
+                </a>
+
+
+                <!-- FLIGHT BOOKINGS -->
+
+                <a asp-controller="AdminFlightBookings"
+                   asp-action="Index"
+                   class="@(isFlightBookings ? "active" : "")">
+
+                    <i class="bi bi-calendar2-check"></i>
+
+                    <span>
+                        Flight Bookings
+                    </span>
+
+                </a>
+
+
+                <!-- HOTEL MANAGEMENT -->
 
                 <span class="admin-menu-title">
                     HOTEL MANAGEMENT
@@ -145,24 +202,41 @@
                 <a asp-controller="AdminRooms"
                    asp-action="Index"
                    class="@(isRoomManagement ? "active" : "")">
+
                     <i class="bi bi-building"></i>
-                    <span>Room Management</span>
+
+                    <span>
+                        Room Management
+                    </span>
+
                 </a>
 
                 <a asp-controller="AdminRooms"
                    asp-action="Create"
                    class="@(isAddHotelRoom ? "active" : "")">
+
                     <i class="bi bi-plus-circle"></i>
-                    <span>Add Hotel Room</span>
+
+                    <span>
+                        Add Hotel Room
+                    </span>
+
                 </a>
 
                 <a asp-controller="AdminHotelReservations"
                    asp-action="Index"
                    class="@(isHotelReservations ? "active" : "")">
+
                     <i class="bi bi-calendar2-check"></i>
-                    <span>Hotel Reservations</span>
+
+                    <span>
+                        Hotel Reservations
+                    </span>
+
                 </a>
 
+
+                <!-- TRANSPORTATION -->
 
                 <span class="admin-menu-title">
                     TRANSPORTATION
@@ -179,6 +253,8 @@
 
                 </a>
 
+
+                <!-- ACTIVITY MANAGEMENT -->
 
                 <span class="admin-menu-title">
                     ACTIVITY MANAGEMENT
@@ -264,19 +340,29 @@
                     <a asp-controller="Home"
                        asp-action="Index"
                        class="btn btn-sm btn-outline-secondary">
+
                         <i class="bi bi-house-door"></i>
+
                         Home
+
                     </a>
 
                     <form asp-controller="Account"
                           asp-action="Logout"
                           method="post"
                           class="d-inline">
+
                         @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-sm btn-outline-danger">
+
+                        <button type="submit"
+                                class="btn btn-sm btn-outline-danger">
+
                             <i class="bi bi-box-arrow-right"></i>
+
                             Logout
+
                         </button>
+
                     </form>
 
                     <div class="topbar-admin-user">
@@ -302,7 +388,9 @@
                             <a asp-controller="Account"
                                asp-action="Profile"
                                class="small text-decoration-none">
+
                                 Edit Profile
+
                             </a>
 
                         </div>

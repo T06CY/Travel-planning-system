@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TravelPlanningSystem.Data;
 
@@ -11,9 +12,11 @@ using TravelPlanningSystem.Data;
 namespace TravelPlanningSystem.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260906195019_FixActivityReviewRelationship")]
+    partial class FixActivityReviewRelationship
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -224,6 +227,9 @@ namespace TravelPlanningSystem.Migrations
                     b.Property<int>("ActivityBookingId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("ActivityBookingId1")
+                        .HasColumnType("int");
+
                     b.Property<int>("ActivityId")
                         .HasColumnType("int");
 
@@ -249,8 +255,11 @@ namespace TravelPlanningSystem.Migrations
 
                     b.HasKey("ActivityReviewId");
 
-                    b.HasIndex("ActivityBookingId")
-                        .IsUnique();
+                    b.HasIndex("ActivityBookingId");
+
+                    b.HasIndex("ActivityBookingId1")
+                        .IsUnique()
+                        .HasFilter("[ActivityBookingId1] IS NOT NULL");
 
                     b.HasIndex("ActivityId");
 
@@ -1011,10 +1020,14 @@ namespace TravelPlanningSystem.Migrations
             modelBuilder.Entity("TravelPlanningSystem.Models.ActivityReview", b =>
                 {
                     b.HasOne("TravelPlanningSystem.Models.ActivityBooking", "ActivityBooking")
-                        .WithOne("Review")
-                        .HasForeignKey("TravelPlanningSystem.Models.ActivityReview", "ActivityBookingId")
+                        .WithMany()
+                        .HasForeignKey("ActivityBookingId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.HasOne("TravelPlanningSystem.Models.ActivityBooking", null)
+                        .WithOne("Review")
+                        .HasForeignKey("TravelPlanningSystem.Models.ActivityReview", "ActivityBookingId1");
 
                     b.HasOne("TravelPlanningSystem.Models.Activity", "Activity")
                         .WithMany("Reviews")

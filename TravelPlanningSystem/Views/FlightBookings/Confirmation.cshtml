@@ -1,0 +1,17 @@
+@model TravelPlanningSystem.Models.FlightBooking
+@{
+    ViewData["Title"] = "Booking Confirmed";
+}
+<link rel="stylesheet" href="~/css/flight.css" asp-append-version="true" />
+
+<main class="flight-shell booking-page">
+    <div class="confirmation-banner">
+        <span><i class="bi bi-check-lg"></i></span>
+        <div><small>RESERVATION SUCCESSFUL</small><h1>Your flight is confirmed</h1><p>Your booking reference is <strong>@Model.BookingReference</strong>.</p></div>
+    </div>
+    <partial name="_BookingSummary" model="Model" />
+    <div class="page-actions">
+        <a asp-action="Ticket" asp-route-id="@Model.FlightBookingId" class="primary-flight-btn"><i class="bi bi-qr-code"></i> View e-ticket</a>
+        <a asp-action="MyBookings" class="secondary-flight-btn">My flight bookings</a>
+    </div>
+</main>

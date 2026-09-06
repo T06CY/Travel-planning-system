@@ -175,6 +175,9 @@ public static class SeedData
             await context.SaveChangesAsync();
         }
 
+        // Airline records, airports and rolling future flight schedules.
+        await SeedAirlineReservationAsync(context);
+
 
         // =========================================================
         // GET ACTIVITY CATEGORIES
@@ -1186,6 +1189,343 @@ public static class SeedData
             );
         }
 
+
+        await context.SaveChangesAsync();
+    }
+
+
+    // =============================================================
+    // AIRLINE RESERVATION SEED DATA
+    // =============================================================
+
+    private static async Task SeedAirlineReservationAsync(
+        AppDbContext context)
+    {
+        if (!await context.Airlines.AnyAsync())
+        {
+            context.Airlines.AddRange(
+                new Airline
+                {
+                    AirlineCode = "MH",
+                    AirlineName = "Malaysia Airlines",
+                    Country = "Malaysia",
+                    LogoUrl = "/images/flights/MalaysiaAirlines.png",
+                    IsActive = true
+                },
+                new Airline
+                {
+                    AirlineCode = "AK",
+                    AirlineName = "AirAsia",
+                    Country = "Malaysia",
+                    LogoUrl = "/images/flights/AirAsia.png",
+                    IsActive = true
+                },
+                new Airline
+                {
+                    AirlineCode = "OD",
+                    AirlineName = "Batik Air Malaysia",
+                    Country = "Malaysia",
+                    LogoUrl = "/images/flights/BatikAir.png",
+                    IsActive = true
+                },
+                new Airline
+                {
+                    AirlineCode = "SQ",
+                    AirlineName = "Singapore Airlines",
+                    Country = "Singapore",
+                    LogoUrl = "/images/flights/SingaporeAirlines.png",
+                    IsActive = true
+                },
+                new Airline
+                {
+                    AirlineCode = "TG",
+                    AirlineName = "Thai Airways",
+                    Country = "Thailand",
+                    LogoUrl = "/images/flights/ThaiAirways.png",
+                    IsActive = true
+                },
+                new Airline
+                {
+                    AirlineCode = "JL",
+                    AirlineName = "Japan Airlines",
+                    Country = "Japan",
+                    LogoUrl = "/images/flights/JapanAirlines.png",
+                    IsActive = true
+                }
+            );
+
+            await context.SaveChangesAsync();
+        }
+
+        if (!await context.Airports.AnyAsync())
+        {
+            context.Airports.AddRange(
+                new Airport
+                {
+                    AirportCode = "KUL",
+                    AirportName = "Kuala Lumpur International Airport",
+                    City = "Kuala Lumpur",
+                    Country = "Malaysia"
+                },
+                new Airport
+                {
+                    AirportCode = "PEN",
+                    AirportName = "Penang International Airport",
+                    City = "Penang",
+                    Country = "Malaysia"
+                },
+                new Airport
+                {
+                    AirportCode = "JHB",
+                    AirportName = "Senai International Airport",
+                    City = "Johor Bahru",
+                    Country = "Malaysia"
+                },
+                new Airport
+                {
+                    AirportCode = "KCH",
+                    AirportName = "Kuching International Airport",
+                    City = "Kuching",
+                    Country = "Malaysia"
+                },
+                new Airport
+                {
+                    AirportCode = "BKI",
+                    AirportName = "Kota Kinabalu International Airport",
+                    City = "Kota Kinabalu",
+                    Country = "Malaysia"
+                },
+                new Airport
+                {
+                    AirportCode = "LGK",
+                    AirportName = "Langkawi International Airport",
+                    City = "Langkawi",
+                    Country = "Malaysia"
+                },
+                new Airport
+                {
+                    AirportCode = "SDK",
+                    AirportName = "Sandakan Airport",
+                    City = "Sandakan",
+                    Country = "Malaysia"
+                },
+                new Airport
+                {
+                    AirportCode = "TWU",
+                    AirportName = "Tawau Airport",
+                    City = "Tawau",
+                    Country = "Malaysia"
+                },
+                new Airport
+                {
+                    AirportCode = "SIN",
+                    AirportName = "Singapore Changi Airport",
+                    City = "Singapore",
+                    Country = "Singapore"
+                },
+                new Airport
+                {
+                    AirportCode = "BKK",
+                    AirportName = "Suvarnabhumi Airport",
+                    City = "Bangkok",
+                    Country = "Thailand"
+                },
+                new Airport
+                {
+                    AirportCode = "CGK",
+                    AirportName = "Soekarno-Hatta International Airport",
+                    City = "Jakarta",
+                    Country = "Indonesia"
+                },
+                new Airport
+                {
+                    AirportCode = "DPS",
+                    AirportName = "Ngurah Rai International Airport",
+                    City = "Bali",
+                    Country = "Indonesia"
+                },
+                new Airport
+                {
+                    AirportCode = "SGN",
+                    AirportName = "Tan Son Nhat International Airport",
+                    City = "Ho Chi Minh City",
+                    Country = "Vietnam"
+                },
+                new Airport
+                {
+                    AirportCode = "MNL",
+                    AirportName = "Ninoy Aquino International Airport",
+                    City = "Manila",
+                    Country = "Philippines"
+                },
+                new Airport
+                {
+                    AirportCode = "NRT",
+                    AirportName = "Narita International Airport",
+                    City = "Tokyo",
+                    Country = "Japan"
+                },
+                new Airport
+                {
+                    AirportCode = "ICN",
+                    AirportName = "Incheon International Airport",
+                    City = "Seoul",
+                    Country = "South Korea"
+                },
+                new Airport
+                {
+                    AirportCode = "HKG",
+                    AirportName = "Hong Kong International Airport",
+                    City = "Hong Kong",
+                    Country = "Hong Kong"
+                },
+                new Airport
+                {
+                    AirportCode = "TPE",
+                    AirportName = "Taiwan Taoyuan International Airport",
+                    City = "Taipei",
+                    Country = "Taiwan"
+                }
+            );
+
+            await context.SaveChangesAsync();
+        }
+
+        // Remove expired demonstration schedules only when they have no
+        // reservation history. Booked flights remain for Booking History.
+        var expiredUnbookedFlights = await context.Flights
+            .Where(f =>
+                f.DepartureTime < DateTime.Today &&
+                !f.BookingSegments.Any())
+            .ToListAsync();
+
+        if (expiredUnbookedFlights.Count > 0)
+        {
+            context.Flights.RemoveRange(expiredUnbookedFlights);
+            await context.SaveChangesAsync();
+        }
+
+        var airlines = await context.Airlines
+            .Where(a => a.IsActive)
+            .OrderBy(a => a.AirlineId)
+            .ToListAsync();
+
+        if (airlines.Count == 0)
+        {
+            return;
+        }
+
+        var routes = new[]
+        {
+        new { From = "Kuala Lumpur", To = "Penang", Minutes = 60, Price = 159m },
+        new { From = "Kuala Lumpur", To = "Johor Bahru", Minutes = 55, Price = 149m },
+        new { From = "Kuala Lumpur", To = "Kuching", Minutes = 110, Price = 269m },
+        new { From = "Kuala Lumpur", To = "Kota Kinabalu", Minutes = 160, Price = 359m },
+        new { From = "Kuala Lumpur", To = "Langkawi", Minutes = 70, Price = 189m },
+        new { From = "Kuala Lumpur", To = "Singapore", Minutes = 70, Price = 249m },
+        new { From = "Kuala Lumpur", To = "Bangkok", Minutes = 130, Price = 329m },
+        new { From = "Kuala Lumpur", To = "Jakarta", Minutes = 125, Price = 349m },
+        new { From = "Kuala Lumpur", To = "Bali", Minutes = 180, Price = 499m },
+        new { From = "Kuala Lumpur", To = "Ho Chi Minh City", Minutes = 120, Price = 329m },
+        new { From = "Kuala Lumpur", To = "Manila", Minutes = 235, Price = 599m },
+        new { From = "Kuala Lumpur", To = "Tokyo", Minutes = 420, Price = 1299m },
+        new { From = "Kuala Lumpur", To = "Seoul", Minutes = 390, Price = 1199m },
+        new { From = "Kuala Lumpur", To = "Hong Kong", Minutes = 240, Price = 699m },
+        new { From = "Kuala Lumpur", To = "Taipei", Minutes = 285, Price = 799m },
+        new { From = "Singapore", To = "Bangkok", Minutes = 150, Price = 459m },
+        new { From = "Bangkok", To = "Tokyo", Minutes = 360, Price = 1299m },
+        new { From = "Kota Kinabalu", To = "Sandakan", Minutes = 50, Price = 139m },
+        new { From = "Kota Kinabalu", To = "Tawau", Minutes = 55, Price = 159m }
+    };
+
+        var existingScheduleKeys = (await context.Flights
+            .AsNoTracking()
+            .Where(f => f.DepartureTime >= DateTime.Today)
+            .Select(f => new
+            {
+                f.FlightNumber,
+                f.DepartureTime
+            })
+            .ToListAsync())
+            .Select(f => $"{f.FlightNumber}|{f.DepartureTime.Ticks}")
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        // Maintain 21 future days. No fixed 2026 date can become stale.
+        for (var day = 1; day <= 21; day++)
+        {
+            var scheduleDate = DateTime.Today.AddDays(day);
+
+            for (var routeIndex = 0; routeIndex < routes.Length; routeIndex++)
+            {
+                var route = routes[routeIndex];
+
+                for (var direction = 0; direction < 2; direction++)
+                {
+                    var airline =
+                        airlines[(routeIndex + direction) % airlines.Count];
+
+                    var from =
+                        direction == 0 ? route.From : route.To;
+
+                    var to =
+                        direction == 0 ? route.To : route.From;
+
+                    var flightNumber =
+                        $"{airline.AirlineCode}{100 + routeIndex * 2 + direction}";
+
+                    var hour =
+                        direction == 0
+                            ? 7 + routeIndex % 6
+                            : 14 + routeIndex % 6;
+
+                    var minute =
+                        (routeIndex * 10) % 60;
+
+                    var departure =
+                        scheduleDate
+                            .AddHours(hour)
+                            .AddMinutes(minute);
+
+                    var scheduleKey =
+                        $"{flightNumber}|{departure.Ticks}";
+
+                    if (existingScheduleKeys.Contains(scheduleKey))
+                    {
+                        continue;
+                    }
+
+                    var capacity =
+                        150 + routeIndex % 4 * 20;
+
+                    context.Flights.Add(
+                        new Flight
+                        {
+                            AirlineId = airline.AirlineId,
+                            FlightNumber = flightNumber,
+                            From = from,
+                            To = to,
+                            DepartureTime = departure,
+                            ArrivalTime =
+                                departure.AddMinutes(route.Minutes),
+                            Price =
+                                route.Price + direction * 20m,
+                            SeatCapacity = capacity,
+                            AvailableSeats = capacity,
+                            AircraftModel =
+                                route.Minutes > 300
+                                    ? "Airbus A330"
+                                    : "Airbus A320",
+                            FlightLogoUrl = airline.LogoUrl,
+                            Status = FlightStatus.Scheduled,
+                            IsActive = true,
+                            CreatedAt = DateTime.UtcNow
+                        }
+                    );
+
+                    existingScheduleKeys.Add(scheduleKey);
+                }
+            }
+        }
 
         await context.SaveChangesAsync();
     }

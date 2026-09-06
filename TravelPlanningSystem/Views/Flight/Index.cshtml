@@ -1,0 +1,354 @@
+@model TravelPlanningSystem.ViewModels.FlightSearchViewModel
+@using TravelPlanningSystem.Models
+
+@{
+    ViewData["Title"] = "Search Flights";
+    var cities = Model.Airports
+        .GroupBy(a => a.City)
+        .Select(g => g.First())
+        .OrderBy(a => a.Country)
+        .ThenBy(a => a.City)
+        .ToList();
+}
+
+<link rel="stylesheet" href="~/css/flight.css" asp-append-version="true" />
+
+<section class="flight-hero">
+    <div class="flight-shell">
+        <span class="flight-eyebrow">AIRLINE RESERVATION &amp; MANAGEMENT</span>
+        <h1>Where will you fly next?</h1>
+        <p>Compare future schedules, check available seats and reserve your journey.</p>
+    </div>
+</section>
+
+<main class="flight-shell flight-content">
+    <form method="get" asp-action="Index" id="flightSearchForm" class="flight-search-card">
+        <input type="hidden" name="search" value="true" />
+
+        <div class="trip-type-tabs">
+            <label><input asp-for="TripType" type="radio" value="Return" /> Return</label>
+            <label><input asp-for="TripType" type="radio" value="One-way" /> One-way</label>
+            <label><input asp-for="TripType" type="radio" value="Multi-city" /> Multi-city</label>
+        </div>
+
+        <div asp-validation-summary="ModelOnly" class="flight-validation"></div>
+
+        <div id="normalSearchFields" class="flight-search-grid">
+            <div class="flight-field">
+                <label asp-for="From">Leaving from</label>
+                <select asp-for="From">
+                    <option value="">Select origin</option>
+                    @foreach (var airport in cities)
+                    {
+                        <option value="@airport.City">@airport.City (@airport.AirportCode)</option>
+                    }
+                </select>
+            </div>
+
+            <button type="button" class="route-swap" id="swapRoute" title="Swap route">
+                <i class="bi bi-arrow-left-right"></i>
+            </button>
+
+            <div class="flight-field">
+                <label asp-for="To">Going to</label>
+                <select asp-for="To">
+                    <option value="">Select destination</option>
+                    @foreach (var airport in cities)
+                    {
+                        <option value="@airport.City">@airport.City (@airport.AirportCode)</option>
+                    }
+                </select>
+            </div>
+
+            <div class="flight-field">
+                <label asp-for="DepartureDate">Departure date</label>
+                <input asp-for="DepartureDate" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                <span asp-validation-for="DepartureDate"></span>
+            </div>
+
+            <div class="flight-field" id="returnDateField">
+                <label asp-for="ReturnDate">Return date</label>
+                <input asp-for="ReturnDate" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                <span asp-validation-for="ReturnDate"></span>
+            </div>
+        </div>
+
+        <div id="multiCityFields" class="multi-city-fields">
+            <div class="multi-city-heading">
+                <div>
+                    <h2>Build your journey</h2>
+                    <p>Each flight must continue from the previous destination.</p>
+                </div>
+                <button type="button" id="addSegment" class="secondary-flight-btn">
+                    <i class="bi bi-plus-circle"></i> Add flight
+                </button>
+            </div>
+
+            <div id="segmentRows">
+                @for (var index = 0; index < Model.SegmentFrom.Count; index++)
+                {
+                    <div class="multi-city-row">
+                        <strong class="segment-label">Flight @(index + 1)</strong>
+                        <div class="flight-field">
+                            <label>From</label>
+                            <select name="SegmentFrom">
+                                <option value="">Select origin</option>
+                                @foreach (var airport in cities)
+                                {
+                                    if (Model.SegmentFrom[index] == airport.City)
+                                    {
+                                        <option value="@airport.City" selected>@airport.City (@airport.AirportCode)</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@airport.City">@airport.City (@airport.AirportCode)</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="flight-field">
+                            <label>To</label>
+                            <select name="SegmentTo">
+                                <option value="">Select destination</option>
+                                @foreach (var airport in cities)
+                                {
+                                    if (Model.SegmentTo[index] == airport.City)
+                                    {
+                                        <option value="@airport.City" selected>@airport.City (@airport.AirportCode)</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@airport.City">@airport.City (@airport.AirportCode)</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="flight-field">
+                            <label>Date</label>
+                            <input name="SegmentDate" type="date"
+                                   min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                                   value="@(Model.SegmentDate[index]?.ToString("yyyy-MM-dd"))" />
+                        </div>
+                        <button type="button" class="remove-segment" title="Remove flight">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="flight-search-footer">
+            <div class="flight-field compact-field">
+                <label asp-for="Passengers">Passengers</label>
+                <select asp-for="Passengers">
+                    @for (var count = 1; count <= 9; count++)
+                    {
+                        <option value="@count">@count passenger@(count == 1 ? "" : "s")</option>
+                    }
+                </select>
+            </div>
+
+            <div class="flight-field compact-field">
+                <label asp-for="SortBy">Sort results</label>
+                <select asp-for="SortBy">
+                    <option value="departure">Earliest departure</option>
+                    <option value="price-low">Lowest price</option>
+                    <option value="price-high">Highest price</option>
+                    <option value="duration">Shortest duration</option>
+                    <option value="seats">Most available seats</option>
+                </select>
+            </div>
+
+            <button type="submit" class="primary-flight-btn">
+                <i class="bi bi-search"></i> Search flights
+            </button>
+        </div>
+    </form>
+
+    @if (Model.SearchPerformed && Model.Sections.Count > 0)
+    {
+        <form method="get" asp-controller="FlightBookings" asp-action="Create"
+              id="selectFlightsForm" class="flight-results">
+            <input type="hidden" name="tripType" value="@Model.TripType" />
+            <input type="hidden" name="passengers" value="@Model.Passengers" />
+
+            <div class="results-title">
+                <div>
+                    <span>AVAILABLE SCHEDULES</span>
+                    <h2>Select one flight for each segment</h2>
+                </div>
+                <div class="result-count">@Model.Sections.Sum(s => s.Flights.Count) option(s)</div>
+            </div>
+
+            @for (var sectionIndex = 0; sectionIndex < Model.Sections.Count; sectionIndex++)
+            {
+                var resultSection = Model.Sections[sectionIndex];
+                <section class="result-section" data-section="@sectionIndex">
+                    <div class="segment-result-heading">
+                        <span>@resultSection.SegmentNumber</span>
+                        <div>
+                            <strong>@resultSection.Label: @resultSection.From → @resultSection.To</strong>
+                            <small>@resultSection.Date.ToString("dddd, dd MMMM yyyy")</small>
+                        </div>
+                    </div>
+
+                    @if (resultSection.Flights.Count == 0)
+                    {
+                        <div class="empty-flights">
+                            <i class="bi bi-calendar-x"></i>
+                            <div><strong>No matching flights</strong><p>Try another date or route.</p></div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="flight-list">
+                            @foreach (var flight in resultSection.Flights)
+                            {
+                                var hours = (int)flight.Duration.TotalHours;
+                                var minutes = flight.Duration.Minutes;
+                                <label class="flight-result-card">
+                                    <input class="flight-choice" type="radio"
+                                           name="segmentChoice_@sectionIndex"
+                                           value="@flight.FlightId" required />
+                                    <span class="choice-marker"><i class="bi bi-check-lg"></i></span>
+
+                                    <span class="airline-block">
+                                        @if (!string.IsNullOrWhiteSpace(flight.FlightLogoUrl ?? flight.Airline?.LogoUrl))
+                                        {
+                                            <img src="@(flight.FlightLogoUrl ?? flight.Airline?.LogoUrl)" alt="@flight.Airline.AirlineName" />
+                                        }
+                                        else
+                                        {
+                                            <span class="airline-fallback">@flight.Airline?.AirlineCode</span>
+                                        }
+                                        <span><strong>@flight.Airline?.AirlineName</strong><small>@flight.FlightNumber · @flight.AircraftModel</small></span>
+                                    </span>
+
+                                    <span class="time-block"><strong>@flight.DepartureTime.ToString("HH:mm")</strong><small>@flight.From</small></span>
+                                    <span class="duration-block"><small>@hours h @minutes m</small><span></span><small>Direct</small></span>
+                                    <span class="time-block"><strong>@flight.ArrivalTime.ToString("HH:mm")</strong><small>@flight.To</small></span>
+                                    <span class="seat-block"><i class="bi bi-person-check"></i> @flight.AvailableSeats seats</span>
+                                    <span class="price-block"><small>per person</small><strong>RM @flight.Price.ToString("N2")</strong></span>
+                                </label>
+                            }
+                        </div>
+                    }
+                </section>
+            }
+
+            @if (Model.Sections.All(s => s.Flights.Count > 0))
+            {
+                <div class="continue-panel">
+                    <div><strong>Ready to continue?</strong><span>Select each schedule, then enter passenger details.</span></div>
+                    <button type="submit" class="primary-flight-btn"><i class="bi bi-arrow-right"></i> Continue booking</button>
+                </div>
+            }
+        </form>
+    }
+    else if (!Model.SearchPerformed)
+    {
+        <div class="flight-welcome-state">
+            <i class="bi bi-airplane-engines"></i>
+            <h2>Start with your route</h2>
+            <p>Future schedules for domestic and international destinations are ready to search.</p>
+        </div>
+    }
+</main>
+
+<template id="segmentTemplate">
+    <div class="multi-city-row">
+        <strong class="segment-label">Flight</strong>
+        <div class="flight-field"><label>From</label><select name="SegmentFrom"><option value="">Select origin</option>@foreach (var airport in cities){
+            <option value="@airport.City">@airport.City (@airport.AirportCode)</option>
+        }
+    </select></div>
+    <div class="flight-field"><label>To</label><select name="SegmentTo"><option value="">Select destination</option>@foreach (var airport in cities){
+        <option value="@airport.City">@airport.City (@airport.AirportCode)</option>
+    }
+</select></div>
+<div class="flight-field"><label>Date</label><input name="SegmentDate" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" /></div>
+<button type="button" class="remove-segment" title="Remove flight"><i class="bi bi-trash"></i></button>
+</div>
+</template>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const tripTypes = document.querySelectorAll('input[name="TripType"]');
+            const normal = document.getElementById("normalSearchFields");
+            const multi = document.getElementById("multiCityFields");
+            const returnField = document.getElementById("returnDateField");
+            const rows = document.getElementById("segmentRows");
+
+            function selectedTripType() {
+                return document.querySelector('input[name="TripType"]:checked')?.value || "Return";
+            }
+
+            function updateTripType() {
+                const type = selectedTripType();
+                normal.style.display = type === "Multi-city" ? "none" : "grid";
+                multi.style.display = type === "Multi-city" ? "block" : "none";
+                returnField.style.display = type === "Return" ? "block" : "none";
+                normal.querySelectorAll("input,select").forEach(x => x.disabled = type === "Multi-city");
+                multi.querySelectorAll("input,select").forEach(x => x.disabled = type !== "Multi-city");
+                if (type !== "Multi-city") document.getElementById("ReturnDate").disabled = type !== "Return";
+            }
+
+            function numberRows() {
+                rows.querySelectorAll(".multi-city-row").forEach((row, index) => {
+                    row.querySelector(".segment-label").textContent = "Flight " + (index + 1);
+                    row.querySelector(".remove-segment").style.visibility = rows.children.length <= 2 ? "hidden" : "visible";
+                    if (index > 0) {
+                        const previousTo = rows.children[index - 1].querySelector('[name="SegmentTo"]');
+                        const currentFrom = row.querySelector('[name="SegmentFrom"]');
+                        previousTo.addEventListener("change", () => currentFrom.value = previousTo.value);
+                    }
+                });
+            }
+
+            tripTypes.forEach(x => x.addEventListener("change", updateTripType));
+            document.getElementById("swapRoute").addEventListener("click", function () {
+                const from = document.getElementById("From");
+                const to = document.getElementById("To");
+                [from.value, to.value] = [to.value, from.value];
+            });
+            document.getElementById("addSegment").addEventListener("click", function () {
+                if (rows.children.length >= 5) return alert("Maximum 5 flights are allowed.");
+                rows.appendChild(document.getElementById("segmentTemplate").content.cloneNode(true));
+                numberRows();
+            });
+            rows.addEventListener("click", function (event) {
+                const button = event.target.closest(".remove-segment");
+                if (!button) return;
+                if (rows.children.length <= 2) return alert("At least 2 flights are required.");
+                button.closest(".multi-city-row").remove();
+                numberRows();
+            });
+
+            document.getElementById("selectFlightsForm")?.addEventListener("submit", function (event) {
+                this.querySelectorAll('input[name="flightIds"]').forEach(x => x.remove());
+                const sections = this.querySelectorAll(".result-section");
+                let complete = true;
+                sections.forEach(section => {
+                    const selected = section.querySelector(".flight-choice:checked");
+                    if (!selected) complete = false;
+                    else {
+                        const hidden = document.createElement("input");
+                        hidden.type = "hidden";
+                        hidden.name = "flightIds";
+                        hidden.value = selected.value;
+                        this.appendChild(hidden);
+                    }
+                });
+                if (!complete) {
+                    event.preventDefault();
+                    alert("Please select one flight for every segment.");
+                }
+            });
+
+            updateTripType();
+            numberRows();
+        });
+    </script>
+}

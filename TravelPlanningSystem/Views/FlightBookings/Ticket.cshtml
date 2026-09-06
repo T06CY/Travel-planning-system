@@ -1,0 +1,33 @@
+@model TravelPlanningSystem.Models.FlightBooking
+@{
+    ViewData["Title"] = "E-Ticket";
+}
+<link rel="stylesheet" href="~/css/flight.css" asp-append-version="true" />
+
+<main class="flight-shell ticket-page">
+    <div class="page-title-row no-print"><div><span class="flight-eyebrow">E-TICKET</span><h1>Your boarding information</h1><p>Present this QR code together with your travel document.</p></div><button onclick="window.print()" class="primary-flight-btn"><i class="bi bi-file-earmark-pdf"></i> Print / Save PDF</button></div>
+
+    <article class="e-ticket">
+        <header><div class="ticket-logo"><i class="bi bi-airplane-fill"></i><strong>Travel<span>Mate</span></strong></div><div><small>BOOKING REFERENCE</small><strong>@Model.BookingReference</strong></div></header>
+        <div class="ticket-body">
+            <div class="ticket-journey">
+                @foreach (var segment in Model.Segments.OrderBy(s => s.SegmentOrder))
+                {
+                    var flight = segment.Flight;
+                    if (flight is not null)
+                    {
+                        <section><div class="ticket-airline"><strong>@flight.Airline?.AirlineName</strong><span>@flight.FlightNumber · @flight.AircraftModel</span></div><div class="ticket-route"><div><strong>@flight.DepartureTime.ToString("HH:mm")</strong><span>@flight.From</span><small>@flight.DepartureTime.ToString("ddd, dd MMM yyyy")</small></div><i class="bi bi-airplane"></i><div><strong>@flight.ArrivalTime.ToString("HH:mm")</strong><span>@flight.To</span><small>@flight.ArrivalTime.ToString("ddd, dd MMM yyyy")</small></div></div></section>
+                    }
+                }
+            </div>
+            <aside class="ticket-qr"><img src="data:image/png;base64,@ViewBag.QrCode" alt="Booking QR code" /><small>Scan to verify</small></aside>
+        </div>
+        <footer>
+            @foreach (var passenger in Model.Passengers)
+            {
+                <div><span>PASSENGER</span><strong>@passenger.FirstName @passenger.LastName</strong></div><div><span>TYPE</span><strong>@passenger.PassengerType</strong></div><div><span>OUTBOUND SEAT</span><strong>@passenger.SeatNumber</strong></div>@if (Model.TripType == "Return") { <div><span>RETURN SEAT</span><strong>@(passenger.ReturnSeatNumber ?? "Not assigned")</strong></div> }<div><span>MEAL</span><strong>@passenger.MealPreference</strong></div>
+            }
+        </footer>
+    </article>
+    <p class="ticket-note no-print">Select “Save as PDF” in the print window to download the e-ticket as a PDF file.</p>
+</main>

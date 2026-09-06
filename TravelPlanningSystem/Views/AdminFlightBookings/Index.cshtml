@@ -1,0 +1,13 @@
+@model IEnumerable<TravelPlanningSystem.Models.FlightBooking>
+@using TravelPlanningSystem.Models
+@{ ViewData["Title"] = "Flight Bookings"; }
+<link rel="stylesheet" href="~/css/flight.css" asp-append-version="true" />
+<div class="flight-admin-page">
+    <div class="admin-page-header"><div><span class="flight-eyebrow">RESERVATION ADMINISTRATION</span><h1>Flight Bookings</h1><p>Search reservations and manage booking status.</p></div></div>
+    <div class="admin-flight-card"><form method="get" class="admin-filter-bar"><div class="flight-field"><label>Search</label><input name="search" value="@ViewBag.Search" placeholder="Reference, passenger or email" /></div><div class="flight-field"><label>Status</label><select name="status"><option value="">All statuses</option>@foreach(var item in Enum.GetValues<FlightBookingStatus>()){if(ViewBag.Status?.ToString()==item.ToString()){<option value="@item" selected>@item</option>}else{<option value="@item">@item</option>}}</select></div><button class="primary-flight-btn">Filter</button><a asp-action="Index" class="secondary-flight-btn">Clear</a></form>
+        <div class="admin-table-wrap"><table class="admin-flight-table"><thead><tr><th>Reference</th><th>Passenger</th><th>Journey</th><th>Passengers</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody>
+        @if(!Model.Any()){<tr><td colspan="7"><div class="empty-flights"><i class="bi bi-journal-x"></i><div><strong>No bookings found</strong></div></div></td></tr>}
+        @foreach(var booking in Model){var first=booking.Segments.OrderBy(s=>s.SegmentOrder).FirstOrDefault()?.Flight;var last=booking.Segments.OrderBy(s=>s.SegmentOrder).LastOrDefault()?.Flight;<tr><td><strong>@booking.BookingReference</strong><small class="table-subtext">@booking.BookingDate.ToString("dd MMM yyyy")</small></td><td><strong>@booking.ContactName</strong><small class="table-subtext">@booking.ContactEmail</small></td><td><strong>@first?.From → @last?.To</strong><small class="table-subtext">@booking.TripType · @booking.Segments.Count segment(s)</small></td><td>@booking.Passengers.Count</td><td>RM @booking.TotalAmount.ToString("N2")</td><td><span class="booking-status status-@booking.Status.ToString().ToLowerInvariant()">@booking.Status</span></td><td><a asp-action="Details" asp-route-id="@booking.FlightBookingId" class="secondary-flight-btn small-btn">Manage</a></td></tr>}
+        </tbody></table></div>
+    </div>
+</div>

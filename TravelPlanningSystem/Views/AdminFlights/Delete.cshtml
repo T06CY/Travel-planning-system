@@ -1,0 +1,4 @@
+@model TravelPlanningSystem.Models.Flight
+@{ ViewData["Title"] = "Remove Flight"; }
+<link rel="stylesheet" href="~/css/flight.css" asp-append-version="true" />
+<div class="flight-admin-page"><div class="delete-confirm-card"><div class="delete-icon"><i class="bi bi-exclamation-triangle"></i></div><span class="flight-eyebrow">CONFIRM ACTION</span><h1>Remove @Model.FlightNumber?</h1><p>@Model.Airline?.AirlineName · @Model.From → @Model.To<br />@Model.DepartureTime.ToString("dddd, dd MMMM yyyy · HH:mm")</p><div class="flight-alert error">If booking history exists, the flight will be cancelled and hidden instead of permanently deleted.</div><form method="post">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@Model.FlightId" /><a asp-action="Index" class="secondary-flight-btn">Keep flight</a><button type="submit" class="danger-flight-btn">Remove flight</button></form></div></div>

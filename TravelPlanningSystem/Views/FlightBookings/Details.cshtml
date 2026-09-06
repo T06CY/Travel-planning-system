@@ -1,0 +1,35 @@
+@model TravelPlanningSystem.Models.FlightBooking
+@{
+    ViewData["Title"] = "Flight Booking Details";
+    var canCancel = Model.Status != TravelPlanningSystem.Models.FlightBookingStatus.Cancelled &&
+        Model.Segments.All(s => s.Flight != null && s.Flight.DepartureTime > DateTime.Now);
+}
+<link rel="stylesheet" href="~/css/flight.css" asp-append-version="true" />
+
+<main class="flight-shell booking-page">
+    <div class="page-title-row"><div><span class="flight-eyebrow">FLIGHT BOOKING</span><h1>Reservation details</h1><p>Review schedules, passenger information and booking status.</p></div><a asp-action="MyBookings" class="secondary-flight-btn">← My bookings</a></div>
+    @if (TempData["Error"] is not null) { <div class="flight-alert error">@TempData["Error"]</div> }
+    <partial name="_BookingSummary" model="Model" />
+    <div class="page-actions">
+        @if (Model.Status != TravelPlanningSystem.Models.FlightBookingStatus.Cancelled)
+        {
+            <a asp-action="Ticket" asp-route-id="@Model.FlightBookingId" class="primary-flight-btn"><i class="bi bi-qr-code"></i> E-ticket</a>
+        }
+        @if (canCancel)
+        {
+            <button type="button" class="danger-flight-btn" data-bs-toggle="modal" data-bs-target="#cancelModal"><i class="bi bi-x-circle"></i> Cancel booking</button>
+        }
+    </div>
+</main>
+
+@if (canCancel)
+{
+    <div class="modal fade" id="cancelModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content flight-modal"><form asp-action="Cancel" method="post">
+            @Html.AntiForgeryToken()<input type="hidden" name="id" value="@Model.FlightBookingId" />
+            <div class="modal-header"><h2>Cancel flight booking?</h2><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body"><p>This releases all reserved seats in this booking.</p><div class="flight-field"><label>Cancellation reason</label><textarea name="cancellationReason" rows="3" maxlength="400" required></textarea></div></div>
+            <div class="modal-footer"><button type="button" class="secondary-flight-btn" data-bs-dismiss="modal">Keep booking</button><button type="submit" class="danger-flight-btn">Confirm cancellation</button></div>
+        </form></div></div>
+    </div>
+}

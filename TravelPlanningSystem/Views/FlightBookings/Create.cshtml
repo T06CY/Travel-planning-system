@@ -1,0 +1,169 @@
+@model TravelPlanningSystem.ViewModels.FlightBookingCreateViewModel
+@using System
+
+@{
+    ViewData["Title"] = "Passenger Details";
+}
+
+<link rel="stylesheet" href="~/css/flight.css" asp-append-version="true" />
+
+<main class="flight-shell booking-page">
+    <div class="page-title-row">
+        <div><span class="flight-eyebrow">PASSENGER RESERVATION</span><h1>Complete your booking</h1><p>Review the schedule, enter passenger information and select seats.</p></div>
+        <div class="booking-step">Step 2 of 2</div>
+    </div>
+
+    <form method="post" asp-action="Create" class="booking-layout">
+        @Html.AntiForgeryToken()
+        <input asp-for="TripType" type="hidden" />
+        <input asp-for="PassengerCount" type="hidden" />
+        @foreach (var id in Model.FlightIds)
+        {
+            <input name="FlightIds" type="hidden" value="@id" />
+        }
+
+        <div class="booking-main-column">
+            <div asp-validation-summary="All" class="flight-validation"></div>
+
+            <section class="booking-form-card">
+                <div class="card-heading"><i class="bi bi-person-lines-fill"></i><div><h2>Contact details</h2><p>We will send the confirmation and travel updates here.</p></div></div>
+                <div class="form-grid three-columns">
+                    <div class="flight-field"><label asp-for="ContactName"></label><input asp-for="ContactName" /><span asp-validation-for="ContactName"></span></div>
+                    <div class="flight-field"><label asp-for="ContactEmail"></label><input asp-for="ContactEmail" /><span asp-validation-for="ContactEmail"></span></div>
+                    <div class="flight-field"><label asp-for="PhoneCountry">Phone country</label><select asp-for="PhoneCountry" id="phoneCountry"><option value="MY">Malaysia (+60)</option><option value="SG">Singapore (+65)</option><option value="TH">Thailand (+66)</option><option value="ID">Indonesia (+62)</option><option value="GB">United Kingdom (+44)</option><option value="US">United States (+1)</option><option value="OTHER">Other international</option></select></div>
+                    <div class="flight-field"><label asp-for="ContactPhone"></label><input asp-for="ContactPhone" id="contactPhone" placeholder="0123456789" inputmode="tel" /><small id="phoneFormatHint">Malaysia: 10–11 digits, for example 0123456789.</small><span asp-validation-for="ContactPhone"></span></div>
+                </div>
+            </section>
+
+            @for (var index = 0; index < Model.Passengers.Count; index++)
+            {
+                <section class="booking-form-card passenger-card">
+                    <div class="card-heading"><span class="passenger-number">@(index + 1)</span><div><h2>Passenger @(index + 1)</h2><p>Names must match the passenger's travel document.</p></div></div>
+                    <div class="form-grid three-columns">
+                        <div class="flight-field"><label asp-for="Passengers[index].FirstName">First name</label><input asp-for="Passengers[index].FirstName" /><span asp-validation-for="Passengers[index].FirstName"></span></div>
+                        <div class="flight-field"><label asp-for="Passengers[index].LastName">Last name</label><input asp-for="Passengers[index].LastName" /><span asp-validation-for="Passengers[index].LastName"></span></div>
+                        <div class="flight-field"><label asp-for="Passengers[index].PassportNumber">Passport / ID number</label><input asp-for="Passengers[index].PassportNumber" /><span asp-validation-for="Passengers[index].PassportNumber"></span></div>
+                        <div class="flight-field"><label asp-for="Passengers[index].Nationality"></label><input asp-for="Passengers[index].Nationality" /><span asp-validation-for="Passengers[index].Nationality"></span></div>
+                        <div class="flight-field"><label asp-for="Passengers[index].DateOfBirth">Date of birth</label><input asp-for="Passengers[index].DateOfBirth" type="date" max="@DateTime.Today.AddDays(-1).ToString("yyyy-MM-dd")" /><span asp-validation-for="Passengers[index].DateOfBirth"></span></div>
+                        <div class="flight-field"><label asp-for="Passengers[index].PassengerType">Passenger type</label><select asp-for="Passengers[index].PassengerType" required><option value="Adult">Adult (12+)</option><option value="Child">Child (2–11)</option></select><span asp-validation-for="Passengers[index].PassengerType"></span></div>
+                        <input asp-for="Passengers[index].SeatNumber"
+                               type="hidden"
+                               class="seat-input"
+                               data-passenger-index="@index" />
+                        <input asp-for="Passengers[index].ReturnSeatNumber"
+                               type="hidden"
+                               class="return-seat-input"
+                               data-passenger-index="@index" />
+                        <div class="flight-field"><label asp-for="Passengers[index].MealPreference">Meal preference</label><select asp-for="Passengers[index].MealPreference"><option>Standard Meal</option><option>Vegetarian Meal</option><option>Vegan Meal</option><option>Halal Meal</option><option>Child Meal</option><option>No Meal</option></select></div>
+                    </div>
+                </section>
+            }
+
+            <section class="booking-form-card simple-seat-picker" id="seatPicker">
+                <div class="card-heading">
+                    <i class="bi bi-grid-3x3-gap-fill"></i>
+        <div>
+                        <h2>Choose a seat</h2>
+                        <p>Select one available seat for each passenger before confirming the booking.</p>
+                    </div>
+                </div>
+
+                <div class="seat-picker-passengers" role="tablist" aria-label="Passenger seat selection">
+                    @for (var passengerIndex = 0; passengerIndex < Model.PassengerCount; passengerIndex++)
+                    {
+                        <button type="button"
+                                class="seat-passenger-button @(passengerIndex == 0 ? "active" : "")"
+                                data-passenger-index="@passengerIndex">
+                            Passenger @(passengerIndex + 1)
+                            <small data-seat-status-index="@passengerIndex">Not selected</small>
+                        </button>
+                    }
+                </div>
+
+                @if (string.Equals(Model.TripType, "Return", StringComparison.OrdinalIgnoreCase))
+                {
+                    <div class="seat-leg-tabs" role="tablist" aria-label="Flight seat selection">
+                        <button type="button" class="seat-leg-button active" data-seat-leg="outbound">Outbound seat</button>
+                        <button type="button" class="seat-leg-button" data-seat-leg="return">Return seat</button>
+                    </div>
+                }
+
+                <div class="seat-picker-legend">
+                    <span><i class="seat-swatch seat-premium"></i> Front / preferred</span>
+                    <span><i class="seat-swatch seat-standard"></i> Standard</span>
+                    <span><i class="seat-swatch seat-selected"></i> Selected</span>
+                    <span><i class="seat-swatch seat-occupied"></i> Occupied</span>
+                </div>
+
+                <div class="simple-aircraft-map" data-seat-leg-map="outbound">
+                    <div class="simple-aircraft-front"><i class="bi bi-airplane-fill"></i> FRONT</div>
+                    <div class="simple-seat-labels"><span>A</span><span>B</span><span>C</span><b></b><span>D</span><span>E</span><span>F</span></div>
+                    <div class="simple-seat-grid">
+                        @{ var rowCount = (int)Math.Ceiling(Model.SeatCapacity / 6m); }
+                        @for (var row = 1; row <= rowCount; row++)
+                        {
+                            <div class="simple-seat-row">
+                                @for (var column = 0; column < 6; column++)
+                                {
+                                    if (column == 3)
+                                    {
+                                        <span class="simple-seat-aisle">@row</span>
+                                    }
+
+                                    var seatNumber = $"{row}{(char)('A' + column)}";
+                                    var seatIndex = ((row - 1) * 6) + column;
+                                    if (seatIndex < Model.SeatCapacity)
+                                    {
+                                        var occupied = Model.OccupiedSeats.Any(seat =>
+                                            string.Equals(seat, seatNumber, StringComparison.OrdinalIgnoreCase));
+                                        var seatClass = row <= 5 ? "seat-premium" : "seat-standard";
+                                        <button type="button"
+                                                class="visual-seat @seatClass @(occupied ? "seat-occupied" : "")"
+                                                data-seat-number="@seatNumber"
+                                                disabled="@occupied"
+                                                title="@(occupied ? "Occupied" : $"Select seat {seatNumber}")">
+                                            @seatNumber
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <span class="visual-seat-empty"></span>
+                                    }
+                                }
+                            </div>
+                        }
+                    </div>
+                    <div class="simple-aircraft-rear">REAR</div>
+                </div>
+
+                <div class="seat-picker-actions">
+                    <span class="seat-picker-message" data-seat-picker-message>Passenger 1 must select a seat.</span>
+                    <span class="seat-validation-error" data-seat-validation-error role="alert"></span>
+                </div>
+            </section>
+        </div>
+
+        <aside class="booking-summary-card">
+            <span class="summary-label">YOUR JOURNEY</span>
+            @for (var index = 0; index < Model.Flights.Count; index++)
+            {
+                var flight = Model.Flights[index];
+                <div class="summary-segment">
+                    <div class="summary-segment-top"><span>Flight @(index + 1)</span><strong>@flight.FlightNumber</strong></div>
+                    <h3>@flight.From <i class="bi bi-arrow-right"></i> @flight.To</h3>
+                    <p>@flight.DepartureTime.ToString("ddd, dd MMM yyyy · HH:mm")</p>
+                    <small>@flight.Airline?.AirlineName · RM @flight.Price.ToString("N2") per person</small>
+                </div>
+            }
+            <div class="summary-total"><span>@Model.PassengerCount passenger(s)</span><strong>RM @Model.TotalAmount.ToString("N2")</strong></div>
+            <button type="submit" class="primary-flight-btn full-width"><i class="bi bi-shield-check"></i> Confirm booking</button>
+            <a asp-controller="Flight" asp-action="Index" class="back-link">← Return to flight search</a>
+        </aside>
+    </form>
+</main>
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/flight-seat-picker.js" asp-append-version="true"></script>
+}
