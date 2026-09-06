@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using TravelPlanningSystem.Data;
 using TravelPlanningSystem.Models.Transportation;
 
-// 别名避免与 ASP.NET Core 的 Route 冲突
+// 使用别名，避免与 ASP.NET Core 的 Route 路由类命名冲突
 using TransportRoute = TravelPlanningSystem.Models.Transportation.Route;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,7 +28,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 var app = builder.Build();
 
-// --- 数据库迁移、自动修复字段与数据初始化 ---
+// --- 数据库迁移、字段自动修复与数据初始化 ---
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -37,7 +37,7 @@ using (var scope = app.Services.CreateScope())
     {
         await context.Database.MigrateAsync();
 
-        // ⭐ 核心修复：自动给 HotelRooms / Rooms 表补上缺失的 RoomType 字段
+        // 自动给 HotelRooms / Rooms 表补上缺失的 RoomType 字段（解决 Hotel 报错）
         await context.Database.ExecuteSqlRawAsync(@"
             IF OBJECT_ID(N'[dbo].[HotelRooms]', N'U') IS NOT NULL 
                AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[HotelRooms]') AND name = 'RoomType')
@@ -54,7 +54,7 @@ using (var scope = app.Services.CreateScope())
 
         await SeedData.InitializeAsync(context);
 
-        // ⭐ 初始化交通模块种子数据
+        // 初始化/更新 Transportation 演示数据（含 VIP Van）
         await SeedTransportationDataAsync(context);
     }
     catch (Exception ex)
@@ -141,51 +141,114 @@ app.MapControllerRoute(
 app.Run();
 
 // ==========================================
-// Transportation 种子数据方法
+// Transportation 扩充版演示数据（共 16 趟，支持分页测试）
 // ==========================================
 async Task SeedTransportationDataAsync(AppDbContext context)
 {
-    if (context.Routes.Any())
+    // 如果已经有 15 趟以上车次，说明已是最新完整数据，直接跳过
+    if (context.Trips.Count() >= 15)
         return;
 
-    // 1. Routes (路线)
+    // 清理旧数据
+    if (context.Routes.Any())
+    {
+        if (context.TransportationReviews.Any())
+            context.TransportationReviews.RemoveRange(context.TransportationReviews);
+
+        context.Seats.RemoveRange(context.Seats);
+        context.Trips.RemoveRange(context.Trips);
+        context.Vehicles.RemoveRange(context.Vehicles);
+        context.Routes.RemoveRange(context.Routes);
+        await context.SaveChangesAsync();
+    }
+
+    // 1. 路线 (Routes)
     var routes = new List<TransportRoute>
     {
-        new() { Origin = "Kuala Lumpur", Destination = "Selangor", DistanceKm = 45, EstimatedDurationHours = 1.5, Stops = "Shah Alam, Petaling Jaya", IsActive = true, CreatedAt = DateTime.UtcNow },
-        new() { Origin = "Kuala Lumpur", Destination = "Penang", DistanceKm = 380, EstimatedDurationHours = 5, Stops = "Ipoh, Taiping", IsActive = true, CreatedAt = DateTime.UtcNow },
-        new() { Origin = "Kuala Lumpur", Destination = "Melaka", DistanceKm = 140, EstimatedDurationHours = 2, Stops = "None", IsActive = true, CreatedAt = DateTime.UtcNow }
+        new() { Origin = "Kuala Lumpur", Destination = "Genting Highlands", DistanceKm = 55, EstimatedDurationHours = 1.0, Stops = "Awana Skyway", IsActive = true, CreatedAt = DateTime.UtcNow },
+        new() { Origin = "Kuala Lumpur", Destination = "Cameron Highlands", DistanceKm = 215, EstimatedDurationHours = 3.5, Stops = "Tapah, Tanah Rata", IsActive = true, CreatedAt = DateTime.UtcNow },
+        new() { Origin = "Kuala Lumpur", Destination = "Melaka", DistanceKm = 145, EstimatedDurationHours = 2.0, Stops = "Direct Express", IsActive = true, CreatedAt = DateTime.UtcNow },
+        new() { Origin = "Kuala Lumpur", Destination = "Penang", DistanceKm = 360, EstimatedDurationHours = 4.5, Stops = "Ipoh, Butterworth", IsActive = true, CreatedAt = DateTime.UtcNow },
+        new() { Origin = "Kuala Lumpur", Destination = "Johor Bahru", DistanceKm = 330, EstimatedDurationHours = 4.0, Stops = "Seremban, Batu Pahat", IsActive = true, CreatedAt = DateTime.UtcNow },
+        new() { Origin = "Kuala Lumpur", Destination = "Ipoh", DistanceKm = 205, EstimatedDurationHours = 2.5, Stops = "Tanjung Malim", IsActive = true, CreatedAt = DateTime.UtcNow },
+        new() { Origin = "Penang", Destination = "Kuala Lumpur", DistanceKm = 360, EstimatedDurationHours = 4.5, Stops = "Butterworth, Ipoh", IsActive = true, CreatedAt = DateTime.UtcNow },
+        new() { Origin = "Melaka", Destination = "Kuala Lumpur", DistanceKm = 145, EstimatedDurationHours = 2.0, Stops = "Direct Express", IsActive = true, CreatedAt = DateTime.UtcNow }
     };
     context.Routes.AddRange(routes);
     await context.SaveChangesAsync();
 
-    // 2. Vehicles (车辆)
+    // 2. 车辆 (Vehicles)
     var vehicles = new List<Vehicle>
     {
-        new() { LicensePlate = "KL-001-A", VehicleModel = "Mercedes Sprinter", VehicleType = "Coach", SeatingCapacity = 50, ManufactureYear = 2023, Amenities = "WiFi, Air Conditioning, USB Charging, Toilet", IsActive = true, CreatedAt = DateTime.UtcNow },
-        new() { LicensePlate = "KL-002-B", VehicleModel = "Volvo B11R", VehicleType = "Bus", SeatingCapacity = 45, ManufactureYear = 2022, Amenities = "WiFi, Air Conditioning, Power Outlets", IsActive = true, CreatedAt = DateTime.UtcNow },
-        new() { LicensePlate = "KL-003-C", VehicleModel = "Toyota Hiace", VehicleType = "Van", SeatingCapacity = 15, ManufactureYear = 2023, Amenities = "Air Conditioning", IsActive = true, CreatedAt = DateTime.UtcNow }
+        new() { LicensePlate = "WXY-1199", VehicleModel = "Toyota Hiace VIP Luxury", VehicleType = "VIP Van", SeatingCapacity = 12, Amenities = "Air Conditioning, Leather Seats, Fast Shuttle", IsActive = true, CreatedAt = DateTime.UtcNow },
+        new() { LicensePlate = "VIP-8888", VehicleModel = "Toyota Alphard Executive", VehicleType = "VIP Van", SeatingCapacity = 7, Amenities = "First-Class Leather Seats, Personal USB", IsActive = true, CreatedAt = DateTime.UtcNow },
+        new() { LicensePlate = "WVE-8801", VehicleModel = "Mercedes-Benz Tourismo (2+1 VIP)", VehicleType = "Luxury Coach", SeatingCapacity = 30, Amenities = "WiFi, Massage Seats, Restroom", IsActive = true, CreatedAt = DateTime.UtcNow },
+        new() { LicensePlate = "VAA-6622", VehicleModel = "Scania K410IB High-Deck", VehicleType = "Express Bus", SeatingCapacity = 45, Amenities = "WiFi, Air Conditioning, USB Charging", IsActive = true, CreatedAt = DateTime.UtcNow },
+        new() { LicensePlate = "BPN-3311", VehicleModel = "Volvo B11R Executive", VehicleType = "Coach", SeatingCapacity = 36, Amenities = "WiFi, Restroom, Power Outlets", IsActive = true, CreatedAt = DateTime.UtcNow }
     };
     context.Vehicles.AddRange(vehicles);
     await context.SaveChangesAsync();
 
-    // 提取 Id
-    var r0 = routes[0].RouteId;
-    var r1 = routes.ElementAt(1).RouteId;
-    var r2 = routes.ElementAt(2).RouteId;
+    var today = DateTime.UtcNow.Date;
 
-    var v0 = vehicles[0].VehicleId;
-    var v1 = vehicles.ElementAt(1).VehicleId;
-    var v2 = vehicles.ElementAt(2).VehicleId;
-
-    // 3. Trips (车次)
-    var trips = new List<Trip>
+    // 3. 车次数据配置表 (路线编号, 车辆编号, 出发时, 出发分, 票价, 折扣%, 余票, 总票, 状态)
+    var tripDefinitions = new (int rIdx, int vIdx, int h, int m, decimal fare, int discount, int avail, int total, string status)[]
     {
-        new() { RouteId = r0, VehicleId = v2, DepartureTime = DateTime.UtcNow.AddHours(2).Date.AddHours(8), ArrivalTime = DateTime.UtcNow.AddHours(2).Date.AddHours(9.5), BaseFare = 25.00m, DiscountPercentage = 0, AvailableSeats = 12, TotalSeats = 15, Status = "Scheduled", IsActive = true, CreatedAt = DateTime.UtcNow },
-        new() { RouteId = r1, VehicleId = v0, DepartureTime = DateTime.UtcNow.AddDays(1).Date.AddHours(8), ArrivalTime = DateTime.UtcNow.AddDays(1).Date.AddHours(13), BaseFare = 55.00m, DiscountPercentage = 0, AvailableSeats = 32, TotalSeats = 50, Status = "Scheduled", IsActive = true, CreatedAt = DateTime.UtcNow },
-        new() { RouteId = r2, VehicleId = v1, DepartureTime = DateTime.UtcNow.AddHours(2).Date.AddHours(10), ArrivalTime = DateTime.UtcNow.AddHours(2).Date.AddHours(12), BaseFare = 35.00m, DiscountPercentage = 0, AvailableSeats = 15, TotalSeats = 45, Status = "On-time", IsActive = true, CreatedAt = DateTime.UtcNow }
+        // 5 趟 VIP Van 专线
+        (0, 0, 9, 0, 35m, 0, 8, 12, "On-time"),           // KL -> 云顶 (Hiace)
+        (0, 1, 14, 30, 45m, 10, 5, 7, "Scheduled"),      // KL -> 云顶 (Alphard)
+        (1, 0, 8, 30, 50m, 0, 6, 12, "On-time"),          // KL -> 金马仑 (Hiace)
+        (2, 0, 10, 30, 40m, 5, 7, 12, "On-time"),         // KL -> 马六甲 (Hiace)
+        (5, 1, 15, 0, 42m, 0, 4, 7, "Scheduled"),        // KL -> 怡保 (Alphard)
+
+        // 3 趟 KL -> 槟城 (早/中/晚)
+        (3, 2, 8, 0, 55m, 0, 20, 30, "On-time"),
+        (3, 3, 13, 30, 45m, 15, 3, 45, "Scheduled"),
+        (3, 4, 20, 0, 48m, 0, 25, 36, "Scheduled"),
+
+        // 2 趟 KL -> 马六甲
+        (2, 2, 14, 0, 28m, 0, 16, 30, "On-time"),
+        (2, 3, 17, 30, 25m, 0, 30, 45, "Scheduled"),
+
+        // 2 趟 KL -> 新山
+        (4, 2, 11, 0, 52m, 0, 14, 30, "On-time"),
+        (4, 3, 18, 0, 48m, 0, 10, 45, "Delayed"),
+
+        // 2 趟 槟城 -> KL (返程)
+        (6, 2, 9, 30, 55m, 0, 18, 30, "On-time"),
+        (6, 3, 16, 0, 45m, 10, 22, 45, "Scheduled"),
+
+        // 2 趟 补充班次（冲破 12 条限制以激活第 2 页）
+        (7, 4, 11, 30, 28m, 0, 15, 36, "On-time"),        // 马六甲 -> KL 返程
+        (0, 0, 18, 30, 35m, 0, 10, 12, "On-time")         // KL -> 云顶 傍晚 Van
     };
+
+    // 批量生成 16 趟车次实体
+    var trips = tripDefinitions.Select(def =>
+    {
+        var route = routes.ElementAt(def.rIdx);
+        var depTime = today.AddHours(def.h).AddMinutes(def.m);
+        var durationHours = Math.Max(1.0, route.EstimatedDurationHours);
+        var arrTime = depTime.AddHours(durationHours);
+
+        return new Trip
+        {
+            RouteId = route.RouteId,
+            VehicleId = vehicles.ElementAt(def.vIdx).VehicleId,
+            DepartureTime = depTime,
+            ArrivalTime = arrTime,
+            BaseFare = def.fare,
+            DiscountPercentage = def.discount,
+            AvailableSeats = def.avail,
+            TotalSeats = def.total,
+            Status = def.status,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+    }).ToList();
+
     context.Trips.AddRange(trips);
     await context.SaveChangesAsync();
 
-    Console.WriteLine("✅ Transportation sample data seeded successfully!");
+    Console.WriteLine("✅ 已成功注入 16 趟完整班程，分页与各类车型演示已就绪！");
 }

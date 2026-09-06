@@ -3,7 +3,7 @@ using TravelPlanningSystem.Models.Transportation;
 
 namespace TravelPlanningSystem.ViewModels;
 
-public class TransportationSearchViewModel
+public class TransportationSearchViewModel : IValidatableObject
 {
     // Search Parameters
     [Display(Name = "From (Origin)")]
@@ -22,11 +22,11 @@ public class TransportationSearchViewModel
     public string? Search { get; set; }
 
     // Filtering Parameters
-    [Range(0, 999999)]
+    [Range(0, 999999, ErrorMessage = "Minimum price cannot be less than 0.")]
     [Display(Name = "Minimum Price")]
     public decimal? MinPrice { get; set; }
 
-    [Range(0, 999999)]
+    [Range(0, 999999, ErrorMessage = "Maximum price cannot be less than 0.")]
     [Display(Name = "Maximum Price")]
     public decimal? MaxPrice { get; set; }
 
@@ -70,7 +70,7 @@ public class TransportationSearchViewModel
     public List<string> VehicleTypes { get; set; } = new();
 
     // Computed Properties
-    public bool HasFiltersApplied => 
+    public bool HasFiltersApplied =>
         !string.IsNullOrWhiteSpace(Origin) ||
         !string.IsNullOrWhiteSpace(Destination) ||
         !string.IsNullOrWhiteSpace(Search) ||
@@ -80,4 +80,21 @@ public class TransportationSearchViewModel
         MinimumRating.HasValue ||
         DepartureTimeFrom.HasValue ||
         DepartureTimeTo.HasValue;
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (MinPrice.HasValue && MinPrice.Value < 0)
+        {
+            yield return new ValidationResult(
+                "Minimum price cannot be less than 0.",
+                new[] { nameof(MinPrice) });
+        }
+
+        if (MinPrice.HasValue && MaxPrice.HasValue && MaxPrice.Value < MinPrice.Value)
+        {
+            yield return new ValidationResult(
+                "Maximum price cannot be less than minimum price.",
+                new[] { nameof(MaxPrice) });
+        }
+    }
 }

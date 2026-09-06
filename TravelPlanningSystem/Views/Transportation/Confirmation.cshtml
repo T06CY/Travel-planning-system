@@ -1,0 +1,176 @@
+﻿@model TravelPlanningSystem.Models.Transportation.TransportationBooking
+
+@{
+    ViewData["Title"] = "E-Ticket Confirmation - " + Model.BookingReference;
+    var trip = Model.Trip!;
+}
+
+<link rel="stylesheet" href="~/css/transportation.css" asp-append-version="true" />
+
+<style>
+    .confirmation-wrapper { background: #f3f5fb; padding: 50px 0; min-height: 85vh; }
+    .ticket-card { background: #fff; border-radius: 20px; box-shadow: 0 15px 35px rgba(6,20,59,0.08); overflow: hidden; max-width: 800px; margin: 0 auto; border: 1px solid #e2e8f0; }
+    .ticket-header { background: linear-gradient(135deg, #4158ff, #2746d8); color: #fff; padding: 25px 30px; display: flex; justify-content: space-between; align-items: center; }
+    .ticket-header h2 { font-size: 1.5rem; font-weight: 800; margin: 0; }
+    .ticket-badge { background: rgba(255,255,255,0.2); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; }
+    
+    .ticket-body { padding: 35px 30px; }
+    .route-banner { display: flex; justify-content: space-between; align-items: center; background: #eef2ff; border-radius: 12px; padding: 20px; margin-bottom: 25px; }
+    .station-name { font-size: 1.3rem; font-weight: 800; color: #06143b; }
+    .station-time { font-size: 1.1rem; color: #4158ff; font-weight: 700; }
+    
+    .ticket-info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 25px; }
+    .info-item .label { font-size: 0.8rem; color: #6d7895; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 4px; }
+    .info-item .val { font-size: 1rem; color: #06143b; font-weight: 700; }
+    
+    .passenger-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
+    .passenger-table th { background: #f8fafc; padding: 10px 14px; text-align: left; font-size: 0.85rem; color: #6d7895; border-bottom: 2px solid #e2e8f0; }
+    .passenger-table td { padding: 12px 14px; border-bottom: 1px solid #e2e8f0; font-size: 0.95rem; color: #06143b; }
+    
+    .ticket-footer { background: #fafbfc; border-top: 2px dashed #cfd5e6; padding: 25px 30px; display: flex; justify-content: space-between; align-items: center; }
+    .qr-box { text-align: center; }
+    .qr-box img { width: 110px; height: 110px; border-radius: 8px; border: 1px solid #e2e8f0; }
+    
+    @@media print {
+        body * { visibility: hidden; }
+        .ticket-card, .ticket-card * { visibility: visible; }
+        .ticket-card { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; border: none; }
+        .no-print { display: none !important; }
+    }
+</style>
+
+<div class="confirmation-wrapper">
+    <div class="container">
+        
+        <!-- 成功提示条 -->
+        <div class="text-center mb-4 no-print">
+            <div class="d-inline-flex align-items-center justify-content-center bg-success text-white rounded-circle mb-3" style="width: 64px; height: 64px; font-size: 2rem;">
+                <i class="bi bi-check-lg"></i>
+            </div>
+            <h2 class="fw-bold" style="color: #06143b;">Booking Confirmed!</h2>
+            <p class="text-muted">Your payment was successful and your e-ticket has been issued.</p>
+        </div>
+
+        <!-- 电子车票卡片 (E-Ticket) -->
+        <div class="ticket-card" id="printableTicket">
+            
+            <div class="ticket-header">
+                <div>
+                    <h2><i class="bi bi-bus-front"></i> TravelMate Express</h2>
+                    <small>Official Boarding Pass & Digital E-Ticket</small>
+                </div>
+                <div class="ticket-badge">
+                    <i class="bi bi-check-circle-fill"></i> @Model.BookingStatus
+                </div>
+            </div>
+
+            <div class="ticket-body">
+                
+                <!-- 行程站台与时间 -->
+                <div class="route-banner">
+                    <div>
+                        <div class="station-name">@trip.Route?.Origin</div>
+                        <div class="station-time"><i class="bi bi-clock"></i> @trip.DepartureTime.ToString("HH:mm")</div>
+                    </div>
+                    <div class="text-center px-3">
+                        <span class="badge bg-primary px-3 py-1">Direct Express</span>
+                        <div class="text-muted small mt-1">@Math.Round((trip.ArrivalTime - trip.DepartureTime).TotalHours, 1) Hours</div>
+                        <i class="bi bi-arrow-right fs-4 text-primary"></i>
+                    </div>
+                    <div class="text-end">
+                        <div class="station-name">@trip.Route?.Destination</div>
+                        <div class="station-time"><i class="bi bi-clock"></i> @trip.ArrivalTime.ToString("HH:mm")</div>
+                    </div>
+                </div>
+
+                <!-- 关键核验信息 -->
+                <div class="ticket-info-grid">
+                    <div class="info-item">
+                        <span class="label">Booking Reference</span>
+                        <span class="val text-primary">@Model.BookingReference</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Departure Date</span>
+                        <span class="val">@trip.DepartureTime.ToString("ddd, dd MMM yyyy")</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Vehicle / Coach</span>
+                        <span class="val">@trip.Vehicle?.VehicleModel</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Contact Person</span>
+                        <span class="val">@Model.ContactName</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Payment Method</span>
+                        <span class="val">@Model.PaymentMethod</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Total Paid</span>
+                        <span class="val text-success">RM @Model.TotalAmount.ToString("F2")</span>
+                    </div>
+                </div>
+
+                <!-- 乘客与座位表 (Passenger Roster) -->
+                <h5 class="fw-bold mb-3" style="color: #06143b;">Passenger Manifest & Seat Assignment</h5>
+                <table class="passenger-table">
+                    <thead>
+                        <tr>
+                            <th>Passenger Name</th>
+                            <th>IC / Passport</th>
+                            <th>Type</th>
+                            <th>Assigned Seat</th>
+                            <th>Baggage Allowance</th>
+                            <th>Insurance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model.Passengers)
+                        {
+                            <tr>
+                                <td class="fw-bold">@p.FullName</td>
+                                <td>@p.IdNumber</td>
+                                <td><span class="badge bg-light text-dark border">@p.PassengerType</span></td>
+                                <td><span class="badge bg-primary fs-6 px-3">Seat @p.SeatNumber</span></td>
+                                <td>@p.BaggageOption</td>
+                                <td>@(p.HasTravelInsurance ? "✅ Protected" : "None")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+            </div>
+
+            <!-- 底部二维码与验票区 -->
+            <div class="ticket-footer">
+                <div>
+                    <span class="label">Boarding Pass Instructions</span>
+                    <p class="text-muted small mb-0 mt-1" style="max-width: 480px;">
+                        Please present this digital e-ticket or a printed copy upon boarding. 
+                        Passengers are advised to arrive at the terminal <strong>15 minutes</strong> prior to departure time.
+                    </p>
+                </div>
+                <!-- 动态自动生成的数字防伪检票二维码 -->
+                <div class="qr-box">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=@Model.BookingReference" alt="Check-in QR Code" />
+                    <div class="small fw-bold text-muted mt-1">Scan to Board</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 底部操作按钮 (打印 / 返回) -->
+        <div class="text-center mt-4 no-print d-flex justify-content-center gap-3">
+    <button onclick="window.print()" class="btn btn-outline-primary btn-lg px-4 fw-bold">
+        <i class="bi bi-printer"></i> Print E-Ticket
+    </button>
+    <a asp-action="MyBookings" class="btn btn-secondary btn-lg px-4 fw-bold">
+        <i class="bi bi-ticket-detailed"></i> View All My Tickets
+    </a>
+    <a asp-action="Index" class="btn btn-primary btn-lg px-4 fw-bold">
+        <i class="bi bi-compass"></i> Book Another Trip
+    </a>
+</div>
+
+    </div>
+</div>

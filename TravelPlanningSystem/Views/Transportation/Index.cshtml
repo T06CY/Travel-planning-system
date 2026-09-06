@@ -9,34 +9,26 @@
       asp-append-version="true" />
 
 <section class="transportation-hero">
-
     <div class="container-fluid px-5">
-
         <div class="hero-copy">
             <span class="eyebrow">
                 <i class="bi bi-bus-front"></i>
                 Easy & Affordable
             </span>
-
             <h1>
                 Book Your
                 <span>Journey</span>
             </h1>
-
             <p>
                 Find and book buses, coaches, and transportation options
                 that fit your budget and schedule.
             </p>
         </div>
-
     </div>
-
 </section>
 
 <section class="search-wrapper">
-
     <div class="container-fluid px-5">
-
         <form id="transportationSearchForm"
               class="search-box"
               method="get"
@@ -90,22 +82,16 @@
             <button class="search-btn" type="submit">
                 <i class="bi bi-search"></i>
             </button>
-
         </form>
-
     </div>
-
 </section>
 
 <section class="results-section">
-
     <div class="container-fluid px-5">
-
         <div class="results-container">
 
             <!-- Sidebar Filters -->
             <aside class="filter-sidebar">
-
                 <div class="filter-header">
                     <h3>Filters</h3>
                     @if (Model.HasFiltersApplied)
@@ -127,14 +113,16 @@
                     <input type="hidden" asp-for="DepartureDate" />
                     <input type="hidden" asp-for="Page" value="1" />
 
-                    <!-- Price Range -->
+                    <!-- Price Range (带 min="0" 与后端错误红字提示) -->
                     <div class="filter-group">
-                        <h4>Price Range</h4>
+                        <h4>Price Range (RM)</h4>
                         <div class="price-inputs">
-                            <input type="number" asp-for="MinPrice" placeholder="Min" class="form-control" />
+                            <input type="number" asp-for="MinPrice" min="0" placeholder="Min" class="form-control" />
                             <span>-</span>
-                            <input type="number" asp-for="MaxPrice" placeholder="Max" class="form-control" />
+                            <input type="number" asp-for="MaxPrice" min="0" placeholder="Max" class="form-control" />
                         </div>
+                        <span asp-validation-for="MinPrice" class="text-danger small d-block mt-1"></span>
+                        <span asp-validation-for="MaxPrice" class="text-danger small d-block mt-1"></span>
                     </div>
 
                     <!-- Vehicle Type -->
@@ -183,14 +171,11 @@
                     </div>
 
                     <button type="submit" class="btn btn-filter">Apply Filters</button>
-
                 </form>
-
             </aside>
 
             <!-- Results -->
             <main class="results-main">
-
                 @if (Model.Trips.Any())
                 {
                     <div class="results-header">
@@ -205,7 +190,6 @@
                             var discountedPrice = trip.BaseFare * (1 - trip.DiscountPercentage / 100);
 
                             <div class="trip-card">
-
                                 <!-- Header -->
                                 <div class="trip-header">
                                     <div class="route-info">
@@ -220,7 +204,6 @@
 
                                 <!-- Body -->
                                 <div class="trip-body">
-
                                     <!-- Timing -->
                                     <div class="timing-section">
                                         <div class="time-box">
@@ -259,12 +242,10 @@
                                             }
                                         </div>
                                     </div>
-
                                 </div>
 
                                 <!-- Footer -->
                                 <div class="trip-footer">
-
                                     <!-- Rating -->
                                     <div class="rating-section">
                                         @if (trip.Reviews.Any())
@@ -301,14 +282,12 @@
                                             <i class="bi bi-arrow-right"></i>
                                         </a>
                                     </div>
-
                                 </div>
-
                             </div>
                         }
                     </div>
 
-                    <!-- Pagination -->
+                    <!-- Pagination (保留所有已有筛选条件) -->
                     @if (Model.TotalPages > 1)
                     {
                         <nav class="pagination-nav">
@@ -320,6 +299,11 @@
                                            asp-route-origin="@Model.Origin"
                                            asp-route-destination="@Model.Destination"
                                            asp-route-departureDate="@Model.DepartureDate?.ToString("yyyy-MM-dd")"
+                                           asp-route-minPrice="@Model.MinPrice"
+                                           asp-route-maxPrice="@Model.MaxPrice"
+                                           asp-route-vehicleType="@Model.VehicleType"
+                                           asp-route-onlyAvailableSeats="@Model.OnlyAvailableSeats"
+                                           asp-route-sortBy="@Model.SortBy"
                                            asp-route-page="@(Model.Page - 1)"
                                            class="page-link prev">
                                             <i class="bi bi-chevron-left"></i> Previous
@@ -340,6 +324,11 @@
                                                asp-route-origin="@Model.Origin"
                                                asp-route-destination="@Model.Destination"
                                                asp-route-departureDate="@Model.DepartureDate?.ToString("yyyy-MM-dd")"
+                                               asp-route-minPrice="@Model.MinPrice"
+                                               asp-route-maxPrice="@Model.MaxPrice"
+                                               asp-route-vehicleType="@Model.VehicleType"
+                                               asp-route-onlyAvailableSeats="@Model.OnlyAvailableSeats"
+                                               asp-route-sortBy="@Model.SortBy"
                                                asp-route-page="@i"
                                                class="page-link">@i</a>
                                         </li>
@@ -357,6 +346,11 @@
                                            asp-route-origin="@Model.Origin"
                                            asp-route-destination="@Model.Destination"
                                            asp-route-departureDate="@Model.DepartureDate?.ToString("yyyy-MM-dd")"
+                                           asp-route-minPrice="@Model.MinPrice"
+                                           asp-route-maxPrice="@Model.MaxPrice"
+                                           asp-route-vehicleType="@Model.VehicleType"
+                                           asp-route-onlyAvailableSeats="@Model.OnlyAvailableSeats"
+                                           asp-route-sortBy="@Model.SortBy"
                                            asp-route-page="@(Model.Page + 1)"
                                            class="page-link next">
                                             Next <i class="bi bi-chevron-right"></i>
@@ -380,11 +374,27 @@
                         </a>
                     </div>
                 }
-
             </main>
-
         </div>
-
     </div>
-
 </section>
+
+<!-- 客户端即时提示脚本 -->
+<script>
+    document.getElementById('advancedFilterForm')?.addEventListener('submit', function (e) {
+        const minVal = parseFloat(document.querySelector('input[name="MinPrice"]')?.value);
+        const maxVal = parseFloat(document.querySelector('input[name="MaxPrice"]')?.value);
+
+        if (!isNaN(minVal) && minVal < 0) {
+            alert("Minimum price cannot be less than 0.");
+            e.preventDefault();
+            return;
+        }
+
+        if (!isNaN(minVal) && !isNaN(maxVal) && maxVal < minVal) {
+            alert("Maximum price cannot be less than minimum price.");
+            e.preventDefault();
+            return;
+        }
+    });
+</script>

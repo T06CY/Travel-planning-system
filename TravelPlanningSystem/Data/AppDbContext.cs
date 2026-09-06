@@ -30,6 +30,8 @@ public class AppDbContext : DbContext
     public DbSet<Trip> Trips { get; set; }
     public DbSet<Seat> Seats { get; set; }
     public DbSet<TransportationReview> TransportationReviews { get; set; }
+    public DbSet<TransportationBooking> TransportationBookings { get; set; }
+    public DbSet<TransportationPassenger> TransportationPassengers { get; set; }
 
     // User and staff tables
     public DbSet<ApplicationUser> Users { get; set; }

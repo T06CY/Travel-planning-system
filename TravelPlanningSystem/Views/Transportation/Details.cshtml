@@ -273,10 +273,12 @@
 
                     @if (Model.AvailableSeats > 0)
                     {
-                        <button class="btn btn-book-now" disabled>
-                            Book Now
-                        </button>
-                        <p class="note">Booking feature coming soon in Module 2</p>
+                    <a asp-controller="Transportation" 
+                        asp-action="Book" 
+                        asp-route-id="@Model.TripId" 
+                        class="btn btn-book-now text-center text-decoration-none d-block">
+                        Select Seats & Book Now <i class="bi bi-arrow-right"></i>
+                    </a>
                     }
                     else
                     {
