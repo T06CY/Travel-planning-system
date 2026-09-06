@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TravelPlanningSystem.Models;
+using TravelPlanningSystem.Models.Transportation;
+using TransportationModels = TravelPlanningSystem.Models.Transportation;
 using System;
 
 namespace TravelPlanningSystem.Data;
@@ -22,14 +24,6 @@ public class AppDbContext : DbContext
     public DbSet<HotelReservation> HotelReservations { get; set; }
     public DbSet<HotelReview> HotelReviews { get; set; }
 
-    // Airline reservation and management tables
-    public DbSet<Airline> Airlines { get; set; }
-    public DbSet<Airport> Airports { get; set; }
-    public DbSet<Flight> Flights { get; set; }
-    public DbSet<FlightBooking> FlightBookings { get; set; }
-    public DbSet<FlightBookingSegment> FlightBookingSegments { get; set; }
-    public DbSet<FlightPassenger> FlightPassengers { get; set; }
-
     // User and staff tables
     public DbSet<ApplicationUser> Users { get; set; }
     public DbSet<StaffUser> StaffUsers { get; set; }
@@ -39,16 +33,49 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        // Activity relationships
         modelBuilder.Entity<ActivityReview>()
         .HasOne(r => r.ActivityBooking)
         .WithOne(b => b.Review)
         .HasForeignKey<ActivityReview>(r => r.ActivityBookingId)
         .OnDelete(DeleteBehavior.NoAction);
 
+        // Hotel relationships
         modelBuilder.Entity<HotelReview>()
             .HasOne(r => r.HotelReservation)
             .WithOne(b => b.Review)
             .HasForeignKey<HotelReview>(r => r.HotelReservationId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        // Transportation relationships
+        modelBuilder.Entity<Trip>()
+            .HasOne(t => t.Route)
+            .WithMany(r => r.Trips)
+            .HasForeignKey(t => t.RouteId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Trip>()
+            .HasOne(t => t.Vehicle)
+            .WithMany(v => v.Trips)
+            .HasForeignKey(t => t.VehicleId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Seat>()
+            .HasOne(s => s.Trip)
+            .WithMany(t => t.Seats)
+            .HasForeignKey(s => s.TripId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<TransportationReview>()
+            .HasOne(r => r.Trip)
+            .WithMany(t => t.Reviews)
+            .HasForeignKey(r => r.TripId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<TransportationReview>()
+            .HasOne(r => r.User)
+            .WithMany()
+            .HasForeignKey(r => r.UserId)
             .OnDelete(DeleteBehavior.NoAction);
 
         // Set unique constraint on Email addresses

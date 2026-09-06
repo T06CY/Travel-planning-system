@@ -1,0 +1,306 @@
+@using TravelPlanningSystem.Models.Transportation
+@model Trip
+
+@{
+    ViewData["Title"] = "Trip Details";
+    var avgRating = Model.Reviews.Any() ? Math.Round(Model.Reviews.Average(r => r.Rating), 1) : 0;
+    var discountedPrice = Model.BaseFare * (1 - Model.DiscountPercentage / 100);
+}
+
+<link rel="stylesheet"
+      href="~/css/transportation.css"
+      asp-append-version="true" />
+
+<section class="trip-details-section">
+
+    <div class="container-fluid px-5">
+
+        <!-- Back Button -->
+        <div class="back-navigation">
+            <a asp-controller="Transportation" asp-action="Index" class="back-link">
+                <i class="bi bi-chevron-left"></i> Back to results
+            </a>
+        </div>
+
+        <div class="trip-details-container">
+
+            <!-- Main Content -->
+            <main class="details-main">
+
+                <!-- Trip Header -->
+                <div class="details-header">
+                    <div class="route-section">
+                        <h1>@Model.Route?.Origin → @Model.Route?.Destination</h1>
+                        <p class="route-date">@Model.DepartureTime.ToString("dddd, MMMM d, yyyy")</p>
+                    </div>
+
+                    <div class="status-badge-large @Model.Status.ToLower()">
+                        @Model.Status
+                    </div>
+                </div>
+
+                <!-- Trip Timing & Route Info -->
+                <div class="trip-timing-card">
+
+                    <div class="timing-row">
+                        <div class="timing-column">
+                            <div class="time-display">
+                                <span class="time">@Model.DepartureTime.ToString("HH:mm")</span>
+                                <span class="label">Departure</span>
+                                <span class="location">@Model.Route?.Origin</span>
+                            </div>
+                        </div>
+
+                        <div class="timing-column timing-middle">
+                            <div class="duration-display">
+                                <div class="timeline"></div>
+                                <span class="duration">
+                                    @{
+                                        var duration = Model.ArrivalTime - Model.DepartureTime;
+                                        var hours = (int)duration.TotalHours;
+                                        var minutes = duration.Minutes;
+                                    }
+                                    @if (hours > 0)
+                                    {
+                                        @:@hours h @minutes min
+                                    }
+                                    else
+                                    {
+                                        @:@minutes min
+                                    }
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="timing-column">
+                            <div class="time-display">
+                                <span class="time">@Model.ArrivalTime.ToString("HH:mm")</span>
+                                <span class="label">Arrival</span>
+                                <span class="location">@Model.Route?.Destination</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Route?.Stops))
+                    {
+                        <div class="stops-info">
+                            <strong>Stops:</strong> @Model.Route.Stops
+                        </div>
+                    }
+
+                </div>
+
+                <!-- Vehicle Information -->
+                <div class="vehicle-details-card">
+
+                    <h2>Vehicle Information</h2>
+
+                    <div class="vehicle-grid">
+                        <div class="vehicle-item">
+                            <span class="label">Vehicle Type</span>
+                            <span class="value">@Model.Vehicle?.VehicleType</span>
+                        </div>
+                        <div class="vehicle-item">
+                            <span class="label">Model</span>
+                            <span class="value">@Model.Vehicle?.VehicleModel</span>
+                        </div>
+                        <div class="vehicle-item">
+                            <span class="label">Seating Capacity</span>
+                            <span class="value">@Model.Vehicle?.SeatingCapacity seats</span>
+                        </div>
+                        <div class="vehicle-item">
+                            <span class="label">Year</span>
+                            <span class="value">@Model.Vehicle?.ManufactureYear</span>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Vehicle?.Amenities))
+                    {
+                        <div class="amenities-section">
+                            <h3>Amenities</h3>
+                            <div class="amenities-list">
+                                @foreach (var amenity in Model.Vehicle.Amenities.Split(','))
+                                {
+                                    <span class="amenity-tag">
+                                        <i class="bi bi-check-circle"></i> @amenity.Trim()
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                </div>
+
+                <!-- Availability & Pricing -->
+                <div class="availability-pricing-card">
+
+                    <h2>Availability & Pricing</h2>
+
+                    <div class="availability-grid">
+                        <div class="availability-item">
+                            <span class="label">Total Seats</span>
+                            <span class="value">@Model.TotalSeats</span>
+                        </div>
+                        <div class="availability-item">
+                            <span class="label">Available Seats</span>
+                            <span class="value @(Model.AvailableSeats > 0 ? "available" : "unavailable")">
+                                @Model.AvailableSeats
+                            </span>
+                        </div>
+                        <div class="availability-item">
+                            <span class="label">Booked Seats</span>
+                            <span class="value">@(Model.TotalSeats - Model.AvailableSeats)</span>
+                        </div>
+                        <div class="availability-item">
+                            <span class="label">Occupancy Rate</span>
+                            <span class="value">@Math.Round((decimal)(Model.TotalSeats - Model.AvailableSeats) / Model.TotalSeats * 100, 0)%</span>
+                        </div>
+                    </div>
+
+                    <div class="progress-bar-section">
+                        <span class="label">Seat Availability</span>
+                        <div class="progress">
+                            <div class="progress-fill" style="width: @(Model.AvailableSeats > 0 ? (decimal)Model.AvailableSeats / Model.TotalSeats * 100 : 0)%"></div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Ratings & Reviews -->
+                @if (Model.Reviews.Any())
+                {
+                    <div class="reviews-card">
+
+                        <div class="reviews-header">
+                            <h2>Passenger Reviews</h2>
+                            <div class="average-rating">
+                                <i class="bi bi-star-fill"></i>
+                                <span class="rating">@avgRating</span>
+                                <span class="count">(@Model.Reviews.Count() reviews)</span>
+                            </div>
+                        </div>
+
+                        <div class="reviews-list">
+                            @foreach (var review in Model.Reviews.OrderByDescending(r => r.CreatedAt).Take(5))
+                            {
+                                <div class="review-item">
+                                    <div class="review-header">
+                                        <div class="reviewer-info">
+                                            <span class="reviewer-name">@review.User?.FirstName @review.User?.LastName</span>
+                                            <span class="review-date">@review.CreatedAt.ToString("MMM d, yyyy")</span>
+                                        </div>
+                                        <div class="review-rating">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                @if (i <= review.Rating)
+                                                {
+                                                    <i class="bi bi-star-fill"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="bi bi-star"></i>
+                                                }
+                                            }
+                                        </div>
+                                    </div>
+                                    @if (!string.IsNullOrWhiteSpace(review.Title))
+                                    {
+                                        <h4 class="review-title">@review.Title</h4>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(review.Comment))
+                                    {
+                                        <p class="review-comment">@review.Comment</p>
+                                    }
+                                </div>
+                            }
+                        </div>
+
+                    </div>
+                }
+
+            </main>
+
+            <!-- Sidebar - Booking Info -->
+            <aside class="details-sidebar">
+
+                <div class="booking-card">
+
+                    <div class="booking-header">
+                        <h2>Trip Summary</h2>
+                    </div>
+
+                    <div class="booking-details">
+
+                        <div class="detail-row">
+                            <span class="label">Route</span>
+                            <span class="value">@Model.Route?.Origin → @Model.Route?.Destination</span>
+                        </div>
+
+                        <div class="detail-row">
+                            <span class="label">Date</span>
+                            <span class="value">@Model.DepartureTime.ToString("ddd, MMM d")</span>
+                        </div>
+
+                        <div class="detail-row">
+                            <span class="label">Departure</span>
+                            <span class="value">@Model.DepartureTime.ToString("HH:mm")</span>
+                        </div>
+
+                        <div class="detail-row">
+                            <span class="label">Vehicle</span>
+                            <span class="value">@Model.Vehicle?.VehicleModel</span>
+                        </div>
+
+                        <div class="detail-row border-top">
+                            <span class="label">Base Fare</span>
+                            <span class="value">RM @Model.BaseFare.ToString("F2")</span>
+                        </div>
+
+                        @if (Model.DiscountPercentage > 0)
+                        {
+                            <div class="detail-row discount">
+                                <span class="label">Discount (@Model.DiscountPercentage%)</span>
+                                <span class="value discount-value">-RM @((Model.BaseFare * Model.DiscountPercentage / 100)).ToString("F2")</span>
+                            </div>
+                        }
+
+                    </div>
+
+                    <div class="total-price">
+                        <span class="label">Total Price</span>
+                        <span class="price">RM @discountedPrice.ToString("F2")</span>
+                    </div>
+
+                    @if (Model.AvailableSeats > 0)
+                    {
+                    <a asp-controller="Transportation" 
+                        asp-action="Book" 
+                        asp-route-id="@Model.TripId" 
+                        class="btn btn-book-now text-center text-decoration-none d-block">
+                        Select Seats & Book Now <i class="bi bi-arrow-right"></i>
+                    </a>
+                    }
+                    else
+                    {
+                        <button class="btn btn-unavailable" disabled>
+                            No Seats Available
+                        </button>
+                    }
+
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(Model.Notes))
+                {
+                    <div class="notes-card">
+                        <h3>Important Notes</h3>
+                        <p>@Model.Notes</p>
+                    </div>
+                }
+
+            </aside>
+
+        </div>
+
+    </div>
+
+</section>

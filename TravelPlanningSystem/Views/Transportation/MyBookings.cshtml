@@ -1,0 +1,136 @@
+﻿@model IEnumerable<TravelPlanningSystem.Models.Transportation.TransportationBooking>
+
+@{
+    ViewData["Title"] = "My Tickets & Bookings - TravelMate";
+}
+
+<link rel="stylesheet" href="~/css/transportation.css" asp-append-version="true" />
+
+<style>
+    .my-bookings-wrapper { background: #f3f5fb; padding: 40px 0; min-height: 85vh; }
+    .booking-item-card { background: #fff; border-radius: 16px; padding: 25px; box-shadow: 0 8px 25px rgba(6,20,59,0.06); margin-bottom: 20px; border: 1px solid #e2e8f0; transition: all 0.2s ease; }
+    .booking-item-card:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(6,20,59,0.1); }
+    .booking-meta { font-size: 0.85rem; color: #6d7895; display: flex; gap: 15px; margin-bottom: 12px; }
+    .booking-meta span { display: flex; align-items: center; gap: 5px; }
+    .status-badge.confirmed { background: #dcfce7; color: #15803d; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; }
+    .status-badge.cancelled { background: #fee2e2; color: #b91c1c; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; }
+</style>
+
+<div class="my-bookings-wrapper">
+    <div class="container">
+        
+        <!-- 页面标题 -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold" style="color: #06143b;">My Transportation Tickets</h2>
+                <p class="text-muted mb-0">View, print and manage all your bus and coach bookings.</p>
+            </div>
+            <a asp-action="Index" class="btn btn-primary fw-bold">
+                <i class="bi bi-plus-lg"></i> Book New Journey
+            </a>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show">
+                <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show">
+                <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (Model != null && Model.Any())
+        {
+            <div class="row">
+                @foreach (var b in Model)
+                {
+                    var isCancelled = b.BookingStatus == "Cancelled";
+                    <div class="col-12">
+                        <div class="booking-item-card">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                                <div>
+                                    <span class="text-muted small">Reference:</span>
+                                    <strong class="text-primary font-monospace fs-6">@b.BookingReference</strong>
+                                    <span class="status-badge @(isCancelled ? "cancelled" : "confirmed") ms-2">
+                                        @b.BookingStatus
+                                    </span>
+                                </div>
+                                <div class="text-end">
+                                    <span class="text-muted small">Total Paid:</span>
+                                    <span class="fs-5 fw-bold text-dark ms-1">RM @b.TotalAmount.ToString("F2")</span>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 align-items-center">
+                                <!-- 行程信息 -->
+                                <div class="col-md-5">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div>
+                                            <div class="fw-bold fs-5" style="color: #06143b;">@b.Trip?.Route?.Origin</div>
+                                            <div class="text-muted small">@b.Trip?.DepartureTime.ToString("HH:mm, dd MMM yyyy")</div>
+                                        </div>
+                                        <i class="bi bi-arrow-right fs-4 text-primary"></i>
+                                        <div>
+                                            <div class="fw-bold fs-5" style="color: #06143b;">@b.Trip?.Route?.Destination</div>
+                                            <div class="text-muted small">@b.Trip?.ArrivalTime.ToString("HH:mm")</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 车辆与座位 -->
+                                <div class="col-md-4">
+                                    <div class="small text-muted mb-1">
+                                        <i class="bi bi-bus-front"></i> @b.Trip?.Vehicle?.VehicleModel (@b.Trip?.Vehicle?.VehicleType)
+                                    </div>
+                                    <div class="small">
+                                        <strong>Seats:</strong> 
+                                        @foreach (var p in b.Passengers)
+                                        {
+                                            <span class="badge bg-primary me-1">@p.SeatNumber (@p.FullName)</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <!-- 操作按钮 -->
+                                <div class="col-md-3 text-md-end d-flex justify-content-md-end gap-2">
+                                    <a asp-action="Confirmation" asp-route-id="@b.BookingId" class="btn btn-outline-primary btn-sm fw-bold">
+                                        <i class="bi bi-qr-code"></i> View E-Ticket
+                                    </a>
+
+                                    @if (!isCancelled)
+                                    {
+                                        <form asp-action="CancelBooking" asp-route-id="@b.BookingId" method="post" onsubmit="return confirm('Are you sure you want to cancel this ticket? Seats will be released.');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                Cancel
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5 bg-white rounded-4 shadow-sm border p-5">
+                <div class="text-muted display-4 mb-3"><i class="bi bi-ticket-perforated"></i></div>
+                <h4 class="fw-bold" style="color: #06143b;">No Tickets Found</h4>
+                <p class="text-muted">You haven't booked any transportation tickets yet.</p>
+                <a asp-action="Index" class="btn btn-primary fw-bold mt-2">
+                    Explore Routes & Book
+                </a>
+            </div>
+        }
+
+    </div>
+</div>
