@@ -10,12 +10,23 @@ namespace TravelPlanningSystem.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Safely drop RoomType only if it exists to avoid errors when DB is out of sync
+            // Safely drop RoomType column with its constraint if it exists
             migrationBuilder.Sql(@"IF EXISTS (
     SELECT * FROM sys.columns
     WHERE [object_id] = OBJECT_ID(N'[dbo].[HotelRooms]') AND [name] = N'RoomType'
 )
 BEGIN
+    -- First, drop the default constraint if it exists
+    IF EXISTS (
+        SELECT * FROM sys.default_constraints
+        WHERE parent_object_id = OBJECT_ID(N'[dbo].[HotelRooms]')
+        AND name = N'DF_HotelRooms_RoomType'
+    )
+    BEGIN
+        ALTER TABLE [HotelRooms] DROP CONSTRAINT [DF_HotelRooms_RoomType]
+    END
+
+    -- Then drop the column
     ALTER TABLE [HotelRooms] DROP COLUMN [RoomType]
 END");
         }
