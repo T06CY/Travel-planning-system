@@ -10,7 +10,6 @@ public class ActivityBookingsController(AppDbContext context) : Controller
 {
     private int CurrentUserId => 1;
 
-
     [HttpGet]
     public async Task<IActionResult> Create(int sessionId)
     {
@@ -38,7 +37,6 @@ public class ActivityBookingsController(AppDbContext context) : Controller
             AvailableSlots = session.AvailableSlots
         });
     }
-
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -200,6 +198,7 @@ public class ActivityBookingsController(AppDbContext context) : Controller
             : View(booking);
     }
 
+
     public async Task<IActionResult> MyBookings(
         string? status)
     {
@@ -215,8 +214,7 @@ public class ActivityBookingsController(AppDbContext context) : Controller
                 .ThenInclude(s =>
                     s!.Activity)
 
-                // IMPORTANT:
-                // Load the activity photos
+                // Load activity photos
                 .ThenInclude(a =>
                     a!.Photos)
 
@@ -278,6 +276,8 @@ public class ActivityBookingsController(AppDbContext context) : Controller
                     booking.ActivitySession!.SessionDate >
                     DateTime.Today,
 
+                // User can only review a completed booking
+                // and only if no review exists yet.
                 CanReview =
                     booking.BookingStatus ==
                     ActivityBookingStatus.Completed
@@ -288,6 +288,7 @@ public class ActivityBookingsController(AppDbContext context) : Controller
                     booking.Review
             });
     }
+
 
 
     [HttpGet]
@@ -310,7 +311,6 @@ public class ActivityBookingsController(AppDbContext context) : Controller
 
         return View(booking);
     }
-
 
     [HttpPost]
     [ActionName("Cancel")]
@@ -366,6 +366,7 @@ public class ActivityBookingsController(AppDbContext context) : Controller
             DateTime.Now;
 
 
+        // Return cancelled participant slots
         booking.ActivitySession.AvailableSlots =
             Math.Min(
                 booking.ActivitySession.Capacity,
@@ -407,11 +408,27 @@ public class ActivityBookingsController(AppDbContext context) : Controller
                 bookingId);
 
 
+        // Only completed bookings can be reviewed
         if (booking is null ||
             booking.BookingStatus !=
             ActivityBookingStatus.Completed)
         {
             return BadRequest();
+        }
+
+
+        // One booking can only have one review.
+        if (booking.Review is not null)
+        {
+            TempData["ErrorMessage"] =
+                "You have already submitted a review for this booking.";
+
+            return RedirectToAction(
+                nameof(Details),
+                new
+                {
+                    id = bookingId
+                });
         }
 
 
@@ -421,22 +438,17 @@ public class ActivityBookingsController(AppDbContext context) : Controller
                 ActivityBookingId =
                     bookingId,
 
-                ActivityReviewId =
-                    booking.Review?.ActivityReviewId
-                    ?? 0,
-
                 ActivityName =
                     booking.ActivitySession!
                         .Activity!
                         .ActivityName,
 
+                // Start with no selected rating
                 Rating =
-                    booking.Review?.Rating
-                    ?? 5,
+                    0,
 
                 Comment =
-                    booking.Review?.Comment
-                    ?? ""
+                    ""
             });
     }
 
@@ -466,11 +478,29 @@ public class ActivityBookingsController(AppDbContext context) : Controller
                     CurrentUserId);
 
 
+        // Booking must exist and must be completed
         if (booking?.ActivitySession?.Activity is null ||
             booking.BookingStatus !=
             ActivityBookingStatus.Completed)
         {
             return BadRequest();
+        }
+
+
+        // Prevent the same booking from submitting
+        // another review.
+        if (booking.Review is not null)
+        {
+            TempData["ErrorMessage"] =
+                "You have already submitted a review for this booking.";
+
+            return RedirectToAction(
+                nameof(Details),
+                new
+                {
+                    id =
+                        booking.ActivityBookingId
+                });
         }
 
 
@@ -486,41 +516,36 @@ public class ActivityBookingsController(AppDbContext context) : Controller
         }
 
 
-        if (booking.Review is null)
-        {
-            context.ActivityReviews.Add(
-                new ActivityReview
-                {
-                    ActivityId =
-                        booking.ActivitySession.ActivityId,
+        // Create the review only once
+        var review =
+            new ActivityReview
+            {
+                ActivityId =
+                    booking.ActivitySession.ActivityId,
 
-                    ActivityBookingId =
-                        booking.ActivityBookingId,
+                ActivityBookingId =
+                    booking.ActivityBookingId,
 
-                    UserId =
-                        CurrentUserId,
+                UserId =
+                    CurrentUserId,
 
-                    Rating =
-                        model.Rating,
+                Rating =
+                    model.Rating,
 
-                    Comment =
-                        model.Comment.Trim()
-                });
-        }
-        else
-        {
-            booking.Review.Rating =
-                model.Rating;
+                Comment =
+                    model.Comment.Trim()
+            };
 
-            booking.Review.Comment =
-                model.Comment.Trim();
 
-            booking.Review.UpdatedAt =
-                DateTime.Now;
-        }
+        context.ActivityReviews.Add(
+            review);
 
 
         await context.SaveChangesAsync();
+
+
+        TempData["SuccessMessage"] =
+            "Your review has been submitted successfully.";
 
 
         return RedirectToAction(

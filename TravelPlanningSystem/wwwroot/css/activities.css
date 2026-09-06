@@ -1146,26 +1146,6 @@ body {
     font-weight: 850;
 }
 
-.rating-picker {
-    display: flex;
-    flex-direction: row-reverse;
-    justify-content: flex-end;
-    margin: 18px 0;
-}
-
-    .rating-picker input {
-        display: none;
-    }
-
-    .rating-picker label {
-        font-size: 2.3rem;
-        color: #d7dae1;
-        cursor: pointer;
-    }
-
-        .rating-picker input:checked ~ label, .rating-picker label:hover, .rating-picker label:hover ~ label {
-            color: #ffb11b;
-        }
 
 .ticket-page {
     background: #eef1f6;

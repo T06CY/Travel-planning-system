@@ -1,72 +1,335 @@
 ﻿@model TravelPlanningSystem.ViewModels.ActivityReviewViewModel
 
 @{
-    ViewData["Title"] = "Activity Review";
+    ViewData["Title"] = "Write Review";
 }
 
-<link rel="stylesheet" href="~/css/activities.css" />
+<style>
 
-<div class="form-page">
-    <div class="container tiny-container">
+    .review-page {
+        min-height: 100vh;
+        background: #f7f8fb;
+        padding: 40px 20px;
+    }
 
-        <form asp-action="Review"
-              method="post"
-              class="form-card review-form">
+    .review-card {
+        max-width: 1100px;
+        margin: 0 auto;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 24px;
+        padding: 40px 45px;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.05);
+    }
 
-            <input asp-for="ActivityBookingId" type="hidden" />
-            <input asp-for="ActivityReviewId" type="hidden" />
 
-            <span class="eyebrow">Share Your Experience</span>
+    .review-eyebrow {
+        color: #ff5a5f;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+    }
 
-            <h1>@Model.ActivityName</h1>
+    .review-title {
+        font-size: 42px;
+        font-weight: 800;
+        color: #253047;
+        margin: 0 0 5px 0;
+    }
 
-            <p>
-                Your review helps other travellers make better choices.
-            </p>
+    .review-subtitle {
+        color: #4b5563;
+        font-size: 16px;
+        margin: 0 0 28px 0;
+    }
 
-            <div class="rating-picker">
 
-                @for (var i = 5; i >= 1; i--)
-                {
-                    <input asp-for="Rating"
-                           type="radio"
-                           value="@i"
-                           id="star@i" />
+    .rating-section {
+        margin: 20px 0 30px 0;
+    }
 
-                    <label for="star@i">★</label>
-                }
+    .rating-picker {
+        display: inline-flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+        gap: 4px;
+    }
+
+        .rating-picker input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 1px;
+            height: 1px;
+        }
+
+
+        .rating-picker label {
+            color: #d9dde5;
+            font-size: 38px;
+            line-height: 1;
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.15s ease, transform 0.15s ease;
+        }
+
+        .rating-picker input[type="radio"]:checked ~ label {
+            color: #ffab18;
+        }
+
+
+        .rating-picker label:hover,
+        .rating-picker label:hover ~ label {
+            color: #ffab18;
+        }
+
+        .rating-picker label:hover {
+            transform: scale(1.08);
+        }
+
+    .review-label {
+        display: block;
+        font-weight: 700;
+        color: #253047;
+        margin-bottom: 8px;
+    }
+
+    .review-comment {
+        display: block;
+        width: 100%;
+        min-height: 180px;
+        resize: vertical;
+        border: 1px solid #dfe3ea;
+        border-radius: 12px;
+        padding: 14px;
+        font-size: 16px;
+        color: #253047;
+        background: #ffffff;
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .review-comment:focus {
+            border-color: #ff5a5f;
+            box-shadow: 0 0 0 3px rgba(255, 90, 95, 0.1);
+        }
+
+
+
+    .text-danger {
+        display: block;
+        color: #dc3545;
+        font-size: 14px;
+        margin-top: 6px;
+    }
+
+
+
+    .save-review-btn {
+        width: 100%;
+        margin-top: 25px;
+        padding: 15px;
+        border: none;
+        border-radius: 12px;
+        background: #ff5a5f;
+        color: #ffffff;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+        .save-review-btn:hover {
+            opacity: 0.92;
+        }
+
+        .save-review-btn:active {
+            transform: scale(0.995);
+        }
+
+
+
+
+    @@media (max-width: 768px) {
+
+        .review-page {
+            padding: 25px 15px;
+        }
+
+        .review-card {
+            padding: 28px 22px;
+            border-radius: 18px;
+        }
+
+        .review-title {
+            font-size: 30px;
+        }
+
+        .review-subtitle {
+            font-size: 15px;
+        }
+
+        .rating-picker label {
+            font-size: 34px;
+        }
+
+        .review-comment {
+            min-height: 160px;
+        }
+    }
+</style>
+
+
+<div class="review-page">
+
+    <div class="review-card">
+
+
+        <div class="review-eyebrow">
+            Share Your Experience
+        </div>
+
+        <h1 class="review-title">
+            @Model.ActivityName
+        </h1>
+
+        <p class="review-subtitle">
+            Your review helps other travellers make better choices.
+        </p>
+
+
+
+        <form asp-controller="ActivityBookings"
+              asp-action="Review"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+
+            <!-- Booking ID -->
+            <input asp-for="ActivityBookingId"
+                   type="hidden" />
+
+
+            <!-- Review ID -->
+            <input asp-for="ActivityReviewId"
+                   type="hidden" />
+
+
+
+            <div class="rating-section">
+
+                <div class="rating-picker">
+
+                    <!-- 5 STAR -->
+                    <input type="radio"
+                           name="Rating"
+                           id="rating5"
+                           value="5"
+                           checked="@(Model.Rating == 5)" />
+
+                    <label for="rating5"
+                           title="5 stars">
+                        ★
+                    </label>
+
+
+                    <!-- 4 STAR -->
+                    <input type="radio"
+                           name="Rating"
+                           id="rating4"
+                           value="4"
+                           checked="@(Model.Rating == 4)" />
+
+                    <label for="rating4"
+                           title="4 stars">
+                        ★
+                    </label>
+
+
+                    <!-- 3 STAR -->
+                    <input type="radio"
+                           name="Rating"
+                           id="rating3"
+                           value="3"
+                           checked="@(Model.Rating == 3)" />
+
+                    <label for="rating3"
+                           title="3 stars">
+                        ★
+                    </label>
+
+
+                    <!-- 2 STAR -->
+                    <input type="radio"
+                           name="Rating"
+                           id="rating2"
+                           value="2"
+                           checked="@(Model.Rating == 2)" />
+
+                    <label for="rating2"
+                           title="2 stars">
+                        ★
+                    </label>
+
+
+                    <!-- 1 STAR -->
+                    <input type="radio"
+                           name="Rating"
+                           id="rating1"
+                           value="1"
+                           checked="@(Model.Rating == 1)" />
+
+                    <label for="rating1"
+                           title="1 star">
+                        ★
+                    </label>
+
+                </div>
+
+                <span asp-validation-for="Rating"
+                      class="text-danger">
+                </span>
 
             </div>
 
-            <span asp-validation-for="Rating"
-                  class="text-danger">
-            </span>
 
-            <label asp-for="Comment"
-                   class="form-label">
-            </label>
 
-            <textarea asp-for="Comment"
-                      class="form-control"
-                      rows="7"
-                      placeholder="What did you enjoy? What should future travellers know?">
-            </textarea>
+            <div>
 
-            <span asp-validation-for="Comment"
-                  class="text-danger">
-            </span>
+                <label asp-for="Comment"
+                       class="review-label">
+                    Comment
+                </label>
+
+                <textarea asp-for="Comment"
+                          class="review-comment"
+                          placeholder="What did you enjoy? What should future travellers know?"></textarea>
+
+                <span asp-validation-for="Comment"
+                      class="text-danger">
+                </span>
+
+            </div>
+
 
             <button type="submit"
-                    class="btn btn-confirm-booking">
+                    class="save-review-btn">
+
                 Save Review
+
             </button>
 
         </form>
 
     </div>
+
 </div>
 
-@section Scripts
-{
+
+@section Scripts {
+
     <partial name="_ValidationScriptsPartial" />
+
 }
