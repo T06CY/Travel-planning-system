@@ -37,22 +37,65 @@
                     <input asp-for="Email" class="form-control" readonly />
                 </div>
 
+                @if (Model.IsStaff)
+                {
+                    <div class="mb-3">
+                        <label asp-for="RoleName" class="form-label"></label>
+                        <input asp-for="RoleName" class="form-control" readonly />
+                        <small class="text-muted">Your role can only be changed by an administrator.</small>
+                    </div>
+                }
+
+                @if (Model.IsStaff)
+                {
+                    <div class="mb-3">
+                        <label asp-for="Department" class="form-label"></label>
+                        <input asp-for="Department" class="form-control" />
+                        <span asp-validation-for="Department" class="text-danger"></span>
+                    </div>
+                }
+
+                else
+                {
+                    <div class="mb-3">
+                        <label asp-for="PhoneNumber" class="form-label"></label>
+                        <input asp-for="PhoneNumber" class="form-control" />
+                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="DateOfBirth" class="form-label"></label>
+                        <input asp-for="DateOfBirth" class="form-control" />
+                        <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Upload" class="form-label"></label>
+                        <input asp-for="Upload" class="form-control" type="file" />
+                        <span asp-validation-for="Upload" class="text-danger"></span>
+                    </div>
+                }
+
                 <div class="mb-3">
-                    <label asp-for="PhoneNumber" class="form-label"></label>
-                    <input asp-for="PhoneNumber" class="form-control" />
-                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                    <label asp-for="Password" class="form-label"></label>
+                    <div class="input-group">
+                        <input asp-for="Password" class="form-control" autocomplete="new-password" />
+                        <button type="button" class="btn btn-outline-secondary password-toggle" data-password-target="Password" aria-label="Show new password">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="Password" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="DateOfBirth" class="form-label"></label>
-                    <input asp-for="DateOfBirth" class="form-control" />
-                    <span asp-validation-for="DateOfBirth" class="text-danger"></span>
-                </div>
-
-                <div class="mb-3">
-                    <label asp-for="Upload" class="form-label"></label>
-                    <input asp-for="Upload" class="form-control" type="file" />
-                    <span asp-validation-for="Upload" class="text-danger"></span>
+                    <label asp-for="ConfirmPassword" class="form-label"></label>
+                    <div class="input-group">
+                        <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" />
+                        <button type="button" class="btn btn-outline-secondary password-toggle" data-password-target="ConfirmPassword" aria-label="Show password confirmation">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                 </div>
 
                 <div class="d-flex gap-2">
@@ -63,6 +106,19 @@
 
             @section Scripts {
                 <partial name="_ValidationScriptsPartial" />
+                <script>
+                    document.querySelectorAll('.password-toggle').forEach(function (button) {
+                        button.addEventListener('click', function () {
+                            var input = document.getElementById(button.dataset.passwordTarget);
+                            var icon = button.querySelector('i');
+                            var isPassword = input.type === 'password';
+
+                            input.type = isPassword ? 'text' : 'password';
+                            icon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+                            button.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+                        });
+                    });
+                </script>
             }
 
         </div>

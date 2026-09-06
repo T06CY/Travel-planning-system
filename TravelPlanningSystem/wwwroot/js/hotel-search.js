@@ -99,19 +99,38 @@ document.addEventListener('DOMContentLoaded', () => {
     const currencyInput = form.querySelector('input[name="Currency"]');
     const currencies = ['MYR', 'USD', 'SGD', 'EUR', 'GBP'];
     let currencyIndex = currencies.indexOf((currencyInput && currencyInput.value) || 'MYR');
+    let priceFilterTimer;
     if (currencyIndex < 0) currencyIndex = 0;
 
     if (priceRange && priceNumber) {
-        priceRange.addEventListener('input', function () { priceNumber.value = this.value; updatePriceSummary(); });
-        priceNumber.addEventListener('input', function () { const v = parseFloat(this.value || '0'); if (!isNaN(v)) priceRange.value = Math.round(v); updatePriceSummary(); });
+        const schedulePriceFilter = () => {
+            clearTimeout(priceFilterTimer);
+            priceFilterTimer = setTimeout(() => load(url()), 250);
+        };
+
+        priceRange.addEventListener('input', function () {
+            priceNumber.value = this.value;
+            updatePriceSummary();
+            schedulePriceFilter();
+        });
+
+        priceNumber.addEventListener('input', function () {
+            const value = this.value.trim();
+            const parsedValue = parseFloat(value);
+
+            if (value !== '' && !isNaN(parsedValue))
+                priceRange.value = Math.min(Number(priceRange.max), Math.max(Number(priceRange.min), parsedValue));
+
+            updatePriceSummary();
+            schedulePriceFilter();
+        });
+
         function updatePriceSummary() {
             const summary = document.querySelector('#priceSummary');
             const triggerValue = document.querySelector('.price-filter-trigger-value');
-            const value = (priceNumber.value && priceNumber.value.trim() !== '') ? priceNumber.value : '300';
+            const value = (priceNumber.value && priceNumber.value.trim() !== '') ? priceNumber.value : 'Any';
             if (summary) summary.textContent = value;
             if (triggerValue) triggerValue.textContent = value;
-            // Keep the slider synced with the numeric input
-            if (priceRange) priceRange.value = Math.round(parseFloat(value) || 0);
         }
         updatePriceSummary();
     }
@@ -122,6 +141,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currencyInput) currencyInput.value = currencies[currencyIndex];
             const currencySummary = document.querySelector('.price-filter-currency');
             if (currencySummary) currencySummary.textContent = currencies[currencyIndex];
+            clearTimeout(priceFilterTimer);
+            priceFilterTimer = setTimeout(() => load(url()), 250);
         });
     }
 

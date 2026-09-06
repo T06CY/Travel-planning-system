@@ -26,6 +26,23 @@ namespace TravelPlanningSystem.ViewModels.ProfileViewModel
         [Display(Name = "Profile picture URL")]
         public string? ProfilePictureUrl { get; set; }
 
+        public bool IsStaff { get; set; }
+
+        [Display(Name = "Department")]
+        public string? Department { get; set; }
+
+        [DataType(DataType.Password)]
+        [Display(Name = "New password")]
+        public string? Password { get; set; }
+
+        [DataType(DataType.Password)]
+        [Compare(nameof(Password), ErrorMessage = "The password confirmation does not match.")]
+        [Display(Name = "Confirm new password")]
+        public string? ConfirmPassword { get; set; }
+
+        [Display(Name = "Role")]
+        public string? RoleName { get; set; }
+
         [Display(Name = "Upload profile picture")]
         public IFormFile? Upload { get; set; }
     }

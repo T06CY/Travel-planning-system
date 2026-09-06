@@ -232,6 +232,26 @@ namespace TravelPlanningSystem.Controllers
             if (string.IsNullOrEmpty(email))
                 return RedirectToAction("Login");
 
+            if (User.IsInRole("Administrator"))
+            {
+                var staff = await _context.StaffUsers
+                    .Include(s => s.StaffRole)
+                    .FirstOrDefaultAsync(s => s.Email == email);
+
+                if (staff == null)
+                    return NotFound();
+
+                return View(new TravelPlanningSystem.ViewModels.ProfileViewModel.ProfileViewModel
+                {
+                    FirstName = staff.FirstName,
+                    LastName = staff.LastName,
+                    Email = staff.Email,
+                    IsStaff = true,
+                    Department = staff.Department,
+                    RoleName = staff.StaffRole?.RoleName
+                });
+            }
+
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
             if (user == null)
                 return NotFound();
@@ -256,6 +276,46 @@ namespace TravelPlanningSystem.Controllers
             var email = User?.FindFirst(ClaimTypes.Email)?.Value;
             if (string.IsNullOrEmpty(email))
                 return RedirectToAction("Login");
+
+            if (User.IsInRole("Administrator"))
+            {
+                var staff = await _context.StaffUsers
+                    .Include(s => s.StaffRole)
+                    .FirstOrDefaultAsync(s => s.Email == email);
+
+                if (staff == null)
+                    return NotFound();
+
+                if (!ModelState.IsValid)
+                {
+                    model.IsStaff = true;
+                    model.Email = staff.Email;
+                    model.RoleName = staff.StaffRole?.RoleName;
+                    return View(model);
+                }
+
+                staff.FirstName = model.FirstName ?? staff.FirstName;
+                staff.LastName = model.LastName ?? staff.LastName;
+                staff.Department = model.Department ?? staff.Department;
+                if (!string.IsNullOrWhiteSpace(model.Password))
+                    staff.PasswordHash = PasswordHashing.Hash(model.Password);
+
+                await _context.SaveChangesAsync();
+
+                var staffClaims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, $"{staff.FirstName} {staff.LastName}"),
+                    new Claim(ClaimTypes.Email, staff.Email),
+                    new Claim(ClaimTypes.Role, staff.StaffRole?.RoleName ?? "Staff")
+                };
+
+                var staffIdentity = new ClaimsIdentity(staffClaims, CookieAuthenticationDefaults.AuthenticationScheme);
+                await HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    new ClaimsPrincipal(staffIdentity));
+
+                return RedirectToAction("Profile");
+            }
 
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
             if (user == null)
@@ -288,6 +348,8 @@ namespace TravelPlanningSystem.Controllers
             user.LastName = model.LastName ?? user.LastName;
             user.PhoneNumber = model.PhoneNumber ?? user.PhoneNumber;
             user.DateOfBirth = model.DateOfBirth ?? user.DateOfBirth;
+            if (!string.IsNullOrWhiteSpace(model.Password))
+                user.PasswordHash = PasswordHashing.Hash(model.Password);
 
             await _context.SaveChangesAsync();
 

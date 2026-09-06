@@ -104,6 +104,15 @@
                         <div class="d-flex align-items-center gap-2">
                             <span class="me-2">Hello, @userName</span>
 
+                            @if (User.IsInRole("Administrator"))
+                            {
+                                <a class="btn btn-outline-primary btn-sm"
+                                   asp-controller="AdminDashboard"
+                                   asp-action="Index">
+                                    Dashboard
+                                </a>
+                            }
+
                             <a href="@profileUrl" class="d-inline-block" title="View profile" aria-label="Profile">
                                 @if (!string.IsNullOrEmpty(profilePicture))
                                 {
