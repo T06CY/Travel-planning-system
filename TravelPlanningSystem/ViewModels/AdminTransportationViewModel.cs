@@ -1,5 +1,8 @@
 ﻿using TravelPlanningSystem.Models.Transportation;
 
+// ⭐ 消除歧义：使用别名指定交通路线模型
+using TransportRoute = TravelPlanningSystem.Models.Transportation.Route;
+
 namespace TravelPlanningSystem.ViewModels;
 
 public class AdminTransportationViewModel
@@ -13,7 +16,9 @@ public class AdminTransportationViewModel
 
     // 2. 列表数据
     public List<Vehicle> Vehicles { get; set; } = new();
-    public List<Route> Routes { get; set; } = new();
+
+    // ⭐ 使用别名 TransportRoute
+    public List<TransportRoute> Routes { get; set; } = new();
     public List<Trip> Trips { get; set; } = new();
     public List<TransportationBooking> RecentBookings { get; set; } = new();
 
@@ -27,7 +32,7 @@ public class VehicleFormModel
 {
     public string LicensePlate { get; set; } = string.Empty;
     public string VehicleModel { get; set; } = string.Empty;
-    public string VehicleType { get; set; } = "Coach"; // Luxury Coach, Express Bus, VIP Van, Electric Bus
+    public string VehicleType { get; set; } = "Coach";
     public int SeatingCapacity { get; set; } = 30;
     public int ManufactureYear { get; set; } = DateTime.UtcNow.Year;
     public string Amenities { get; set; } = "WiFi, Air Conditioning, USB Charging";

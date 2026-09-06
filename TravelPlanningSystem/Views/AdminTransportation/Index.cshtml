@@ -1,0 +1,386 @@
+﻿@model TravelPlanningSystem.ViewModels.AdminTransportationViewModel
+
+@{
+    ViewData["Title"] = "Transportation Operations - Admin Hub";
+}
+
+<link rel="stylesheet" href="~/css/transportation.css" asp-append-version="true" />
+
+<style>
+    .admin-wrapper { background: #f3f5fb; padding: 35px 0; min-height: 85vh; }
+    .kpi-card { background: #fff; border-radius: 16px; padding: 22px; box-shadow: 0 6px 20px rgba(6,20,59,0.05); border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 18px; }
+    .kpi-icon { width: 54px; height: 54px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; }
+    .kpi-icon.blue { background: #eef2ff; color: #4158ff; }
+    .kpi-icon.green { background: #dcfce7; color: #16a34a; }
+    .kpi-icon.purple { background: #f3e8ff; color: #9333ea; }
+    .kpi-icon.orange { background: #ffedd5; color: #ea580c; }
+    .kpi-val { font-size: 1.6rem; font-weight: 800; color: #06143b; margin: 0; line-height: 1.2; }
+    .kpi-label { font-size: 0.85rem; color: #6d7895; margin: 0; font-weight: 600; text-transform: uppercase; }
+
+    .admin-card { background: #fff; border-radius: 16px; padding: 25px; box-shadow: 0 8px 25px rgba(6,20,59,0.06); border: 1px solid #e2e8f0; margin-bottom: 25px; }
+    .nav-pills .nav-link { font-weight: 700; color: #6d7895; border-radius: 10px; padding: 10px 20px; }
+    .nav-pills .nav-link.active { background: #4158ff; color: #fff; }
+    .table th { background: #f8fafc; font-size: 0.85rem; color: #6d7895; text-transform: uppercase; }
+    .table td { vertical-align: middle; }
+</style>
+
+<div class="admin-wrapper">
+    <div class="container-fluid px-5">
+
+        <!-- 顶部标题与操作 -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <span class="badge bg-primary px-3 py-2 rounded-pill mb-2">Operations Portal</span>
+                <h2 class="fw-bold" style="color: #06143b;">Transportation Operations</h2>
+                <p class="text-muted mb-0">Manage vehicle fleet, orchestrate schedules and monitor passenger manifests.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary fw-bold" data-bs-toggle="modal" data-bs-target="#newVehicleModal">
+                    <i class="bi bi-bus-front"></i> Add Vehicle
+                </button>
+                <button class="btn btn-outline-primary fw-bold" data-bs-toggle="modal" data-bs-target="#newRouteModal">
+                    <i class="bi bi-signpost-2"></i> Add Route
+                </button>
+                <button class="btn btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#newTripModal">
+                    <i class="bi bi-calendar-plus"></i> Schedule Trip
+                </button>
+            </div>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show">
+                <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <!-- KPI 运营指标看板 -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="kpi-card">
+                    <div class="kpi-icon blue"><i class="bi bi-truck-front"></i></div>
+                    <div>
+                        <h3 class="kpi-val">@Model.TotalVehicles</h3>
+                        <p class="kpi-label">Active Fleet Size</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card purple"><div class="kpi-icon purple"><i class="bi bi-compass"></i></div>
+                    <div>
+                        <h3 class="kpi-val">@Model.TotalRoutes</h3>
+                        <p class="kpi-label">Active Routes</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card orange"><div class="kpi-icon orange"><i class="bi bi-ticket-detailed"></i></div>
+                    <div>
+                        <h3 class="kpi-val">@Model.TotalTicketsSold</h3>
+                        <p class="kpi-label">Tickets Issued</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card green"><div class="kpi-icon green"><i class="bi bi-cash-coin"></i></div>
+                    <div>
+                        <h3 class="kpi-val">RM @Model.TotalRevenue.ToString("N2")</h3>
+                        <p class="kpi-label">Gross Revenue</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 选项卡导航 -->
+        <div class="admin-card">
+            <ul class="nav nav-pills mb-4" id="adminTabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active" id="schedules-tab" data-bs-toggle="pill" data-bs-target="#schedulesTab">
+                        <i class="bi bi-calendar-week"></i> Trip Schedules & Manifest
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="fleet-tab" data-bs-toggle="pill" data-bs-target="#fleetTab">
+                        <i class="bi bi-bus-front-fill"></i> Fleet Management (@Model.Vehicles.Count)
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="routes-tab" data-bs-toggle="pill" data-bs-target="#routesTab">
+                        <i class="bi bi-signpost-split"></i> Routes Network (@Model.Routes.Count)
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="adminTabsContent">
+                
+                <!-- Tab 1: 排班与登车名单 -->
+                <div class="tab-pane fade show active" id="schedulesTab">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Trip ID</th>
+                                    <th>Route</th>
+                                    <th>Vehicle Assigned</th>
+                                    <th>Departure</th>
+                                    <th>Fare</th>
+                                    <th>Seats Sold</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var t in Model.Trips)
+                                {
+                                    int booked = t.TotalSeats - t.AvailableSeats;
+                                    <tr>
+                                        <td class="fw-bold text-muted font-monospace">#@t.TripId</td>
+                                        <td class="fw-bold">@t.Route?.Origin → @t.Route?.Destination</td>
+                                        <td>
+                                            <span class="badge bg-light text-dark border">@t.Vehicle?.VehicleType</span>
+                                            <small class="d-block text-muted">@t.Vehicle?.VehicleModel (@t.Vehicle?.LicensePlate)</small>
+                                        </td>
+                                        <td>@t.DepartureTime.ToString("HH:mm, dd MMM")</td>
+                                        <td class="fw-bold">RM @t.BaseFare.ToString("F2")</td>
+                                        <td>
+                                            <span class="fw-bold">@booked / @t.TotalSeats</span>
+                                            <div class="progress mt-1" style="height: 5px;">
+                                                <div class="progress-bar bg-primary" style="width: @(t.TotalSeats > 0 ? (double)booked/t.TotalSeats*100 : 0)%"></div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge @(t.Status == "On-time" ? "bg-success" : t.Status == "Cancelled" ? "bg-danger" : "bg-primary")">
+                                                @t.Status
+                                            </span>
+                                        </td>
+                                        <td class="text-end">
+                                            <a asp-action="Manifest" asp-route-tripId="@t.TripId" class="btn btn-sm btn-outline-primary fw-bold">
+                                                <i class="bi bi-people"></i> Manifest
+                                            </a>
+                                            <form asp-action="ToggleTripStatus" asp-route-id="@t.TripId" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm @(t.Status == "Cancelled" ? "btn-outline-success" : "btn-outline-warning")">
+                                                    @(t.Status == "Cancelled" ? "Restore" : "Cancel")
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab 2: 车队管理 (Fleet) -->
+                <div class="tab-pane fade" id="fleetTab">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>License Plate</th>
+                                    <th>Model</th>
+                                    <th>Type</th>
+                                    <th>Capacity</th>
+                                    <th>Year</th>
+                                    <th>Amenities</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var v in Model.Vehicles)
+                                {
+                                    <tr>
+                                        <td class="fw-bold font-monospace text-primary">@v.LicensePlate</td>
+                                        <td class="fw-bold">@v.VehicleModel</td>
+                                        <td><span class="badge bg-light text-dark border">@v.VehicleType</span></td>
+                                        <td><i class="bi bi-chair"></i> @v.SeatingCapacity Seats</td>
+                                        <td>@v.ManufactureYear</td>
+                                        <td class="small text-muted" style="max-width: 320px;">@v.Amenities</td>
+                                        <td><span class="badge bg-success">Active</span></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab 3: 路线管理 (Routes) -->
+                <div class="tab-pane fade" id="routesTab">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Origin</th>
+                                    <th>Destination</th>
+                                    <th>Distance</th>
+                                    <th>Est. Duration</th>
+                                    <th>Stops</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var r in Model.Routes)
+                                {
+                                    <tr>
+                                        <td class="fw-bold fs-6">@r.Origin</td>
+                                        <td class="fw-bold fs-6">@r.Destination</td>
+                                        <td>@r.DistanceKm km</td>
+                                        <td>@r.EstimatedDurationHours Hours</td>
+                                        <td class="small text-muted">@r.Stops</td>
+                                        <td><span class="badge bg-success">Operational</span></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal 1: 录入新车 -->
+<div class="modal fade" id="newVehicleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="CreateVehicle" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Add Vehicle to Fleet</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">License Plate</label>
+                        <input asp-for="NewVehicle.LicensePlate" class="form-control text-uppercase" placeholder="e.g. WVE-9988" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Vehicle Model</label>
+                        <input asp-for="NewVehicle.VehicleModel" class="form-control" placeholder="e.g. Scania Touring VIP" required />
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Vehicle Type</label>
+                            <select asp-for="NewVehicle.VehicleType" class="form-select">
+                                <option value="VIP Van">VIP Van</option>
+                                <option value="Luxury Coach">Luxury Coach</option>
+                                <option value="Express Bus">Express Bus</option>
+                                <option value="Coach">Coach</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Seating Capacity</label>
+                            <input asp-for="NewVehicle.SeatingCapacity" type="number" class="form-control" value="30" min="4" max="60" required />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Amenities</label>
+                        <input asp-for="NewVehicle.Amenities" class="form-control" placeholder="WiFi, AC, USB, Restroom" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary fw-bold">Save Vehicle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 2: 添加新路线 -->
+<div class="modal fade" id="newRouteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="CreateRoute" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Add New Route</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Origin</label>
+                            <input asp-for="NewRoute.Origin" class="form-control" placeholder="e.g. Kuala Lumpur" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Destination</label>
+                            <input asp-for="NewRoute.Destination" class="form-control" placeholder="e.g. Kuantan" required />
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Distance (KM)</label>
+                            <input asp-for="NewRoute.DistanceKm" type="number" step="0.1" class="form-control" value="150" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Est. Duration (Hours)</label>
+                            <input asp-for="NewRoute.EstimatedDurationHours" type="number" step="0.1" class="form-control" value="2.5" required />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Stops (Optional)</label>
+                        <input asp-for="NewRoute.Stops" class="form-control" placeholder="e.g. Temerloh, Gambang" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary fw-bold">Save Route</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 3: 排班发布新车次 -->
+<div class="modal fade" id="newTripModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="CreateTrip" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Schedule New Trip</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Select Route</label>
+                        <select asp-for="NewTrip.RouteId" class="form-select" required>
+                            @foreach (var r in Model.Routes)
+                            {
+                                <option value="@r.RouteId">@r.Origin → @r.Destination (@r.EstimatedDurationHours h)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Assign Vehicle</label>
+                        <select asp-for="NewTrip.VehicleId" class="form-select" required>
+                            @foreach (var v in Model.Vehicles)
+                            {
+                                <option value="@v.VehicleId">@v.VehicleModel (@v.VehicleType - @v.SeatingCapacity Seats)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Departure Date & Time</label>
+                        <input asp-for="NewTrip.DepartureTime" type="datetime-local" class="form-control" required />
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Base Fare (RM)</label>
+                            <input asp-for="NewTrip.BaseFare" type="number" step="0.5" class="form-control" value="35.00" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Discount (%)</label>
+                            <input asp-for="NewTrip.DiscountPercentage" type="number" min="0" max="90" class="form-control" value="0" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary fw-bold">Publish Trip</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
