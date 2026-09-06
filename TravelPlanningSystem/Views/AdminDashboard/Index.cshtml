@@ -694,6 +694,222 @@
 
 
     <!-- ===================================================== -->
+    <!-- HOTEL MANAGEMENT                                        -->
+    <!-- ===================================================== -->
+
+    <div class="section-heading mt-5">
+
+        <div>
+
+            <span class="dashboard-eyebrow">
+                HOTEL MANAGEMENT
+            </span>
+
+            <h2>
+                Hotel Overview
+            </h2>
+
+            <p>
+                Current statistics for hotel rooms and reservations.
+            </p>
+
+        </div>
+
+        <a asp-controller="AdminRooms"
+           asp-action="Create"
+           class="dashboard-add-button">
+
+            <i class="bi bi-plus-lg"></i>
+
+            Add Hotel Room
+
+        </a>
+
+    </div>
+
+
+    <div class="dashboard-stat-grid">
+
+        <div class="dashboard-stat-card stat-blue">
+
+            <div>
+                <span>Total Hotel Rooms</span>
+                <h2>@Model.TotalHotelRooms</h2>
+                <small>@Model.ActiveHotelRooms active room listings</small>
+            </div>
+
+            <div class="stat-icon">
+                <i class="bi bi-building"></i>
+            </div>
+
+        </div>
+
+        <div class="dashboard-stat-card stat-green">
+
+            <div>
+                <span>Hotel Reservations</span>
+                <h2>@Model.TotalHotelReservations</h2>
+                <small>All hotel reservations</small>
+            </div>
+
+            <div class="stat-icon">
+                <i class="bi bi-calendar2-check"></i>
+            </div>
+
+        </div>
+
+        <div class="dashboard-stat-card stat-pink">
+
+            <div>
+                <span>Upcoming Stays</span>
+                <h2>@Model.UpcomingHotelReservations</h2>
+                <small>Confirmed or completed stays</small>
+            </div>
+
+            <div class="stat-icon">
+                <i class="bi bi-calendar2-week"></i>
+            </div>
+
+        </div>
+
+        <div class="dashboard-stat-card stat-purple">
+
+            <div>
+                <span>Hotel Revenue</span>
+                <h2>RM @Model.HotelRevenue.ToString("N2")</h2>
+                <small>Excluding cancelled reservations</small>
+            </div>
+
+            <div class="stat-icon">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="booking-status-grid mb-4">
+
+        <a asp-controller="AdminHotelReservations"
+           asp-action="Index"
+           asp-route-status="Confirmed"
+           class="booking-status-card">
+            <div class="booking-status-icon confirmed-icon">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div>
+                <span>Confirmed</span>
+                <strong>@Model.ConfirmedHotelReservations</strong>
+            </div>
+        </a>
+
+        <a asp-controller="AdminHotelReservations"
+           asp-action="Index"
+           asp-route-status="Completed"
+           class="booking-status-card">
+            <div class="booking-status-icon completed-icon">
+                <i class="bi bi-check2-all"></i>
+            </div>
+            <div>
+                <span>Completed</span>
+                <strong>@Model.CompletedHotelReservations</strong>
+            </div>
+        </a>
+
+        <a asp-controller="AdminHotelReservations"
+           asp-action="Index"
+           asp-route-status="Cancelled"
+           class="booking-status-card">
+            <div class="booking-status-icon cancelled-icon">
+                <i class="bi bi-x-circle"></i>
+            </div>
+            <div>
+                <span>Cancelled</span>
+                <strong>@Model.CancelledHotelReservations</strong>
+            </div>
+        </a>
+
+    </div>
+
+
+    <section class="dashboard-panel mb-5">
+
+        <div class="dashboard-panel-heading">
+            <div>
+                <h3>Recent Hotel Reservations</h3>
+                <p>Latest customer hotel reservations.</p>
+            </div>
+
+            <a asp-controller="AdminHotelReservations"
+               asp-action="Index">
+                View All
+                <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+
+        @if (!Model.RecentHotelReservations.Any())
+        {
+            <div class="dashboard-empty">
+                <i class="bi bi-calendar2-x"></i>
+                <h4>No hotel reservations yet</h4>
+                <p>Hotel reservations will appear here.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table dashboard-table">
+                    <thead>
+                        <tr>
+                            <th>Reference</th>
+                            <th>Customer</th>
+                            <th>Room</th>
+                            <th>Check-in</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var reservation in Model.RecentHotelReservations)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@reservation.ReservationReference</strong>
+                                    <small>@reservation.ReservationDate.ToString("dd MMM yyyy")</small>
+                                </td>
+                                <td>
+                                    <strong>@reservation.ContactName</strong>
+                                    <small>@reservation.ContactEmail</small>
+                                </td>
+                                <td>@reservation.HotelRoom?.HotelName<br /><small>@reservation.HotelRoom?.RoomName</small></td>
+                                <td>@reservation.CheckInDate.ToString("dd MMM yyyy")</td>
+                                <td><strong>RM @reservation.TotalAmount.ToString("N2")</strong></td>
+                                <td>
+                                    <span class="status-pill status-@reservation.ReservationStatus.ToString().ToLower()">
+                                        @reservation.ReservationStatus
+                                    </span>
+                                </td>
+                                <td>
+                                    <a asp-controller="AdminHotelReservations"
+                                       asp-action="Details"
+                                       asp-route-id="@reservation.HotelReservationId"
+                                       class="dashboard-view-button">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+    </section>
+
+
+    <!-- ===================================================== -->
     <!-- LOWER DASHBOARD                                        -->
     <!-- ===================================================== -->
 

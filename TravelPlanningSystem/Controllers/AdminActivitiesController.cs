@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
@@ -10,6 +11,7 @@ using Activity = TravelPlanningSystem.Models.Activity;
 
 namespace TravelPlanningSystem.Controllers;
 
+[Authorize(Roles = "Administrator")]
 public class AdminActivitiesController(AppDbContext context, IWebHostEnvironment environment) : Controller
 {
     public async Task<IActionResult> Index(string? search, int? categoryId)

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TravelPlanningSystem.Data;
@@ -6,6 +7,7 @@ using TravelPlanningSystem.ViewModels;
 
 namespace TravelPlanningSystem.Controllers;
 
+[Authorize(Roles = "Administrator")]
 public class AdminRoomsController(AppDbContext context, IWebHostEnvironment environment) : Controller
 {
     public async Task<IActionResult> Index(string? search)

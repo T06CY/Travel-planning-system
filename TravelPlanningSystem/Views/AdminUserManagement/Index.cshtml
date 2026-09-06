@@ -1,0 +1,102 @@
+@model TravelPlanningSystem.ViewModels.AdminUserManagementViewModel
+
+@{
+    ViewData["Title"] = "User Management";
+}
+
+<div class="dashboard-page">
+    <div class="dashboard-heading">
+        <div>
+            <span class="dashboard-eyebrow">ADMINISTRATION</span>
+            <h1>User Management</h1>
+            <p>Manage member and staff accounts.</p>
+        </div>
+    </div>
+
+    @if (TempData["Message"] is string message)
+    {
+        <div class="alert alert-success">@message</div>
+    }
+    @if (TempData["Error"] is string error)
+    {
+        <div class="alert alert-danger">@error</div>
+    }
+
+    <section class="dashboard-panel mb-4">
+        <div class="dashboard-panel-heading">
+            <div>
+                <h3>Members</h3>
+                <p>Registered customer accounts.</p>
+            </div>
+            <a asp-action="CreateMember" class="dashboard-add-button"><i class="bi bi-plus-lg"></i> Add Member</a>
+        </div>
+
+        @if (!Model.Members.Any())
+        {
+            <div class="dashboard-empty"><i class="bi bi-people"></i><h4>No members</h4><p>No member accounts have been created.</p></div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table dashboard-table">
+                    <thead><tr><th>Name</th><th>Email</th><th>Tier</th><th>Status</th><th>Created</th><th></th></tr></thead>
+                    <tbody>
+                    @foreach (var member in Model.Members)
+                    {
+                        <tr>
+                            <td><strong>@member.FirstName @member.LastName</strong></td>
+                            <td>@member.Email</td>
+                            <td>@member.LoyaltyTier</td>
+                            <td><span class="status-pill status-@member.AccountStatus.ToLower()">@member.AccountStatus</span></td>
+                            <td>@member.CreatedAt.ToString("dd MMM yyyy")</td>
+                            <td class="text-nowrap">
+                                <a asp-action="EditMember" asp-route-id="@member.UserId" class="btn btn-sm btn-outline-primary">Edit</a>
+                                <a asp-action="DeleteMember" asp-route-id="@member.UserId" class="btn btn-sm btn-outline-danger">Delete</a>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+
+    <section class="dashboard-panel">
+        <div class="dashboard-panel-heading">
+            <div>
+                <h3>Staff</h3>
+                <p>Administrator and support staff accounts.</p>
+            </div>
+            <a asp-action="CreateStaff" class="dashboard-add-button"><i class="bi bi-plus-lg"></i> Add Staff</a>
+        </div>
+
+        @if (!Model.StaffUsers.Any())
+        {
+            <div class="dashboard-empty"><i class="bi bi-person-badge"></i><h4>No staff users</h4><p>No staff accounts have been created.</p></div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table dashboard-table">
+                    <thead><tr><th>Name</th><th>Email</th><th>Department</th><th>Role</th><th>Status</th><th></th></tr></thead>
+                    <tbody>
+                    @foreach (var staff in Model.StaffUsers)
+                    {
+                        <tr>
+                            <td><strong>@staff.FirstName @staff.LastName</strong></td>
+                            <td>@staff.Email</td>
+                            <td>@staff.Department</td>
+                            <td>@staff.StaffRole?.RoleName</td>
+                            <td><span class="status-pill status-@staff.Status.ToLower()">@staff.Status</span></td>
+                            <td class="text-nowrap">
+                                <a asp-action="EditStaff" asp-route-id="@staff.StaffId" class="btn btn-sm btn-outline-primary">Edit</a>
+                                <a asp-action="DeleteStaff" asp-route-id="@staff.StaffId" class="btn btn-sm btn-outline-danger">Delete</a>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+</div>

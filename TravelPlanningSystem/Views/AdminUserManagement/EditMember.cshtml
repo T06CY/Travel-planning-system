@@ -1,0 +1,19 @@
+@model TravelPlanningSystem.ViewModels.MemberManagementInput
+
+@{
+    ViewData["Title"] = "Edit Member";
+}
+
+<div class="dashboard-page">
+    <div class="dashboard-heading"><div><span class="dashboard-eyebrow">USER MANAGEMENT</span><h1>Edit Member</h1><p>Update the member account.</p></div></div>
+    <section class="dashboard-panel admin-form-panel">
+        <form asp-action="EditMember" method="post">
+            <input asp-for="UserId" type="hidden" />
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <partial name="_MemberForm" model="Model" />
+            <div class="mt-4"><button type="submit" class="btn btn-primary">Save Changes</button> <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a></div>
+        </form>
+    </section>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

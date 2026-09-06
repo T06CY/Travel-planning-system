@@ -13,6 +13,12 @@ public class HotelReservationsController(AppDbContext context) : Controller
     [HttpGet]
     public async Task<IActionResult> Create(int roomId, DateTime? checkIn, DateTime? checkOut)
     {
+        if (User.Identity?.IsAuthenticated != true)
+        {
+            var returnUrl = Url.Action(nameof(Create), "HotelReservations", new { roomId, checkIn, checkOut });
+            return RedirectToAction("Login", "Account", new { returnUrl });
+        }
+
         var room = await context.HotelRooms
             .AsNoTracking()
             .FirstOrDefaultAsync(r => r.HotelRoomId == roomId && r.IsActive);
@@ -40,6 +46,18 @@ public class HotelReservationsController(AppDbContext context) : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(HotelReservationViewModel model)
     {
+        if (User.Identity?.IsAuthenticated != true)
+        {
+            var returnUrl = Url.Action(nameof(Create), "HotelReservations", new
+            {
+                roomId = model.HotelRoomId,
+                checkIn = model.CheckInDate,
+                checkOut = model.CheckOutDate
+            });
+
+            return RedirectToAction("Login", "Account", new { returnUrl });
+        }
+
         var room = await context.HotelRooms
             .FirstOrDefaultAsync(r => r.HotelRoomId == model.HotelRoomId && r.IsActive);
 

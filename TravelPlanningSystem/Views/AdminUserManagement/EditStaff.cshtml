@@ -1,0 +1,19 @@
+@model TravelPlanningSystem.ViewModels.StaffManagementInput
+
+@{
+    ViewData["Title"] = "Edit Staff";
+}
+
+<div class="dashboard-page">
+    <div class="dashboard-heading"><div><span class="dashboard-eyebrow">USER MANAGEMENT</span><h1>Edit Staff</h1><p>Update the staff account.</p></div></div>
+    <section class="dashboard-panel admin-form-panel">
+        <form asp-action="EditStaff" method="post">
+            <input asp-for="StaffId" type="hidden" />
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <partial name="_StaffForm" model="Model" />
+            <div class="mt-4"><button type="submit" class="btn btn-primary">Save Changes</button> <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a></div>
+        </form>
+    </section>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

@@ -1,0 +1,18 @@
+@model TravelPlanningSystem.Models.StaffUser
+
+@{
+    ViewData["Title"] = "Delete Staff";
+}
+
+<div class="dashboard-page">
+    <div class="dashboard-heading"><div><span class="dashboard-eyebrow">USER MANAGEMENT</span><h1>Delete Staff</h1><p>Confirm account deletion.</p></div></div>
+    <section class="dashboard-panel">
+        <div class="alert alert-warning">Are you sure you want to delete <strong>@Model.FirstName @Model.LastName</strong> (@Model.Email)?</div>
+        <form asp-action="DeleteStaff" method="post">
+            <input type="hidden" name="id" value="@Model.StaffId" />
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-danger">Delete Staff</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+        </form>
+    </section>
+</div>

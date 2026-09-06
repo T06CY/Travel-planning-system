@@ -1,0 +1,18 @@
+@model TravelPlanningSystem.ViewModels.MemberManagementInput
+
+@{
+    ViewData["Title"] = "Add Member";
+}
+
+<div class="dashboard-page">
+    <div class="dashboard-heading"><div><span class="dashboard-eyebrow">USER MANAGEMENT</span><h1>Add Member</h1><p>Create a new member account.</p></div></div>
+    <section class="dashboard-panel admin-form-panel">
+        <form asp-action="CreateMember" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <partial name="_MemberForm" model="Model" />
+            <div class="mt-4"><button type="submit" class="btn btn-primary">Create Member</button> <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a></div>
+        </form>
+    </section>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

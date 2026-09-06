@@ -7,8 +7,6 @@ using TravelPlanningSystem.ViewModels.RegisterViewModel;
 using TravelPlanningSystem.Data;
 using TravelPlanningSystem.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
-using System.Text;
 using System.Linq;
 
 namespace TravelPlanningSystem.Controllers
@@ -44,7 +42,7 @@ namespace TravelPlanningSystem.Controllers
                 return View(model);
 
             var identifier = (model.Username ?? string.Empty).Trim();
-            var passwordHash = HashPassword(model.Password ?? string.Empty);
+            var passwordHash = PasswordHashing.Hash(model.Password ?? string.Empty);
 
             // Validate phone format
             var phonePattern = new System.Text.RegularExpressions.Regex("^\\+?[0-9]{6,20}$");
@@ -105,7 +103,7 @@ namespace TravelPlanningSystem.Controllers
                 return View(model);
 
             var identifier = (model.Username ?? string.Empty).Trim();
-            var passwordHash = HashPassword(model.Password ?? string.Empty);
+            var passwordHash = PasswordHashing.Hash(model.Password ?? string.Empty);
 
             // Try staff login by email first (staff use email only)
             if (identifier.Contains("@"))
@@ -114,7 +112,7 @@ namespace TravelPlanningSystem.Controllers
                     .Include(s => s.StaffRole)
                     .FirstOrDefaultAsync(s => s.Email.ToLower() == identifier.ToLower());
 
-                if (staff != null && staff.PasswordHash == passwordHash)
+                if (staff != null && staff.Status == "Active" && staff.PasswordHash == passwordHash)
                 {
                     var claims = new List<Claim>
                     {
@@ -129,6 +127,9 @@ namespace TravelPlanningSystem.Controllers
 
                     if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                         return Redirect(returnUrl);
+
+                    if (string.Equals(staff.StaffRole?.RoleName, "Administrator", StringComparison.OrdinalIgnoreCase))
+                        return RedirectToAction("Index", "AdminDashboard");
 
                     return RedirectToAction("Index", "Home");
                 }
@@ -323,7 +324,7 @@ namespace TravelPlanningSystem.Controllers
             var user = new ApplicationUser
             {
                 Email = model.Email,
-                PasswordHash = HashPassword(model.Password),
+                PasswordHash = PasswordHashing.Hash(model.Password),
                 FirstName = model.FirstName,
                 LastName = model.LastName,
                 PhoneNumber = model.PhoneNumber,
@@ -350,13 +351,6 @@ namespace TravelPlanningSystem.Controllers
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
             return RedirectToAction("Index", "Home");
-        }
-
-        private static string HashPassword(string pwd)
-        {
-            var bytes = Encoding.UTF8.GetBytes(pwd);
-            var hash = SHA256.HashData(bytes);
-            return Convert.ToHexString(hash);
         }
 
         private static string NormalizePhone(string? p)

@@ -1,0 +1,16 @@
+@model TravelPlanningSystem.ViewModels.StaffManagementInput
+
+@{
+    var roles = ViewBag.StaffRoles as IEnumerable<TravelPlanningSystem.Models.StaffRole> ?? Enumerable.Empty<TravelPlanningSystem.Models.StaffRole>();
+}
+
+<div class="row g-3">
+    <div class="col-md-6"><label asp-for="FirstName" class="form-label"></label><input asp-for="FirstName" class="form-control" /><span asp-validation-for="FirstName" class="text-danger"></span></div>
+    <div class="col-md-6"><label asp-for="LastName" class="form-label"></label><input asp-for="LastName" class="form-control" /><span asp-validation-for="LastName" class="text-danger"></span></div>
+    <div class="col-md-6"><label asp-for="Email" class="form-label"></label><input asp-for="Email" class="form-control" /><span asp-validation-for="Email" class="text-danger"></span></div>
+    <div class="col-md-6"><label asp-for="Department" class="form-label"></label><input asp-for="Department" class="form-control" /><span asp-validation-for="Department" class="text-danger"></span></div>
+    <div class="col-md-4"><label asp-for="RoleId" class="form-label">Role</label><select asp-for="RoleId" class="form-select"><option value="">Select role</option>@foreach (var role in roles) { <option value="@role.RoleId">@role.RoleName</option> }</select><span asp-validation-for="RoleId" class="text-danger"></span></div>
+    <div class="col-md-4"><label asp-for="AccessLevel" class="form-label"></label><input asp-for="AccessLevel" class="form-control" /><span asp-validation-for="AccessLevel" class="text-danger"></span></div>
+    <div class="col-md-4"><label asp-for="Status" class="form-label"></label><select asp-for="Status" class="form-select"><option>Active</option><option>Inactive</option><option>Suspended</option></select></div>
+    <div class="col-12"><label asp-for="Password" class="form-label"></label><input asp-for="Password" class="form-control" autocomplete="new-password" /><small class="text-muted">Leave blank when editing to keep the current password.</small><span asp-validation-for="Password" class="text-danger"></span></div>
+</div>

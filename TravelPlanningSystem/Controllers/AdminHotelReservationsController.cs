@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TravelPlanningSystem.Data;
@@ -5,6 +6,7 @@ using TravelPlanningSystem.Models;
 
 namespace TravelPlanningSystem.Controllers;
 
+[Authorize(Roles = "Administrator")]
 public class AdminHotelReservationsController(AppDbContext context) : Controller
 {
     public async Task<IActionResult> Index(string? search, string? status)

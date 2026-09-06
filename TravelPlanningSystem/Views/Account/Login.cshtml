@@ -11,7 +11,7 @@
             <form asp-action="Login" method="post">
                 <div asp-validation-summary="All" class="text-danger"></div>
                 <div class="mb-3">
-                    <label asp-for="Username" class="form-label">Email</label>
+                    <label asp-for="Username" class="form-label">Email or phone number</label>
                     <input asp-for="Username" class="form-control" placeholder="you@example.com" />
                     <span asp-validation-for="Username" class="text-danger"></span>
                 </div>
@@ -28,7 +28,7 @@
                 </div>
             </form>
             <hr />
-            <p>Test account: <strong>Admin</strong> / <strong>admin123</strong></p>
+            <p class="text-muted">Administrators sign in with their active staff email and password and are redirected to the Admin Dashboard.</p>
         </div>
     </div>
 </div>

@@ -9,6 +9,7 @@
     var isActivityList = controller == "AdminActivities" && action == "Index";
     var isAddActivity = controller == "AdminActivities" && action == "Create";
     var isActivityBookings = controller == "AdminActivityBookings";
+    var isUserManagement = controller == "AdminUserManagement";
 }
 
 <!DOCTYPE html>
@@ -116,6 +117,13 @@
                         Dashboard
                     </span>
 
+                </a>
+
+                <a asp-controller="AdminUserManagement"
+                   asp-action="Index"
+                   class="@(isUserManagement ? "active" : "")">
+                    <i class="bi bi-people"></i>
+                    <span>User Management</span>
                 </a>
 
 

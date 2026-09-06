@@ -25,6 +25,27 @@ public class AdminDashboardViewModel
     public List<ActivityBooking> RecentBookings { get; set; }
         = new List<ActivityBooking>();
 
+    public int TotalHotelRooms { get; set; }
+
+    public int ActiveHotelRooms { get; set; }
+
+    public int TotalHotelReservations { get; set; }
+
+    public int UpcomingHotelReservations { get; set; }
+
+    public decimal HotelRevenue { get; set; }
+
+    public int PendingHotelReservations { get; set; }
+
+    public int ConfirmedHotelReservations { get; set; }
+
+    public int CompletedHotelReservations { get; set; }
+
+    public int CancelledHotelReservations { get; set; }
+
+    public List<HotelReservation> RecentHotelReservations { get; set; }
+        = new List<HotelReservation>();
+
     // List of application users for admin overview
     public List<ApplicationUser> Users { get; set; } = new List<ApplicationUser>();
 
