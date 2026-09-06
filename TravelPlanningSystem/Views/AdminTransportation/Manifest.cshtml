@@ -1,0 +1,92 @@
+﻿@model IEnumerable<TravelPlanningSystem.Models.Transportation.TransportationBooking>
+
+@{
+    var trip = (TravelPlanningSystem.Models.Transportation.Trip)ViewBag.Trip;
+    ViewData["Title"] = $"Passenger Manifest - Trip #{trip.TripId}";
+    int totalPassengers = Model.Sum(b => b.Passengers.Count);
+}
+
+<style>
+    @@media print {
+        .no-print { display: none !important; }
+        body { background: #fff !important; }
+    }
+</style>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Operations
+        </a>
+        <button onclick="window.print()" class="btn btn-primary fw-bold">
+            <i class="bi bi-printer"></i> Print Manifest
+        </button>
+    </div>
+
+    <!-- 登车清单单据卡片 -->
+    <div class="card p-4 border-0 shadow-sm rounded-4">
+        <div class="border-bottom pb-3 mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="fw-bold mb-1" style="color: #06143b;">Passenger Boarding Manifest</h2>
+                    <p class="text-muted mb-0">Official Dispatch Document • TravelMate Express</p>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-primary fs-6 px-3 py-2">Trip #@trip.TripId</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 p-3 bg-light rounded-3 mb-4">
+            <div class="col-md-3"><strong>Route:</strong> @trip.Route?.Origin → @trip.Route?.Destination</div>
+            <div class="col-md-3"><strong>Departure:</strong> @trip.DepartureTime.ToString("HH:mm, dd MMM yyyy")</div>
+            <div class="col-md-3"><strong>Vehicle:</strong> @trip.Vehicle?.VehicleModel (@trip.Vehicle?.LicensePlate)</div>
+            <div class="col-md-3"><strong>Manifest Headcount:</strong> @totalPassengers / @trip.TotalSeats Passengers</div>
+        </div>
+
+        <h5 class="fw-bold mb-3">Boarding Passenger Checklist</h5>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="width: 80px;">Boarded</th>
+                        <th style="width: 100px;">Seat</th>
+                        <th>Passenger Full Name</th>
+                        <th>IC / Passport</th>
+                        <th>Type</th>
+                        <th>Baggage</th>
+                        <th>Reference</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        @foreach (var b in Model)
+                        {
+                            @foreach (var p in b.Passengers)
+                            {
+                                <tr>
+                                    <td class="text-center">
+                                        <input type="checkbox" style="width: 20px; height: 20px;" />
+                                    </td>
+                                    <td class="fw-bold fs-6 text-primary">@p.SeatNumber</td>
+                                    <td class="fw-bold">@p.FullName</td>
+                                    <td>@p.IdNumber</td>
+                                    <td>@p.PassengerType</td>
+                                    <td>@p.BaggageOption</td>
+                                    <td class="small font-monospace">@b.BookingReference</td>
+                                </tr>
+                            }
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">No passengers have booked on this trip yet.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

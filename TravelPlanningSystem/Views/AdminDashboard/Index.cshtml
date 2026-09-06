@@ -356,27 +356,33 @@
 
             <!-- TRANSPORTATION -->
 
-            <div class="team-module-card">
+            <a asp-controller="AdminTransportation"
+               asp-action="Index"
+               class="team-module-card text-decoration-none">
 
                 <div class="team-module-icon transport-module">
 
-                    <i class="bi bi-car-front"></i>
+                    <i class="bi bi-bus-front"></i>
 
                 </div>
 
                 <div>
 
                     <strong>
-                        Transportation
+                        Transportation Operations
                     </strong>
 
                     <span>
-                        Transportation management and bookings
+                        Fleet management, routes & schedules
                     </span>
 
                 </div>
 
-            </div>
+                <span class="active-module-badge">
+                    Active
+                </span>
+
+            </a>
 
 
             <!-- ACTIVITIES -->

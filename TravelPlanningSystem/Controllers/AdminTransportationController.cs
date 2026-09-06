@@ -83,8 +83,10 @@ public class AdminTransportationController(AppDbContext context) : Controller
             {
                 Origin = vm.NewRoute.Origin.Trim(),
                 Destination = vm.NewRoute.Destination.Trim(),
-                DistanceKm = vm.NewRoute.DistanceKm > 0 ? vm.NewRoute.DistanceKm : 100,
-                EstimatedDurationHours = vm.NewRoute.EstimatedDurationHours > 0 ? vm.NewRoute.EstimatedDurationHours : 2.0,
+                // ⭐ DistanceKm 是 decimal，进行 (decimal) 转换
+                DistanceKm = (decimal)(vm.NewRoute.DistanceKm > 0 ? vm.NewRoute.DistanceKm : 100),
+                // ⭐ EstimatedDurationHours 是 double，进行 (double) 转换
+                EstimatedDurationHours = (double)(vm.NewRoute.EstimatedDurationHours > 0 ? vm.NewRoute.EstimatedDurationHours : 2.0),
                 Stops = string.IsNullOrWhiteSpace(vm.NewRoute.Stops) ? "Direct" : vm.NewRoute.Stops.Trim(),
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
@@ -109,6 +111,7 @@ public class AdminTransportationController(AppDbContext context) : Controller
         if (route != null && vehicle != null)
         {
             var depTime = vm.NewTrip.DepartureTime;
+            // EstimatedDurationHours 原生就是 double，直接传给 AddHours
             var arrTime = depTime.AddHours(Math.Max(1.0, route.EstimatedDurationHours));
 
             var trip = new Trip
@@ -148,7 +151,6 @@ public class AdminTransportationController(AppDbContext context) : Controller
         }
         return RedirectToAction(nameof(Index));
     }
-
     // ==========================================
     // 4. 乘客登车名单 (Passenger Manifest)
     // ==========================================
