@@ -19,10 +19,28 @@ public class AppDbContext : DbContext
     public DbSet<ActivityPhoto> ActivityPhotos { get; set; }
     public DbSet<ActivityBooking> ActivityBookings { get; set; }
     public DbSet<ActivityReview> ActivityReviews { get; set; }
+
     public DbSet<HotelRoom> HotelRooms { get; set; }
     public DbSet<HotelRoomPhoto> HotelRoomPhotos { get; set; }
     public DbSet<HotelReservation> HotelReservations { get; set; }
     public DbSet<HotelReview> HotelReviews { get; set; }
+
+    // Airline reservation and management tables
+    public DbSet<Airline> Airlines { get; set; }
+    public DbSet<Airport> Airports { get; set; }
+    public DbSet<Flight> Flights { get; set; }
+    public DbSet<FlightBooking> FlightBookings { get; set; }
+    public DbSet<FlightBookingSegment> FlightBookingSegments { get; set; }
+    public DbSet<FlightPassenger> FlightPassengers { get; set; }
+
+    // Transportation tables
+    public DbSet<TransportationModels.Route> Routes { get; set; }
+    public DbSet<Vehicle> Vehicles { get; set; }
+    public DbSet<Trip> Trips { get; set; }
+    public DbSet<Seat> Seats { get; set; }
+    public DbSet<TransportationReview> TransportationReviews { get; set; }
+    public DbSet<TransportationBooking> TransportationBookings { get; set; }
+    public DbSet<TransportationPassenger> TransportationPassengers { get; set; }
 
     // User and staff tables
     public DbSet<ApplicationUser> Users { get; set; }
@@ -35,10 +53,10 @@ public class AppDbContext : DbContext
 
         // Activity relationships
         modelBuilder.Entity<ActivityReview>()
-        .HasOne(r => r.ActivityBooking)
-        .WithOne(b => b.Review)
-        .HasForeignKey<ActivityReview>(r => r.ActivityBookingId)
-        .OnDelete(DeleteBehavior.NoAction);
+            .HasOne(r => r.ActivityBooking)
+            .WithOne(b => b.Review)
+            .HasForeignKey<ActivityReview>(r => r.ActivityBookingId)
+            .OnDelete(DeleteBehavior.NoAction);
 
         // Hotel relationships
         modelBuilder.Entity<HotelReview>()
