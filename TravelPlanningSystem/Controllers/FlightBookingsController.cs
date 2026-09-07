@@ -58,8 +58,7 @@ public class FlightBookingsController(AppDbContext context) : Controller
 
         if (model.Passengers.Count != model.PassengerCount)
         {
-            ModelState.AddModelError(nameof(model.Passengers),
-                "Enter details for every passenger.");
+            ModelState.AddModelError(nameof(model.Passengers), "Enter details for every passenger.");
         }
 
         foreach (var passenger in model.Passengers)
@@ -68,31 +67,31 @@ public class FlightBookingsController(AppDbContext context) : Controller
             passenger.LastName = (passenger.LastName ?? string.Empty).Trim();
             passenger.PassportNumber = (passenger.PassportNumber ?? string.Empty).Trim().ToUpperInvariant();
             passenger.Nationality = (passenger.Nationality ?? string.Empty).Trim();
+
             if (IsPlaceholder(passenger.FirstName))
                 ModelState.AddModelError(nameof(model.Passengers), "Enter the passenger's real first name.");
             if (IsPlaceholder(passenger.LastName))
                 ModelState.AddModelError(nameof(model.Passengers), "Enter the passenger's real last name.");
             if (IsPlaceholder(passenger.PassportNumber))
                 ModelState.AddModelError(nameof(model.Passengers), "Enter a valid passport or ID number.");
-            passenger.SeatNumber = (passenger.SeatNumber ?? string.Empty)
-                .Trim()
-                .ToUpperInvariant();
+
+            passenger.SeatNumber = (passenger.SeatNumber ?? string.Empty).Trim().ToUpperInvariant();
             if (string.IsNullOrWhiteSpace(passenger.SeatNumber))
             {
-                ModelState.AddModelError(nameof(model.Passengers),
-                    "Please select a seat for every passenger.");
+                ModelState.AddModelError(nameof(model.Passengers), "Please select a seat for every passenger.");
             }
-            passenger.ReturnSeatNumber = (passenger.ReturnSeatNumber ?? string.Empty)
-                .Trim().ToUpperInvariant();
+
+            passenger.ReturnSeatNumber = (passenger.ReturnSeatNumber ?? string.Empty).Trim().ToUpperInvariant();
             passenger.PassengerType = (passenger.PassengerType ?? "Adult").Trim();
+
             if (passenger.PassengerType is not ("Adult" or "Child"))
                 ModelState.AddModelError(nameof(model.Passengers), "Passenger type must be Adult or Child.");
-            if (passenger.DateOfBirth.HasValue &&
-                passenger.DateOfBirth.Value.Date >= DateTime.Today)
+
+            if (passenger.DateOfBirth.HasValue && passenger.DateOfBirth.Value.Date >= DateTime.Today)
             {
-                ModelState.AddModelError(nameof(model.Passengers),
-                    "Passenger date of birth must be before today.");
+                ModelState.AddModelError(nameof(model.Passengers), "Passenger date of birth must be before today.");
             }
+
             if (passenger.DateOfBirth.HasValue && passenger.PassengerType is "Adult" or "Child")
             {
                 var age = CalculateAge(passenger.DateOfBirth.Value.Date, DateTime.Today);
@@ -110,8 +109,7 @@ public class FlightBookingsController(AppDbContext context) : Controller
             .GroupBy(p => p.SeatNumber, StringComparer.OrdinalIgnoreCase)
             .Any(g => !string.IsNullOrWhiteSpace(g.Key) && g.Count() > 1))
         {
-            ModelState.AddModelError(nameof(model.Passengers),
-                "Each passenger must select a different seat.");
+            ModelState.AddModelError(nameof(model.Passengers), "Each passenger must select a different seat.");
         }
 
         await using var transaction = await context.Database
@@ -130,32 +128,32 @@ public class FlightBookingsController(AppDbContext context) : Controller
 
         var isReturnTrip = string.Equals(model.TripType, "Return", StringComparison.OrdinalIgnoreCase)
             && orderedFlights.Count >= 2;
+
         if (isReturnTrip && model.Passengers.Any(p => string.IsNullOrWhiteSpace(p.ReturnSeatNumber)))
             ModelState.AddModelError(nameof(model.Passengers), "Please select a return seat for every passenger.");
 
         if (orderedFlights.Count > 0)
         {
-            foreach (var passenger in model.Passengers.Where(p =>
-                !string.IsNullOrWhiteSpace(p.SeatNumber)))
+            foreach (var passenger in model.Passengers.Where(p => !string.IsNullOrWhiteSpace(p.SeatNumber)))
             {
-                if (!IsValidSeat(passenger.SeatNumber,
-                    orderedFlights[0].SeatCapacity))
+                if (!IsValidSeat(passenger.SeatNumber, orderedFlights[0].SeatCapacity))
                 {
-                    ModelState.AddModelError(nameof(model.Passengers),
-                        $"Seat {passenger.SeatNumber} is not available on this aircraft.");
+                    ModelState.AddModelError(nameof(model.Passengers), $"Seat {passenger.SeatNumber} is not available on this aircraft.");
                 }
-                if (isReturnTrip && !IsValidSeat(passenger.ReturnSeatNumber!, orderedFlights[1].SeatCapacity))
+                if (isReturnTrip && !IsValidSeat(passenger.ReturnSeatNumber!, orderedFlights.SeatCapacity))
+                {
                     ModelState.AddModelError(nameof(model.Passengers), $"Return seat {passenger.ReturnSeatNumber} is not available on this aircraft.");
+                }
             }
             if (isReturnTrip && model.Passengers.GroupBy(p => p.ReturnSeatNumber, StringComparer.OrdinalIgnoreCase).Any(g => g.Count() > 1))
+            {
                 ModelState.AddModelError(nameof(model.Passengers), "Each passenger must select a different return seat.");
+            }
         }
 
-        if (orderedFlights.Count != model.FlightIds.Count ||
-            orderedFlights.Count == 0)
+        if (orderedFlights.Count != model.FlightIds.Count || orderedFlights.Count == 0)
         {
-            ModelState.AddModelError(string.Empty,
-                "One or more selected flights are unavailable.");
+            ModelState.AddModelError(string.Empty, "One or more selected flights are unavailable.");
         }
 
         if (orderedFlights.Any(f =>
@@ -164,8 +162,7 @@ public class FlightBookingsController(AppDbContext context) : Controller
             f.AvailableSeats < model.PassengerCount ||
             f.Status is FlightStatus.Cancelled or FlightStatus.Departed or FlightStatus.Arrived))
         {
-            ModelState.AddModelError(string.Empty,
-                "A selected flight no longer has enough available seats.");
+            ModelState.AddModelError(string.Empty, "A selected flight no longer has enough available seats.");
         }
 
         var selectedSeats = model.Passengers
@@ -183,29 +180,30 @@ public class FlightBookingsController(AppDbContext context) : Controller
                     selectedSeats.Contains(p.SeatNumber) &&
                     p.FlightBooking != null &&
                     p.FlightBooking.Status != FlightBookingStatus.Cancelled &&
-                    p.FlightBooking.Segments.Any(s =>
-                        model.FlightIds.Contains(s.FlightId)))
+                    p.FlightBooking.Segments.Any(s => model.FlightIds.Contains(s.FlightId)))
                 .Select(p => p.SeatNumber)
                 .Distinct()
                 .ToListAsync();
 
             if (occupiedSeats.Count > 0)
             {
-                ModelState.AddModelError(nameof(model.Passengers),
-                    $"Seat(s) {string.Join(", ", occupiedSeats)} are no longer available for one of the selected flights.");
+                ModelState.AddModelError(nameof(model.Passengers), $"Seat(s) {string.Join(", ", occupiedSeats)} are no longer available for one of the selected flights.");
             }
         }
 
         if (isReturnTrip && selectedReturnSeats.Count > 0)
         {
-            var returnFlightId = orderedFlights[1].FlightId;
+            var returnFlightId = orderedFlights.FlightId;
             var occupiedReturnSeats = await context.FlightPassengers
                 .Where(p => selectedReturnSeats.Contains(p.SeatNumber) &&
                     p.FlightBooking != null && p.FlightBooking.Status != FlightBookingStatus.Cancelled &&
                     p.FlightBooking.Segments.Any(s => s.FlightId == returnFlightId))
                 .Select(p => p.SeatNumber).Distinct().ToListAsync();
+
             if (occupiedReturnSeats.Count > 0)
+            {
                 ModelState.AddModelError(nameof(model.Passengers), $"Return seat(s) {string.Join(", ", occupiedReturnSeats)} are no longer available.");
+            }
         }
 
         if (!ModelState.IsValid)
@@ -215,6 +213,25 @@ public class FlightBookingsController(AppDbContext context) : Controller
             return View(model);
         }
 
+        // ⭐ 1. 精细费用核算：机票基准票价 + 托运行李额加购 + 航空延误意外险 - 优惠券抵扣
+        decimal flightBaseTotal = orderedFlights.Sum(f => f.Price) * model.PassengerCount;
+        decimal baggageTotal = model.BaggagePrice * model.PassengerCount;
+        decimal insuranceTotal = model.HasTravelInsurance ? (18.00m * model.PassengerCount) : 0m;
+        decimal addonTotal = baggageTotal + insuranceTotal;
+
+        // 优惠券折扣规则 (TRAVEL2026 享 85 折, FLY50 减 RM 50, PROMO10 减 RM 10)
+        decimal discount = 0;
+        if (!string.IsNullOrWhiteSpace(model.PromoCode))
+        {
+            var code = model.PromoCode.Trim().ToUpper();
+            if (code == "TRAVEL2026") discount = Math.Round(flightBaseTotal * 0.15m, 2);
+            else if (code == "FLY50") discount = Math.Min(flightBaseTotal, 50.00m);
+            else if (code == "PROMO10") discount = Math.Min(flightBaseTotal, 10.00m);
+        }
+
+        decimal grandTotal = Math.Max(0, flightBaseTotal + addonTotal - discount);
+
+        // ⭐ 2. 创建并保存带完整支付、行李与优惠明细的订单
         var booking = new FlightBooking
         {
             BookingReference = CreateBookingReference(),
@@ -224,7 +241,14 @@ public class FlightBookingsController(AppDbContext context) : Controller
             ContactEmail = model.ContactEmail.Trim(),
             ContactPhone = FormatPhone(model.PhoneCountry, model.ContactPhone),
             BookingDate = DateTime.UtcNow,
-            TotalAmount = orderedFlights.Sum(f => f.Price) * model.PassengerCount,
+            TotalAmount = grandTotal,
+            AddonFee = addonTotal,
+            DiscountAmount = discount,
+            PromoCode = model.PromoCode,
+            PaymentMethod = model.PaymentMethod,
+            PaymentStatus = "Paid",
+            BaggageOption = model.BaggageOption ?? "Cabin Baggage 7kg (Free)",
+            HasTravelInsurance = model.HasTravelInsurance,
             Status = FlightBookingStatus.Confirmed
         };
 

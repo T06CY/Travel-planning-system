@@ -31,6 +31,22 @@ public class FlightBookingCreateViewModel
     public int SeatCapacity { get; set; } = 180;
     public List<string> OccupiedSeats { get; set; } = new();
     public decimal TotalAmount { get; set; }
+
+    // ⭐ 新增支付渠道、行李加购、保险与优惠字段
+    [Display(Name = "Payment Method")]
+    public string PaymentMethod { get; set; } = "Online Banking (FPX)";
+
+    [Display(Name = "Promo Code")]
+    public string? PromoCode { get; set; }
+    public decimal DiscountAmount { get; set; } = 0;
+
+    [Display(Name = "Baggage Option")]
+    public string BaggageOption { get; set; } = "Cabin Baggage 7kg (Free)";
+    public decimal BaggagePrice { get; set; } = 0;
+
+    [Display(Name = "Travel Insurance")]
+    public bool HasTravelInsurance { get; set; } = false;
+    public decimal AddonFee { get; set; } = 0;
 }
 
 public class FlightPassengerInput

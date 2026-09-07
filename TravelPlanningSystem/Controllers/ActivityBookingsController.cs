@@ -21,8 +21,7 @@ public class ActivityBookingsController(AppDbContext context) : Controller
                 s.IsActive &&
                 s.SessionDate >= DateTime.Today);
 
-        if (session?.Activity is null ||
-            session.AvailableSlots < 1)
+        if (session?.Activity is null || session.AvailableSlots < 1)
         {
             return NotFound();
         }
@@ -40,274 +39,162 @@ public class ActivityBookingsController(AppDbContext context) : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(
-        ActivityBookingViewModel model)
+    public async Task<IActionResult> Create(ActivityBookingViewModel model)
     {
         var session = await context.ActivitySessions
             .Include(s => s.Activity)
-            .FirstOrDefaultAsync(s =>
-                s.ActivitySessionId ==
-                model.ActivitySessionId);
-
+            .FirstOrDefaultAsync(s => s.ActivitySessionId == model.ActivitySessionId);
 
         if (session?.Activity is null)
         {
-            ModelState.AddModelError(
-                "",
-                "The selected session no longer exists.");
+            ModelState.AddModelError("", "The selected session no longer exists.");
         }
         else
         {
-            model.ActivityId =
-                session.ActivityId;
+            model.ActivityId = session.ActivityId;
+            model.ActivityName = session.Activity.ActivityName;
+            model.Destination = session.Activity.Destination;
+            model.PricePerPerson = session.Activity.PricePerPerson;
+            model.AvailableSlots = session.AvailableSlots;
 
-            model.ActivityName =
-                session.Activity.ActivityName;
-
-            model.Destination =
-                session.Activity.Destination;
-
-            model.PricePerPerson =
-                session.Activity.PricePerPerson;
-
-            model.AvailableSlots =
-                session.AvailableSlots;
-
-
-            if (!session.IsActive ||
-                session.SessionDate < DateTime.Today)
+            if (!session.IsActive || session.SessionDate < DateTime.Today)
             {
-                ModelState.AddModelError(
-                    nameof(model.ActivitySessionId),
-                    "This session is no longer available.");
+                ModelState.AddModelError(nameof(model.ActivitySessionId), "This session is no longer available.");
             }
 
-
-            if (model.ParticipantCount <
-                session.Activity.MinimumParticipants)
+            if (model.ParticipantCount < session.Activity.MinimumParticipants)
             {
-                ModelState.AddModelError(
-                    nameof(model.ParticipantCount),
-                    $"At least {session.Activity.MinimumParticipants} participant(s) are required.");
+                ModelState.AddModelError(nameof(model.ParticipantCount), $"At least {session.Activity.MinimumParticipants} participant(s) are required.");
             }
 
-
-            if (model.ParticipantCount >
-                session.AvailableSlots)
+            if (model.ParticipantCount > session.AvailableSlots)
             {
-                ModelState.AddModelError(
-                    nameof(model.ParticipantCount),
-                    $"Only {session.AvailableSlots} slot(s) remain.");
+                ModelState.AddModelError(nameof(model.ParticipantCount), $"Only {session.AvailableSlots} slot(s) remain.");
             }
         }
-
 
         if (!ModelState.IsValid)
         {
             return View(model);
         }
 
-
-        await using var transaction =
-            await context.Database.BeginTransactionAsync();
-
+        await using var transaction = await context.Database.BeginTransactionAsync();
 
         try
         {
-            session!.AvailableSlots -=
-                model.ParticipantCount;
+            session!.AvailableSlots -= model.ParticipantCount;
 
+            // ⭐ 1. 费用精细核算：基础票价 + 加购服务 - 优惠券抵扣
+            decimal baseTotal = session.Activity.PricePerPerson * model.ParticipantCount;
+            decimal addonTotal = 0;
+            if (model.HasInsurance) addonTotal += 5.00m * model.ParticipantCount;
+            if (model.HasEquipmentRental) addonTotal += 15.00m * model.ParticipantCount;
 
-            var booking =
-                new ActivityBooking
-                {
-                    BookingReference =
-                        $"ACT{DateTime.Now:yyMMdd}{Guid.NewGuid().ToString("N")[..6].ToUpperInvariant()}",
+            // 优惠券折扣规则 (TRAVEL2026 打 85 折, PROMO10 减 RM 10)
+            decimal discount = 0;
+            if (!string.IsNullOrWhiteSpace(model.PromoCode))
+            {
+                var code = model.PromoCode.Trim().ToUpper();
+                if (code == "TRAVEL2026") discount = Math.Round(baseTotal * 0.15m, 2);
+                else if (code == "PROMO10") discount = Math.Min(baseTotal, 10.00m);
+            }
 
-                    UserId =
-                        CurrentUserId,
+            decimal grandTotal = Math.Max(0, baseTotal + addonTotal - discount);
 
-                    ActivitySessionId =
-                        session.ActivitySessionId,
+            // ⭐ 2. 创建并保存带完整支付信息的订单实体
+            var booking = new ActivityBooking
+            {
+                BookingReference = $"ACT{DateTime.Now:yyMMdd}{Guid.NewGuid().ToString("N")[..6].ToUpperInvariant()}",
+                UserId = CurrentUserId,
+                ActivitySessionId = session.ActivitySessionId,
+                ParticipantCount = model.ParticipantCount,
+                PricePerPerson = session.Activity!.PricePerPerson,
+                TotalAmount = grandTotal,
+                AddonFee = addonTotal,
+                DiscountAmount = discount,
+                PromoCode = model.PromoCode,
+                PaymentMethod = model.PaymentMethod,
+                PaymentStatus = "Paid",
+                ContactName = model.ContactName.Trim(),
+                ContactEmail = model.ContactEmail.Trim(),
+                ContactPhone = model.ContactPhone.Trim(),
+                BookingStatus = ActivityBookingStatus.Confirmed,
+                BookingDate = DateTime.Now
+            };
 
-                    ParticipantCount =
-                        model.ParticipantCount,
-
-                    PricePerPerson =
-                        session.Activity!.PricePerPerson,
-
-                    TotalAmount =
-                        session.Activity.PricePerPerson *
-                        model.ParticipantCount,
-
-                    ContactName =
-                        model.ContactName.Trim(),
-
-                    ContactEmail =
-                        model.ContactEmail.Trim(),
-
-                    ContactPhone =
-                        model.ContactPhone.Trim(),
-
-                    BookingStatus =
-                        ActivityBookingStatus.Confirmed
-                };
-
-
-            context.ActivityBookings.Add(
-                booking);
-
-
+            context.ActivityBookings.Add(booking);
             await context.SaveChangesAsync();
-
             await transaction.CommitAsync();
 
-
-            return RedirectToAction(
-                nameof(Confirmation),
-                new
-                {
-                    id =
-                        booking.ActivityBookingId
-                });
+            return RedirectToAction(nameof(Confirmation), new { id = booking.ActivityBookingId });
         }
         catch
         {
             await transaction.RollbackAsync();
-
-
-            ModelState.AddModelError(
-                "",
-                "The booking could not be completed. Please try again.");
-
-
+            ModelState.AddModelError("", "The booking could not be completed. Please try again.");
             return View(model);
         }
     }
 
-
-    public async Task<IActionResult> Confirmation(
-        int id)
+    public async Task<IActionResult> Confirmation(int id)
     {
-        var booking =
-            await OwnedBooking(id);
-
-
-        return booking is null
-            ? NotFound()
-            : View(booking);
+        var booking = await OwnedBooking(id);
+        return booking is null ? NotFound() : View(booking);
     }
 
-
-    public async Task<IActionResult> MyBookings(
-        string? status)
+    public async Task<IActionResult> MyBookings(string? status)
     {
-        var query =
-            context.ActivityBookings
-                .AsNoTracking()
+        var query = context.ActivityBookings
+            .AsNoTracking()
+            .Include(b => b.ActivitySession)
+                .ThenInclude(s => s!.Activity)
+                .ThenInclude(a => a!.Photos)
+            .Include(b => b.Review)
+            .Where(b => b.UserId == CurrentUserId);
 
-                // Load session
-                .Include(b =>
-                    b.ActivitySession)
-
-                // Load activity
-                .ThenInclude(s =>
-                    s!.Activity)
-
-                // Load activity photos
-                .ThenInclude(a =>
-                    a!.Photos)
-
-                .Where(b =>
-                    b.UserId ==
-                    CurrentUserId);
-
-
-        // Filter by booking status
-        if (Enum.TryParse<ActivityBookingStatus>(
-            status,
-            true,
-            out var parsed))
+        if (Enum.TryParse<ActivityBookingStatus>(status, true, out var parsed))
         {
-            query =
-                query.Where(b =>
-                    b.BookingStatus ==
-                    parsed);
+            query = query.Where(b => b.BookingStatus == parsed);
         }
 
+        ViewBag.Status = status;
 
-        ViewBag.Status =
-            status;
-
-
-        var bookings =
-            await query
-                .OrderByDescending(b =>
-                    b.BookingDate)
-                .ToListAsync();
-
+        var bookings = await query
+            .OrderByDescending(b => b.BookingDate)
+            .ToListAsync();
 
         return View(bookings);
     }
 
-    public async Task<IActionResult> Details(
-        int id)
+    public async Task<IActionResult> Details(int id)
     {
-        var booking =
-            await OwnedBooking(id);
-
-
+        var booking = await OwnedBooking(id);
         if (booking is null)
         {
             return NotFound();
         }
 
-
-        return View(
-            new ActivityBookingDetailsViewModel
-            {
-                Booking =
-                    booking,
-
-                CanCancel =
-                    booking.BookingStatus ==
-                    ActivityBookingStatus.Confirmed
-                    &&
-                    booking.ActivitySession!.SessionDate >
-                    DateTime.Today,
-
-                // User can only review a completed booking
-                // and only if no review exists yet.
-                CanReview =
-                    booking.BookingStatus ==
-                    ActivityBookingStatus.Completed
-                    &&
-                    booking.Review is null,
-
-                ExistingReview =
-                    booking.Review
-            });
+        return View(new ActivityBookingDetailsViewModel
+        {
+            Booking = booking,
+            CanCancel = booking.BookingStatus == ActivityBookingStatus.Confirmed
+                        && booking.ActivitySession!.SessionDate > DateTime.Today,
+            CanReview = booking.BookingStatus == ActivityBookingStatus.Completed
+                        && booking.Review is null,
+            ExistingReview = booking.Review
+        });
     }
 
-
-
     [HttpGet]
-    public async Task<IActionResult> Cancel(
-        int id)
+    public async Task<IActionResult> Cancel(int id)
     {
-        var booking =
-            await OwnedBooking(id);
-
-
+        var booking = await OwnedBooking(id);
         if (booking is null ||
-            booking.BookingStatus !=
-            ActivityBookingStatus.Confirmed ||
-            booking.ActivitySession!.SessionDate <=
-            DateTime.Today)
+            booking.BookingStatus != ActivityBookingStatus.Confirmed ||
+            booking.ActivitySession!.SessionDate <= DateTime.Today)
         {
             return BadRequest();
         }
-
 
         return View(booking);
     }
@@ -315,269 +202,122 @@ public class ActivityBookingsController(AppDbContext context) : Controller
     [HttpPost]
     [ActionName("Cancel")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CancelConfirmed(
-        int id,
-        string cancellationReason)
+    public async Task<IActionResult> CancelConfirmed(int id, string cancellationReason)
     {
-        var booking =
-            await context.ActivityBookings
-                .Include(b =>
-                    b.ActivitySession)
-
-                .FirstOrDefaultAsync(b =>
-                    b.ActivityBookingId == id &&
-                    b.UserId ==
-                    CurrentUserId);
-
+        var booking = await context.ActivityBookings
+            .Include(b => b.ActivitySession)
+            .FirstOrDefaultAsync(b => b.ActivityBookingId == id && b.UserId == CurrentUserId);
 
         if (booking?.ActivitySession is null ||
-            booking.BookingStatus !=
-            ActivityBookingStatus.Confirmed ||
-            booking.ActivitySession.SessionDate <=
-            DateTime.Today)
+            booking.BookingStatus != ActivityBookingStatus.Confirmed ||
+            booking.ActivitySession.SessionDate <= DateTime.Today)
         {
             return BadRequest();
         }
 
-
-        if (string.IsNullOrWhiteSpace(
-                cancellationReason)
-            ||
-            cancellationReason.Length > 400)
+        if (string.IsNullOrWhiteSpace(cancellationReason) || cancellationReason.Length > 400)
         {
-            ModelState.AddModelError(
-                "cancellationReason",
-                "Please enter a cancellation reason (maximum 400 characters).");
-
-
-            return View(
-                "Cancel",
-                booking);
+            ModelState.AddModelError("cancellationReason", "Please enter a cancellation reason (maximum 400 characters).");
+            return View("Cancel", booking);
         }
 
+        booking.BookingStatus = ActivityBookingStatus.Cancelled;
+        booking.CancellationReason = cancellationReason.Trim();
+        booking.CancelledAt = DateTime.Now;
 
-        booking.BookingStatus =
-            ActivityBookingStatus.Cancelled;
-
-        booking.CancellationReason =
-            cancellationReason.Trim();
-
-        booking.CancelledAt =
-            DateTime.Now;
-
-
-        // Return cancelled participant slots
-        booking.ActivitySession.AvailableSlots =
-            Math.Min(
-                booking.ActivitySession.Capacity,
-                booking.ActivitySession.AvailableSlots +
-                booking.ParticipantCount);
-
+        booking.ActivitySession.AvailableSlots = Math.Min(
+            booking.ActivitySession.Capacity,
+            booking.ActivitySession.AvailableSlots + booking.ParticipantCount);
 
         await context.SaveChangesAsync();
 
-
-        return RedirectToAction(
-            nameof(Details),
-            new
-            {
-                id
-            });
+        return RedirectToAction(nameof(Details), new { id });
     }
 
-
-    public async Task<IActionResult> Ticket(
-        int id)
+    public async Task<IActionResult> Ticket(int id)
     {
-        var booking =
-            await OwnedBooking(id);
-
-
-        return booking is null
-            ? NotFound()
-            : View(booking);
+        var booking = await OwnedBooking(id);
+        return booking is null ? NotFound() : View(booking);
     }
-
 
     [HttpGet]
-    public async Task<IActionResult> Review(
-        int bookingId)
+    public async Task<IActionResult> Review(int bookingId)
     {
-        var booking =
-            await OwnedBooking(
-                bookingId);
+        var booking = await OwnedBooking(bookingId);
 
-
-        // Only completed bookings can be reviewed
-        if (booking is null ||
-            booking.BookingStatus !=
-            ActivityBookingStatus.Completed)
+        if (booking is null || booking.BookingStatus != ActivityBookingStatus.Completed)
         {
             return BadRequest();
         }
 
-
-        // One booking can only have one review.
         if (booking.Review is not null)
         {
-            TempData["ErrorMessage"] =
-                "You have already submitted a review for this booking.";
-
-            return RedirectToAction(
-                nameof(Details),
-                new
-                {
-                    id = bookingId
-                });
+            TempData["ErrorMessage"] = "You have already submitted a review for this booking.";
+            return RedirectToAction(nameof(Details), new { id = bookingId });
         }
 
-
-        return View(
-            new ActivityReviewViewModel
-            {
-                ActivityBookingId =
-                    bookingId,
-
-                ActivityName =
-                    booking.ActivitySession!
-                        .Activity!
-                        .ActivityName,
-
-                // Start with no selected rating
-                Rating =
-                    0,
-
-                Comment =
-                    ""
-            });
+        return View(new ActivityReviewViewModel
+        {
+            ActivityBookingId = bookingId,
+            ActivityName = booking.ActivitySession!.Activity!.ActivityName,
+            Rating = 0,
+            Comment = ""
+        });
     }
-
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Review(
-        ActivityReviewViewModel model)
+    public async Task<IActionResult> Review(ActivityReviewViewModel model)
     {
-        var booking =
-            await context.ActivityBookings
+        var booking = await context.ActivityBookings
+            .Include(b => b.ActivitySession)
+                .ThenInclude(s => s!.Activity)
+            .Include(b => b.Review)
+            .FirstOrDefaultAsync(b => b.ActivityBookingId == model.ActivityBookingId && b.UserId == CurrentUserId);
 
-                .Include(b =>
-                    b.ActivitySession)
-
-                .ThenInclude(s =>
-                    s!.Activity)
-
-                .Include(b =>
-                    b.Review)
-
-                .FirstOrDefaultAsync(b =>
-                    b.ActivityBookingId ==
-                    model.ActivityBookingId
-                    &&
-                    b.UserId ==
-                    CurrentUserId);
-
-
-        // Booking must exist and must be completed
-        if (booking?.ActivitySession?.Activity is null ||
-            booking.BookingStatus !=
-            ActivityBookingStatus.Completed)
+        if (booking?.ActivitySession?.Activity is null || booking.BookingStatus != ActivityBookingStatus.Completed)
         {
             return BadRequest();
         }
 
-
-        // Prevent the same booking from submitting
-        // another review.
         if (booking.Review is not null)
         {
-            TempData["ErrorMessage"] =
-                "You have already submitted a review for this booking.";
-
-            return RedirectToAction(
-                nameof(Details),
-                new
-                {
-                    id =
-                        booking.ActivityBookingId
-                });
+            TempData["ErrorMessage"] = "You have already submitted a review for this booking.";
+            return RedirectToAction(nameof(Details), new { id = model.ActivityBookingId });
         }
 
-
-        model.ActivityName =
-            booking.ActivitySession
-                .Activity
-                .ActivityName;
-
+        model.ActivityName = booking.ActivitySession.Activity.ActivityName;
 
         if (!ModelState.IsValid)
         {
             return View(model);
         }
 
+        var review = new ActivityReview
+        {
+            ActivityId = booking.ActivitySession.ActivityId,
+            ActivityBookingId = booking.ActivityBookingId,
+            UserId = CurrentUserId,
+            Rating = model.Rating,
+            Comment = model.Comment.Trim()
+        };
 
-        // Create the review only once
-        var review =
-            new ActivityReview
-            {
-                ActivityId =
-                    booking.ActivitySession.ActivityId,
-
-                ActivityBookingId =
-                    booking.ActivityBookingId,
-
-                UserId =
-                    CurrentUserId,
-
-                Rating =
-                    model.Rating,
-
-                Comment =
-                    model.Comment.Trim()
-            };
-
-
-        context.ActivityReviews.Add(
-            review);
-
-
+        context.ActivityReviews.Add(review);
         await context.SaveChangesAsync();
 
+        TempData["SuccessMessage"] = "Your review has been submitted successfully.";
 
-        TempData["SuccessMessage"] =
-            "Your review has been submitted successfully.";
-
-
-        return RedirectToAction(
-            nameof(Details),
-            new
-            {
-                id =
-                    booking.ActivityBookingId
-            });
+        return RedirectToAction(nameof(Details), new { id = booking.ActivityBookingId });
     }
 
-    private Task<ActivityBooking?> OwnedBooking(
-        int id)
+    private Task<ActivityBooking?> OwnedBooking(int id)
     {
         return context.ActivityBookings
             .AsNoTracking()
-
-            .Include(b =>
-                b.ActivitySession)
-
-            .ThenInclude(s =>
-                s!.Activity)
-
-            .ThenInclude(a =>
-                a!.Photos)
-
-            .Include(b =>
-                b.Review)
-
-            .FirstOrDefaultAsync(b =>
-                b.ActivityBookingId == id &&
-                b.UserId ==
-                CurrentUserId);
+            .Include(b => b.ActivitySession)
+                .ThenInclude(s => s!.Activity)
+                .ThenInclude(a => a!.Photos)
+            .Include(b => b.Review)
+            .FirstOrDefaultAsync(b => b.ActivityBookingId == id && b.UserId == CurrentUserId);
     }
 }

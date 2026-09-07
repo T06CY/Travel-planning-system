@@ -2,21 +2,34 @@
 @using System
 
 @{
-    ViewData["Title"] = "Passenger Details";
+    ViewData["Title"] = "Passenger Details & Checkout";
 }
 
 <link rel="stylesheet" href="~/css/flight.css" asp-append-version="true" />
 
+<style>
+    .payment-option-card { border: 2px solid #e2e8f0; border-radius: 12px; padding: 14px 18px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 12px; }
+    .payment-option-card:hover { border-color: #4158ff; background: #f8fafc; }
+    .payment-option-card input:checked + label { color: #4158ff; font-weight: 700; }
+    .addon-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+</style>
+
 <main class="flight-shell booking-page">
     <div class="page-title-row">
-        <div><span class="flight-eyebrow">PASSENGER RESERVATION</span><h1>Complete your booking</h1><p>Review the schedule, enter passenger information and select seats.</p></div>
+        <div>
+            <span class="flight-eyebrow">PASSENGER RESERVATION &amp; PAYMENT</span>
+            <h1>Complete your flight booking</h1>
+            <p>Select seats, choose baggage add-ons, apply promo codes and pay securely.</p>
+        </div>
         <div class="booking-step">Step 2 of 2</div>
     </div>
 
-    <form method="post" asp-action="Create" class="booking-layout">
+    <form method="post" asp-action="Create" class="booking-layout" id="flightBookingForm">
         @Html.AntiForgeryToken()
         <input asp-for="TripType" type="hidden" />
-        <input asp-for="PassengerCount" type="hidden" />
+        <input asp-for="PassengerCount" type="hidden" id="flightPassengerCount" />
+        <input type="hidden" id="flightBaseFarePerPax" value="@(Model.Flights.Sum(f => f.Price))" />
+
         @foreach (var id in Model.FlightIds)
         {
             <input name="FlightIds" type="hidden" value="@id" />
@@ -25,55 +38,123 @@
         <div class="booking-main-column">
             <div asp-validation-summary="All" class="flight-validation"></div>
 
+            <!-- 1. 联系人资料 -->
             <section class="booking-form-card">
-                <div class="card-heading"><i class="bi bi-person-lines-fill"></i><div><h2>Contact details</h2><p>We will send the confirmation and travel updates here.</p></div></div>
+                <div class="card-heading">
+                    <i class="bi bi-person-lines-fill"></i>
+                    <div>
+                        <h2>Contact details</h2>
+                        <p>We will send the official e-ticket and travel updates here.</p>
+                    </div>
+                </div>
                 <div class="form-grid three-columns">
-                    <div class="flight-field"><label asp-for="ContactName"></label><input asp-for="ContactName" /><span asp-validation-for="ContactName"></span></div>
-                    <div class="flight-field"><label asp-for="ContactEmail"></label><input asp-for="ContactEmail" /><span asp-validation-for="ContactEmail"></span></div>
-                    <div class="flight-field"><label asp-for="PhoneCountry">Phone country</label><select asp-for="PhoneCountry" id="phoneCountry"><option value="MY">Malaysia (+60)</option><option value="SG">Singapore (+65)</option><option value="TH">Thailand (+66)</option><option value="ID">Indonesia (+62)</option><option value="GB">United Kingdom (+44)</option><option value="US">United States (+1)</option><option value="OTHER">Other international</option></select></div>
-                    <div class="flight-field"><label asp-for="ContactPhone"></label><input asp-for="ContactPhone" id="contactPhone" placeholder="0123456789" inputmode="tel" /><small id="phoneFormatHint">Malaysia: 10–11 digits, for example 0123456789.</small><span asp-validation-for="ContactPhone"></span></div>
+                    <div class="flight-field">
+                        <label asp-for="ContactName"></label>
+                        <input asp-for="ContactName" required />
+                        <span asp-validation-for="ContactName"></span>
+                    </div>
+                    <div class="flight-field">
+                        <label asp-for="ContactEmail"></label>
+                        <input asp-for="ContactEmail" type="email" required />
+                        <span asp-validation-for="ContactEmail"></span>
+                    </div>
+                    <div class="flight-field">
+                        <label asp-for="PhoneCountry">Phone country</label>
+                        <select asp-for="PhoneCountry" id="phoneCountry">
+                            <option value="MY">Malaysia (+60)</option>
+                            <option value="SG">Singapore (+65)</option>
+                            <option value="TH">Thailand (+66)</option>
+                            <option value="ID">Indonesia (+62)</option>
+                            <option value="GB">United Kingdom (+44)</option>
+                            <option value="US">United States (+1)</option>
+                            <option value="OTHER">Other international</option>
+                        </select>
+                    </div>
+                    <div class="flight-field">
+                        <label asp-for="ContactPhone"></label>
+                        <input asp-for="ContactPhone" id="contactPhone" placeholder="0123456789" inputmode="tel" required />
+                        <small id="phoneFormatHint">Malaysia: 10–11 digits, e.g. 0123456789.</small>
+                        <span asp-validation-for="ContactPhone"></span>
+                    </div>
                 </div>
             </section>
 
+            <!-- 2. 乘客名册明细 -->
             @for (var index = 0; index < Model.Passengers.Count; index++)
             {
                 <section class="booking-form-card passenger-card">
-                    <div class="card-heading"><span class="passenger-number">@(index + 1)</span><div><h2>Passenger @(index + 1)</h2><p>Names must match the passenger's travel document.</p></div></div>
+                    <div class="card-heading">
+                        <span class="passenger-number">@(index + 1)</span>
+                        <div>
+                            <h2>Passenger @(index + 1)</h2>
+                            <p>Names must match government-issued travel passport/ID.</p>
+                        </div>
+                    </div>
                     <div class="form-grid three-columns">
-                        <div class="flight-field"><label asp-for="Passengers[index].FirstName">First name</label><input asp-for="Passengers[index].FirstName" /><span asp-validation-for="Passengers[index].FirstName"></span></div>
-                        <div class="flight-field"><label asp-for="Passengers[index].LastName">Last name</label><input asp-for="Passengers[index].LastName" /><span asp-validation-for="Passengers[index].LastName"></span></div>
-                        <div class="flight-field"><label asp-for="Passengers[index].PassportNumber">Passport / ID number</label><input asp-for="Passengers[index].PassportNumber" /><span asp-validation-for="Passengers[index].PassportNumber"></span></div>
-                        <div class="flight-field"><label asp-for="Passengers[index].Nationality"></label><input asp-for="Passengers[index].Nationality" /><span asp-validation-for="Passengers[index].Nationality"></span></div>
-                        <div class="flight-field"><label asp-for="Passengers[index].DateOfBirth">Date of birth</label><input asp-for="Passengers[index].DateOfBirth" type="date" max="@DateTime.Today.AddDays(-1).ToString("yyyy-MM-dd")" /><span asp-validation-for="Passengers[index].DateOfBirth"></span></div>
-                        <div class="flight-field"><label asp-for="Passengers[index].PassengerType">Passenger type</label><select asp-for="Passengers[index].PassengerType" required><option value="Adult">Adult (12+)</option><option value="Child">Child (2–11)</option></select><span asp-validation-for="Passengers[index].PassengerType"></span></div>
-                        <input asp-for="Passengers[index].SeatNumber"
-                               type="hidden"
-                               class="seat-input"
-                               data-passenger-index="@index" />
-                        <input asp-for="Passengers[index].ReturnSeatNumber"
-                               type="hidden"
-                               class="return-seat-input"
-                               data-passenger-index="@index" />
-                        <div class="flight-field"><label asp-for="Passengers[index].MealPreference">Meal preference</label><select asp-for="Passengers[index].MealPreference"><option>Standard Meal</option><option>Vegetarian Meal</option><option>Vegan Meal</option><option>Halal Meal</option><option>Child Meal</option><option>No Meal</option></select></div>
+                        <div class="flight-field">
+                            <label asp-for="Passengers[index].FirstName">First name</label>
+                            <input asp-for="Passengers[index].FirstName" required />
+                            <span asp-validation-for="Passengers[index].FirstName"></span>
+                        </div>
+                        <div class="flight-field">
+                            <label asp-for="Passengers[index].LastName">Last name</label>
+                            <input asp-for="Passengers[index].LastName" required />
+                            <span asp-validation-for="Passengers[index].LastName"></span>
+                        </div>
+                        <div class="flight-field">
+                            <label asp-for="Passengers[index].PassportNumber">Passport / ID number</label>
+                            <input asp-for="Passengers[index].PassportNumber" required />
+                            <span asp-validation-for="Passengers[index].PassportNumber"></span>
+                        </div>
+                        <div class="flight-field">
+                            <label asp-for="Passengers[index].Nationality"></label>
+                            <input asp-for="Passengers[index].Nationality" required />
+                            <span asp-validation-for="Passengers[index].Nationality"></span>
+                        </div>
+                        <div class="flight-field">
+                            <label asp-for="Passengers[index].DateOfBirth">Date of birth</label>
+                            <input asp-for="Passengers[index].DateOfBirth" type="date" max="@DateTime.Today.AddDays(-1).ToString("yyyy-MM-dd")" required />
+                            <span asp-validation-for="Passengers[index].DateOfBirth"></span>
+                        </div>
+                        <div class="flight-field">
+                            <label asp-for="Passengers[index].PassengerType">Passenger type</label>
+                            <select asp-for="Passengers[index].PassengerType" required>
+                                <option value="Adult">Adult (12+)</option>
+                                <option value="Child">Child (2–11)</option>
+                            </select>
+                            <span asp-validation-for="Passengers[index].PassengerType"></span>
+                        </div>
+                        <input asp-for="Passengers[index].SeatNumber" type="hidden" class="seat-input" data-passenger-index="@index" />
+                        <input asp-for="Passengers[index].ReturnSeatNumber" type="hidden" class="return-seat-input" data-passenger-index="@index" />
+                        <div class="flight-field">
+                            <label asp-for="Passengers[index].MealPreference">Meal preference</label>
+                            <select asp-for="Passengers[index].MealPreference">
+                                <option>Standard Meal</option>
+                                <option>Vegetarian Meal</option>
+                                <option>Vegan Meal</option>
+                                <option>Halal Meal</option>
+                                <option>Child Meal</option>
+                                <option>No Meal</option>
+                            </select>
+                        </div>
                     </div>
                 </section>
             }
 
+            <!-- 3. 机舱选座 -->
             <section class="booking-form-card simple-seat-picker" id="seatPicker">
                 <div class="card-heading">
                     <i class="bi bi-grid-3x3-gap-fill"></i>
-        <div>
+                    <div>
                         <h2>Choose a seat</h2>
-                        <p>Select one available seat for each passenger before confirming the booking.</p>
+                        <p>Select one available seat for each passenger before confirming.</p>
                     </div>
                 </div>
 
-                <div class="seat-picker-passengers" role="tablist" aria-label="Passenger seat selection">
+                <div class="seat-picker-passengers" role="tablist">
                     @for (var passengerIndex = 0; passengerIndex < Model.PassengerCount; passengerIndex++)
                     {
-                        <button type="button"
-                                class="seat-passenger-button @(passengerIndex == 0 ? "active" : "")"
-                                data-passenger-index="@passengerIndex">
+                        <button type="button" class="seat-passenger-button @(passengerIndex == 0 ? "active" : "")" data-passenger-index="@passengerIndex">
                             Passenger @(passengerIndex + 1)
                             <small data-seat-status-index="@passengerIndex">Not selected</small>
                         </button>
@@ -82,7 +163,7 @@
 
                 @if (string.Equals(Model.TripType, "Return", StringComparison.OrdinalIgnoreCase))
                 {
-                    <div class="seat-leg-tabs" role="tablist" aria-label="Flight seat selection">
+                    <div class="seat-leg-tabs" role="tablist">
                         <button type="button" class="seat-leg-button active" data-seat-leg="outbound">Outbound seat</button>
                         <button type="button" class="seat-leg-button" data-seat-leg="return">Return seat</button>
                     </div>
@@ -141,23 +222,145 @@
                     <span class="seat-validation-error" data-seat-validation-error role="alert"></span>
                 </div>
             </section>
+
+            <!-- ⭐ 4. 托运行李额与航班保障 (Baggage & Flight Protection Add-ons) -->
+            <section class="booking-form-card">
+                <div class="card-heading">
+                    <i class="bi bi-suitcase-lg-fill text-primary"></i>
+                    <div>
+                        <h2>Baggage &amp; Travel Protection</h2>
+                        <p>Enhance your flight with extra baggage allowance and travel disruption protection.</p>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-7">
+                        <label class="form-label fw-bold">Checked Baggage Allowance</label>
+                        <select asp-for="BaggageOption" id="flightBaggageOption" class="form-select form-select-lg" onchange="calculateFlightTotal()">
+                            <option value="Cabin Baggage 7kg (Free)" data-price="0">Cabin Baggage 7kg (Free Included)</option>
+                            <option value="20kg Checked Baggage" data-price="45">Standard 20kg Checked Baggage (+RM 45.00 / pax)</option>
+                            <option value="30kg Heavy Baggage" data-price="75">Heavy 30kg Checked Baggage (+RM 75.00 / pax)</option>
+                        </select>
+                        <input type="hidden" asp-for="BaggagePrice" id="flightBaggagePrice" value="0" />
+                    </div>
+                </div>
+
+                <div class="addon-card">
+                    <div class="form-check mb-0">
+                        <input class="form-check-input" type="checkbox" asp-for="HasTravelInsurance" id="chkFlightInsurance" onchange="calculateFlightTotal()">
+                        <label class="form-check-label fw-bold" for="chkFlightInsurance">
+                            Comprehensive Flight Delay &amp; Travel Medical Insurance
+                        </label>
+                        <small class="d-block text-muted">Covers flight cancellation, baggage loss and medical emergencies up to RM 50,000.</small>
+                    </div>
+                    <span class="badge bg-light text-dark border fs-6">+ RM 18.00 / pax</span>
+                </div>
+            </section>
+
+            <!-- ⭐ 5. 支付渠道选择 (Payment Method) -->
+            <section class="booking-form-card">
+                <div class="card-heading">
+                    <i class="bi bi-credit-card-2-front-fill text-primary"></i>
+                    <div>
+                        <h2>Select Payment Method</h2>
+                        <p>Choose your preferred encrypted payment gateway.</p>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-2">
+                    <div class="col-md-4">
+                        <div class="payment-option-card">
+                            <input class="form-check-input" type="radio" asp-for="PaymentMethod" value="Online Banking (FPX)" id="flightPayFpx" checked>
+                            <label class="form-check-label" for="flightPayFpx">
+                                <i class="bi bi-bank text-primary fs-5"></i> FPX Online
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="payment-option-card">
+                            <input class="form-check-input" type="radio" asp-for="PaymentMethod" value="Credit / Debit Card" id="flightPayCard">
+                            <label class="form-check-label" for="flightPayCard">
+                                <i class="bi bi-credit-card text-success fs-5"></i> Credit/Debit Card
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="payment-option-card">
+                            <input class="form-check-input" type="radio" asp-for="PaymentMethod" value="Touch 'n Go eWallet" id="flightPayTng">
+                            <label class="form-check-label" for="flightPayTng">
+                                <i class="bi bi-wallet2 text-info fs-5"></i> TNG eWallet
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
 
+        <!-- 右侧行程汇总与结账核算栏 -->
         <aside class="booking-summary-card">
             <span class="summary-label">YOUR JOURNEY</span>
             @for (var index = 0; index < Model.Flights.Count; index++)
             {
                 var flight = Model.Flights[index];
                 <div class="summary-segment">
-                    <div class="summary-segment-top"><span>Flight @(index + 1)</span><strong>@flight.FlightNumber</strong></div>
+                    <div class="summary-segment-top">
+                        <span>Flight @(index + 1)</span>
+                        <strong>@flight.FlightNumber</strong>
+                    </div>
                     <h3>@flight.From <i class="bi bi-arrow-right"></i> @flight.To</h3>
                     <p>@flight.DepartureTime.ToString("ddd, dd MMM yyyy · HH:mm")</p>
                     <small>@flight.Airline?.AirlineName · RM @flight.Price.ToString("N2") per person</small>
                 </div>
             }
-            <div class="summary-total"><span>@Model.PassengerCount passenger(s)</span><strong>RM @Model.TotalAmount.ToString("N2")</strong></div>
-            <button type="submit" class="primary-flight-btn full-width"><i class="bi bi-shield-check"></i> Confirm booking</button>
-            <a asp-controller="Flight" asp-action="Index" class="back-link">← Return to flight search</a>
+
+            <hr class="my-3" />
+
+            <div class="d-flex justify-content-between text-muted small mb-2">
+                <span>Base Airfare (@Model.PassengerCount pax)</span>
+                <strong class="text-dark" id="flightBaseTotalText">RM @((Model.Flights.Sum(f => f.Price) * Model.PassengerCount).ToString("N2"))</strong>
+            </div>
+
+            <div class="d-flex justify-content-between text-primary small mb-2" id="baggageSummaryRow" style="display: none;">
+                <span>Checked Baggage</span>
+                <strong id="baggageSummaryText">+ RM 0.00</strong>
+            </div>
+
+            <div class="d-flex justify-content-between text-primary small mb-2" id="insuranceSummaryRow" style="display: none;">
+                <span>Flight Insurance</span>
+                <strong id="insuranceSummaryText">+ RM 0.00</strong>
+            </div>
+
+            <!-- ⭐ 优惠码抵扣 -->
+            <div class="my-3">
+                <label class="form-label small fw-bold">Have a Promo Code?</label>
+                <div class="input-group input-group-sm">
+                    <input type="text" id="flightPromoInput" asp-for="PromoCode" class="form-control text-uppercase" placeholder="e.g. TRAVEL2026" />
+                    <button type="button" id="applyFlightPromoBtn" class="btn btn-outline-primary fw-bold">Apply</button>
+                </div>
+                <span id="flightPromoMessage" class="small d-block mt-1"></span>
+            </div>
+
+            <div class="d-flex justify-content-between text-success small mb-2" id="flightDiscountRow" style="display: none;">
+                <span>Promo Discount</span>
+                <strong id="flightDiscountText">- RM 0.00</strong>
+            </div>
+
+            <div class="summary-total mt-3">
+                <span>Total Payment</span>
+                <strong id="flightGrandTotalText">RM @Model.TotalAmount.ToString("N2")</strong>
+            </div>
+
+            <button type="submit" class="primary-flight-btn full-width mt-3 py-3 fs-5">
+                <i class="bi bi-lock-fill"></i> Pay &amp; Confirm Booking
+            </button>
+
+            <p class="text-center text-muted small mt-2">
+                <i class="bi bi-shield-check text-success"></i> 256-Bit SSL Encrypted Checkout
+            </p>
+
+            <a asp-controller="Flight" asp-action="Index" class="back-link mt-2 d-block text-center">
+                ← Return to flight search
+            </a>
         </aside>
     </form>
 </main>
@@ -166,4 +369,85 @@
 {
     <partial name="_ValidationScriptsPartial" />
     <script src="~/js/flight-seat-picker.js" asp-append-version="true"></script>
+    
+    <!-- 实时计费与优惠核算脚本 -->
+    <script>
+        const paxCount = parseInt(document.getElementById('flightPassengerCount')?.value) || 1;
+        const baseFarePerPax = parseFloat(document.getElementById('flightBaseFarePerPax')?.value) || 0;
+        let flightDiscount = 0;
+
+        function calculateFlightTotal() {
+            const baseTotal = paxCount * baseFarePerPax;
+
+            // 行李费
+            const baggageSelect = document.getElementById('flightBaggageOption');
+            const selectedOption = baggageSelect.options[baggageSelect.selectedIndex];
+            const bagPricePerPax = parseFloat(selectedOption.getAttribute('data-price') || 0);
+            document.getElementById('flightBaggagePrice').value = bagPricePerPax;
+            const baggageTotal = bagPricePerPax * paxCount;
+
+            const bagRow = document.getElementById('baggageSummaryRow');
+            if (baggageTotal > 0) {
+                bagRow.style.display = 'flex';
+                document.getElementById('baggageSummaryText').innerText = '+ RM ' + baggageTotal.toFixed(2);
+            } else {
+                bagRow.style.display = 'none';
+            }
+
+            // 保险费
+            const hasInsurance = document.getElementById('chkFlightInsurance').checked;
+            const insuranceTotal = hasInsurance ? (18.00 * paxCount) : 0;
+            const insRow = document.getElementById('insuranceSummaryRow');
+            if (insuranceTotal > 0) {
+                insRow.style.display = 'flex';
+                document.getElementById('insuranceSummaryText').innerText = '+ RM ' + insuranceTotal.toFixed(2);
+            } else {
+                insRow.style.display = 'none';
+            }
+
+            // 优惠码
+            const promo = document.getElementById('flightPromoInput').value.trim().toUpperCase();
+            if (promo === 'TRAVEL2026') {
+                flightDiscount = baseTotal * 0.15;
+            } else if (promo === 'FLY50') {
+                flightDiscount = Math.Min(baseTotal, 50.00);
+            } else if (promo === 'PROMO10') {
+                flightDiscount = Math.Min(baseTotal, 10.00);
+            } else {
+                flightDiscount = 0;
+            }
+
+            const discRow = document.getElementById('flightDiscountRow');
+            if (flightDiscount > 0) {
+                discRow.style.display = 'flex';
+                document.getElementById('flightDiscountText').innerText = '- RM ' + flightDiscount.toFixed(2);
+            } else {
+                discRow.style.display = 'none';
+            }
+
+            const grandTotal = Math.Max(0, baseTotal + baggageTotal + insuranceTotal - flightDiscount);
+            document.getElementById('flightGrandTotalText').innerText = 'RM ' + grandTotal.toFixed(2);
+        }
+
+        document.getElementById('applyFlightPromoBtn')?.addEventListener('click', function () {
+            const promo = document.getElementById('flightPromoInput').value.trim().toUpperCase();
+            const msg = document.getElementById('flightPromoMessage');
+            if (promo === 'TRAVEL2026') {
+                msg.className = 'small d-block mt-1 text-success';
+                msg.innerText = 'Promo applied: 15% OFF flight fare!';
+            } else if (promo === 'FLY50') {
+                msg.className = 'small d-block mt-1 text-success';
+                msg.innerText = 'Promo applied: RM 50.00 OFF!';
+            } else if (promo === 'PROMO10') {
+                msg.className = 'small d-block mt-1 text-success';
+                msg.innerText = 'Promo applied: RM 10.00 OFF!';
+            } else {
+                msg.className = 'small d-block mt-1 text-danger';
+                msg.innerText = 'Invalid or expired flight promo code.';
+            }
+            calculateFlightTotal();
+        });
+
+        document.addEventListener('DOMContentLoaded', calculateFlightTotal);
+    </script>
 }

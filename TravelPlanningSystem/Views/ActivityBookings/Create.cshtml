@@ -1,49 +1,278 @@
 ﻿@model TravelPlanningSystem.ViewModels.ActivityBookingViewModel
 @{
-    ViewData["Title"] = "Book Activity";
+    ViewData["Title"] = "Book Activity - Checkout";
 }
 <link rel="stylesheet" href="~/css/activities.css" />
 
+<style>
+    /* 支付与加购样式微调 */
+    .payment-option-card { border: 2px solid #e2e8f0; border-radius: 12px; padding: 14px 18px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 12px; }
+    .payment-option-card:hover { border-color: #4158ff; background: #f8fafc; }
+    .payment-option-card input:checked + label { color: #4158ff; font-weight: 700; }
+    .addon-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+</style>
+
 <div class="form-page">
     <div class="container narrow-container">
-        <div class="form-page-header"><a asp-controller="Activity" asp-action="Details" asp-route-id="@Model.ActivityId"><i class="bi bi-arrow-left"></i> Back to activity</a><h1>Complete your reservation</h1><p>Enter your contact details and review the booking total.</p></div>
+        <div class="form-page-header">
+            <a asp-controller="Activity" asp-action="Details" asp-route-id="@Model.ActivityId">
+                <i class="bi bi-arrow-left"></i> Back to activity
+            </a>
+            <h1>Complete your reservation</h1>
+            <p>Select your add-ons, choose payment method and confirm booking.</p>
+        </div>
+
         <div class="checkout-layout">
             <form asp-action="Create" method="post" class="form-card" id="bookingForm">
-                <input asp-for="ActivityId" type="hidden" /><input asp-for="ActivitySessionId" type="hidden" />
+                @Html.AntiForgeryToken()
+                <input asp-for="ActivityId" type="hidden" />
+                <input asp-for="ActivitySessionId" type="hidden" />
+
                 <div asp-validation-summary="ModelOnly" class="text-danger validation-summary"></div>
-                <div class="form-section-title"><span>1</span><div><h3>Traveller information</h3><p>We will send the confirmation to these contact details.</p></div></div>
-                <div class="row g-3">
-                    <div class="col-12"><label asp-for="ContactName" class="form-label"></label><input asp-for="ContactName" class="form-control form-control-lg" placeholder="Full name" /><span asp-validation-for="ContactName" class="text-danger"></span></div>
-                    <div class="col-md-6"><label asp-for="ContactEmail" class="form-label"></label><input asp-for="ContactEmail" class="form-control form-control-lg" placeholder="name@example.com" /><span asp-validation-for="ContactEmail" class="text-danger"></span></div>
-                    <div class="col-md-6"><label asp-for="ContactPhone" class="form-label"></label><input asp-for="ContactPhone" class="form-control form-control-lg" placeholder="012-3456789" /><span asp-validation-for="ContactPhone" class="text-danger"></span></div>
+
+                <!-- 1. 旅客联系人信息 -->
+                <div class="form-section-title">
+                    <span>1</span>
+                    <div>
+                        <h3>Traveller information</h3>
+                        <p>We will send the confirmation and e-ticket to these contact details.</p>
+                    </div>
                 </div>
-                <hr />
-                <div class="form-section-title"><span>2</span><div><h3>Participants</h3><p>Choose the total number of people joining.</p></div></div>
-                <label asp-for="ParticipantCount" class="form-label"></label>
-                <select asp-for="ParticipantCount" class="form-select form-select-lg" id="participantCount">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label asp-for="ContactName" class="form-label fw-bold"></label>
+                        <input asp-for="ContactName" class="form-control form-control-lg" placeholder="Full name as in IC/Passport" required />
+                        <span asp-validation-for="ContactName" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="ContactEmail" class="form-label fw-bold"></label>
+                        <input asp-for="ContactEmail" type="email" class="form-control form-control-lg" placeholder="name@example.com" required />
+                        <span asp-validation-for="ContactEmail" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="ContactPhone" class="form-label fw-bold"></label>
+                        <input asp-for="ContactPhone" class="form-control form-control-lg" placeholder="012-3456789" required />
+                        <span asp-validation-for="ContactPhone" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <hr class="my-4" />
+
+                <!-- 2. 人数选择 -->
+                <div class="form-section-title">
+                    <span>2</span>
+                    <div>
+                        <h3>Participants</h3>
+                        <p>Choose the total number of people joining this session.</p>
+                    </div>
+                </div>
+                <label asp-for="ParticipantCount" class="form-label fw-bold"></label>
+                <select asp-for="ParticipantCount" class="form-select form-select-lg" id="participantCount" onchange="calculateActivityTotal()">
                     @for (var i = 1; i <= Math.Min(Model.AvailableSlots, 20); i++)
                     {
                         <option value="@i">@i participant@(i > 1 ? "s" : "")</option>
                     }
                 </select>
                 <span asp-validation-for="ParticipantCount" class="text-danger"></span>
-                <button type="submit" class="btn btn-confirm-booking"><i class="bi bi-lock-fill"></i> Confirm reservation</button>
-                <p class="form-security"><i class="bi bi-shield-lock"></i> Your information is used only for this booking.</p>
+
+                <hr class="my-4" />
+
+                <!-- ⭐ 3. 活动增值保障与装备租赁 (Add-ons) -->
+                <div class="form-section-title">
+                    <span>3</span>
+                    <div>
+                        <h3>Enhance your trip</h3>
+                        <p>Select optional activity insurance and equipment rental.</p>
+                    </div>
+                </div>
+
+                <div class="addon-card">
+                    <div class="form-check mb-0">
+                        <input class="form-check-input" type="checkbox" asp-for="HasInsurance" id="chkInsurance" onchange="calculateActivityTotal()">
+                        <label class="form-check-label fw-bold" for="chkInsurance">
+                            Activity Accident Insurance Protection
+                        </label>
+                        <small class="d-block text-muted">Comprehensive medical and activity disruption coverage.</small>
+                    </div>
+                    <span class="badge bg-light text-dark border fs-6">+ RM 5.00 / pax</span>
+                </div>
+
+                <div class="addon-card">
+                    <div class="form-check mb-0">
+                        <input class="form-check-input" type="checkbox" asp-for="HasEquipmentRental" id="chkEquipment" onchange="calculateActivityTotal()">
+                        <label class="form-check-label fw-bold" for="chkEquipment">
+                            Premium Equipment & Gear Rental
+                        </label>
+                        <small class="d-block text-muted">Includes safety helmet, gear kit and professional equipment.</small>
+                    </div>
+                    <span class="badge bg-light text-dark border fs-6">+ RM 15.00 / pax</span>
+                </div>
+
+                <hr class="my-4" />
+
+                <!-- ⭐ 4. 支付渠道选择 (Payment Method) -->
+                <div class="form-section-title">
+                    <span>4</span>
+                    <div>
+                        <h3>Payment Method</h3>
+                        <p>Select your preferred secure online payment gateway.</p>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-4">
+                    <div class="col-md-4">
+                        <div class="payment-option-card">
+                            <input class="form-check-input" type="radio" asp-for="PaymentMethod" value="Online Banking (FPX)" id="payFpx" checked>
+                            <label class="form-check-label" for="payFpx">
+                                <i class="bi bi-bank text-primary fs-5"></i> FPX Online
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="payment-option-card">
+                            <input class="form-check-input" type="radio" asp-for="PaymentMethod" value="Credit / Debit Card" id="payCard">
+                            <label class="form-check-label" for="payCard">
+                                <i class="bi bi-credit-card text-success fs-5"></i> Cards
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="payment-option-card">
+                            <input class="form-check-input" type="radio" asp-for="PaymentMethod" value="Touch 'n Go eWallet" id="payTng">
+                            <label class="form-check-label" for="payTng">
+                                <i class="bi bi-wallet2 text-info fs-5"></i> TNG eWallet
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-confirm-booking w-100 py-3 fs-5">
+                    <i class="bi bi-lock-fill"></i> Pay & Confirm Reservation
+                </button>
+                <p class="form-security text-center mt-2">
+                    <i class="bi bi-shield-lock text-success"></i> 256-Bit SSL Encrypted & Secure Checkout.
+                </p>
             </form>
+
+            <!-- 右侧实时计费清单 -->
             <aside class="summary-card">
-                <span class="summary-label">Activity summary</span><h3>@Model.ActivityName</h3><p><i class="bi bi-geo-alt"></i> @Model.Destination</p>
+                <span class="summary-label">Activity summary</span>
+                <h3>@Model.ActivityName</h3>
+                <p><i class="bi bi-geo-alt"></i> @Model.Destination</p>
+
                 <div class="summary-divider"></div>
-                <div class="summary-line"><span>Price per person</span><strong>RM @Model.PricePerPerson.ToString("N2")</strong></div>
-                <div class="summary-line"><span>Participants</span><strong id="participantText">1</strong></div>
+
+                <div class="summary-line">
+                    <span>Price per person</span>
+                    <strong>RM @Model.PricePerPerson.ToString("N2")</strong>
+                </div>
+                <div class="summary-line">
+                    <span>Participants</span>
+                    <strong id="participantText">1</strong>
+                </div>
+                <div class="summary-line">
+                    <span>Base Subtotal</span>
+                    <strong id="baseSubtotalText">RM @Model.PricePerPerson.ToString("N2")</strong>
+                </div>
+
+                <div class="summary-line text-primary" id="insuranceLine" style="display: none;">
+                    <span>Insurance</span>
+                    <strong id="insuranceText">+ RM 0.00</strong>
+                </div>
+
+                <div class="summary-line text-primary" id="equipmentLine" style="display: none;">
+                    <span>Gear Rental</span>
+                    <strong id="equipmentText">+ RM 0.00</strong>
+                </div>
+
+                <!-- ⭐ 优惠券输入栏 -->
+                <div class="my-3">
+                    <label class="form-label small fw-bold">Promo Code</label>
+                    <div class="input-group input-group-sm">
+                        <input type="text" id="promoCodeInput" asp-for="PromoCode" class="form-control text-uppercase" placeholder="e.g. TRAVEL2026" />
+                        <button type="button" id="applyPromoBtn" class="btn btn-outline-primary fw-bold">Apply</button>
+                    </div>
+                    <span id="promoMessage" class="small d-block mt-1"></span>
+                </div>
+
+                <div class="summary-line text-success" id="discountLine" style="display: none;">
+                    <span>Discount</span>
+                    <strong id="discountText">- RM 0.00</strong>
+                </div>
+
                 <div class="summary-divider"></div>
-                <div class="summary-total"><span>Total amount</span><strong id="bookingTotal">RM @Model.PricePerPerson.ToString("N2")</strong></div>
-                <small>No hidden fees are added to your booking.</small>
+                <div class="summary-total">
+                    <span>Total amount</span>
+                    <strong id="bookingTotal">RM @Model.PricePerPerson.ToString("N2")</strong>
+                </div>
+                <small>Instant e-ticket voucher issued upon payment.</small>
             </aside>
         </div>
     </div>
 </div>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script>window.activityPrice = @Model.PricePerPerson.ToString(System.Globalization.CultureInfo.InvariantCulture);</script>
-    <script src="~/js/activity-booking.js"></script>
+    <script>
+        const unitPrice = @Model.PricePerPerson.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        let discount = 0;
+
+        function calculateActivityTotal() {
+            const count = parseInt(document.getElementById('participantCount').value) || 1;
+            document.getElementById('participantText').innerText = count;
+
+            const baseTotal = count * unitPrice;
+            document.getElementById('baseSubtotalText').innerText = 'RM ' + baseTotal.toFixed(2);
+
+            // 保险费
+            const hasIns = document.getElementById('chkInsurance').checked;
+            const insTotal = hasIns ? count * 5.00 : 0;
+            document.getElementById('insuranceLine').style.display = hasIns ? 'flex' : 'none';
+            document.getElementById('insuranceText').innerText = '+ RM ' + insTotal.toFixed(2);
+
+            // 装备租赁费
+            const hasEq = document.getElementById('chkEquipment').checked;
+            const eqTotal = hasEq ? count * 15.00 : 0;
+            document.getElementById('equipmentLine').style.display = hasEq ? 'flex' : 'none';
+            document.getElementById('equipmentText').innerText = '+ RM ' + eqTotal.toFixed(2);
+
+            // 优惠码
+            const promo = document.getElementById('promoCodeInput').value.trim().toUpperCase();
+            if (promo === 'TRAVEL2026') {
+                discount = baseTotal * 0.15;
+            } else if (promo === 'PROMO10') {
+                discount = Math.min(baseTotal, 10.00);
+            } else {
+                discount = 0;
+            }
+
+            if (discount > 0) {
+                document.getElementById('discountLine').style.display = 'flex';
+                document.getElementById('discountText').innerText = '- RM ' + discount.toFixed(2);
+            } else {
+                document.getElementById('discountLine').style.display = 'none';
+            }
+
+            const grandTotal = Math.max(0, baseTotal + insTotal + eqTotal - discount);
+            document.getElementById('bookingTotal').innerText = 'RM ' + grandTotal.toFixed(2);
+        }
+
+        document.getElementById('applyPromoBtn')?.addEventListener('click', function () {
+            const promo = document.getElementById('promoCodeInput').value.trim().toUpperCase();
+            const msg = document.getElementById('promoMessage');
+            if (promo === 'TRAVEL2026') {
+                msg.className = 'small d-block mt-1 text-success';
+                msg.innerText = 'Promo applied: 15% OFF base ticket!';
+            } else if (promo === 'PROMO10') {
+                msg.className = 'small d-block mt-1 text-success';
+                msg.innerText = 'Promo applied: RM 10.00 OFF!';
+            } else {
+                msg.className = 'small d-block mt-1 text-danger';
+                msg.innerText = 'Invalid or expired promo code.';
+            }
+            calculateActivityTotal();
+        });
+
+        document.addEventListener('DOMContentLoaded', calculateActivityTotal);
+    </script>
 }

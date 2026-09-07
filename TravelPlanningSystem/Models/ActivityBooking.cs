@@ -48,4 +48,20 @@ public class ActivityBooking
     public DateTime? CancelledAt { get; set; }
 
     public ActivityReview? Review { get; set; }
+
+    // ⭐ 新增支付与优惠明细字段
+    [StringLength(50)]
+    public string PaymentMethod { get; set; } = "Online Banking (FPX)";
+
+    [StringLength(30)]
+    public string PaymentStatus { get; set; } = "Paid"; // Paid, Pending, Refunded
+
+    [StringLength(50)]
+    public string? PromoCode { get; set; }
+
+    [Column(TypeName = "decimal(10,2)")]
+    public decimal DiscountAmount { get; set; } = 0;
+
+    [Column(TypeName = "decimal(10,2)")]
+    public decimal AddonFee { get; set; } = 0;
 }

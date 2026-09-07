@@ -54,4 +54,25 @@ public class FlightBooking
 
     public ICollection<FlightPassenger> Passengers { get; set; } =
         new List<FlightPassenger>();
+
+    // ⭐ 新增支付、行李、保险与优惠字段
+    [StringLength(50)]
+    public string PaymentMethod { get; set; } = "Online Banking (FPX)";
+
+    [StringLength(30)]
+    public string PaymentStatus { get; set; } = "Paid"; // Paid, Pending, Refunded
+
+    [StringLength(50)]
+    public string? PromoCode { get; set; }
+
+    [Column(TypeName = "decimal(12,2)")]
+    public decimal DiscountAmount { get; set; } = 0;
+
+    [Column(TypeName = "decimal(12,2)")]
+    public decimal AddonFee { get; set; } = 0;
+
+    [StringLength(50)]
+    public string BaggageOption { get; set; } = "Cabin Baggage 7kg (Free)";
+
+    public bool HasTravelInsurance { get; set; } = false;
 }
