@@ -16,6 +16,7 @@ public class TransportationController(AppDbContext context) : Controller
     // ==========================================
     // 列表与检索页面 (Index)
     // ==========================================
+    [AllowAnonymous]
     public async Task<IActionResult> Index(TransportationSearchViewModel model)
     {
         // 1. 确保页码与每页条数合法

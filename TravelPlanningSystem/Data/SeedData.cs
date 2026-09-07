@@ -1435,7 +1435,16 @@ public static class SeedData
         new { From = "Singapore", To = "Bangkok", Minutes = 150, Price = 459m },
         new { From = "Bangkok", To = "Tokyo", Minutes = 360, Price = 1299m },
         new { From = "Kota Kinabalu", To = "Sandakan", Minutes = 50, Price = 139m },
-        new { From = "Kota Kinabalu", To = "Tawau", Minutes = 55, Price = 159m }
+        new { From = "Kota Kinabalu", To = "Tawau", Minutes = 55, Price = 159m },
+        new { From = "Kuala Lumpur", To = "Hanoi", Minutes = 185, Price = 429m },
+        new { From = "Kuala Lumpur", To = "Chennai", Minutes = 205, Price = 549m },
+        new { From = "Kuala Lumpur", To = "Perth", Minutes = 330, Price = 899m },
+        new { From = "Kuala Lumpur", To = "Sydney", Minutes = 500, Price = 1399m },
+        new { From = "Kuala Lumpur", To = "Shanghai", Minutes = 300, Price = 999m },
+        new { From = "Singapore", To = "Bali", Minutes = 160, Price = 399m },
+        new { From = "Singapore", To = "Seoul", Minutes = 390, Price = 1099m },
+        new { From = "Penang", To = "Singapore", Minutes = 80, Price = 299m },
+        new { From = "Johor Bahru", To = "Kota Kinabalu", Minutes = 155, Price = 399m }
     };
 
         var existingScheduleKeys = (await context.Flights
@@ -1459,70 +1468,69 @@ public static class SeedData
             {
                 var route = routes[routeIndex];
 
+                var dailyFlightCount = route.From == "Kuala Lumpur" && route.To == "Kota Kinabalu" ? 4 : 1;
+
                 for (var direction = 0; direction < 2; direction++)
                 {
-                    var airline =
-                        airlines[(routeIndex + direction) % airlines.Count];
-
                     var from =
                         direction == 0 ? route.From : route.To;
 
                     var to =
                         direction == 0 ? route.To : route.From;
 
-                    var flightNumber =
-                        $"{airline.AirlineCode}{100 + routeIndex * 2 + direction}";
+                    for (var flightIndex = 0; flightIndex < dailyFlightCount; flightIndex++)
+                    {
+                        var airline =
+                            airlines[(routeIndex + direction + flightIndex) % airlines.Count];
 
-                    var hour =
-                        direction == 0
-                            ? 7 + routeIndex % 6
-                            : 14 + routeIndex % 6;
+                        var flightNumber =
+                            $"{airline.AirlineCode}{100 + routeIndex * 2 + direction + flightIndex * 10}";
 
-                    var minute =
-                        (routeIndex * 10) % 60;
+                        var hour = direction == 0
+                            ? 7 + routeIndex % 6 + flightIndex * 3
+                            : 14 + routeIndex % 6 + flightIndex * 3;
 
-                    var departure =
-                        scheduleDate
+                        var minute = (routeIndex * 10) % 60;
+
+                        var departure = scheduleDate
                             .AddHours(hour)
                             .AddMinutes(minute);
 
                     var scheduleKey =
                         $"{flightNumber}|{departure.Ticks}";
 
-                    if (existingScheduleKeys.Contains(scheduleKey))
-                    {
-                        continue;
-                    }
+                        if (existingScheduleKeys.Contains(scheduleKey))
+                        {
+                            continue;
+                        }
 
                     var capacity =
                         150 + routeIndex % 4 * 20;
 
-                    context.Flights.Add(
-                        new Flight
-                        {
-                            AirlineId = airline.AirlineId,
-                            FlightNumber = flightNumber,
-                            From = from,
-                            To = to,
-                            DepartureTime = departure,
-                            ArrivalTime =
-                                departure.AddMinutes(route.Minutes),
-                            Price =
-                                route.Price + direction * 20m,
-                            SeatCapacity = capacity,
-                            AvailableSeats = capacity,
-                            AircraftModel =
-                                route.Minutes > 300
+                        context.Flights.Add(
+                            new Flight
+                            {
+                                AirlineId = airline.AirlineId,
+                                FlightNumber = flightNumber,
+                                From = from,
+                                To = to,
+                                DepartureTime = departure,
+                                ArrivalTime = departure.AddMinutes(route.Minutes),
+                                Price = route.Price + direction * 20m + flightIndex * 15m,
+                                SeatCapacity = capacity,
+                                AvailableSeats = capacity,
+                                AircraftModel = route.Minutes > 300
                                     ? "Airbus A330"
                                     : "Airbus A320",
-                            FlightLogoUrl = airline.LogoUrl,
-                            Status = FlightStatus.Scheduled,
-                            IsActive = true,
-                            CreatedAt = DateTime.UtcNow
-                        }
-                    );
+                                FlightLogoUrl = airline.LogoUrl,
+                                Status = FlightStatus.Scheduled,
+                                IsActive = true,
+                                CreatedAt = DateTime.UtcNow
+                            }
+                        );
 
-                    existingScheduleKeys.Add(scheduleKey);
+                        existingScheduleKeys.Add(scheduleKey);
+                    }
                 }
             }
         }
