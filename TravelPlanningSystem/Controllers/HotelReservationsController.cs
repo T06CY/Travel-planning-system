@@ -146,6 +146,8 @@ public class HotelReservationsController(AppDbContext context) : Controller
             PricePerNight = room.PricePerNight,
             TotalAmount = room.PricePerNight * nights,
             ReservationStatus = HotelReservationStatus.Pending,
+            PaymentStatus = "Pending",
+            PaymentMethod = string.Empty,
             ContactName = model.ContactName.Trim(),
             ContactEmail = model.ContactEmail.Trim(),
             ContactPhone = model.ContactPhone.Trim()
@@ -179,8 +181,79 @@ public class HotelReservationsController(AppDbContext context) : Controller
         => await Owned(id) is { } reservation ? View(reservation) : NotFound();
 
     [HttpGet]
+    public async Task<IActionResult> Payment(int id)
+    {
+        var reservation = await Owned(id);
+
+        if (reservation is null ||
+            reservation.ReservationStatus != HotelReservationStatus.Pending ||
+            reservation.PaymentStatus == "Paid")
+        {
+            return BadRequest();
+        }
+
+        return View(new HotelPaymentViewModel
+        {
+            HotelReservationId = reservation.HotelReservationId,
+            ReservationReference = reservation.ReservationReference,
+            HotelName = reservation.HotelRoom?.HotelName ?? "Hotel Reservation",
+            RoomName = reservation.HotelRoom?.RoomName ?? string.Empty,
+            TotalAmount = reservation.TotalAmount
+        });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Payment(HotelPaymentViewModel model)
+    {
+        var allowedMethods = new[]
+        {
+            "Online Banking (FPX)",
+            "Credit / Debit Card",
+            "Touch 'n Go eWallet"
+        };
+
+        if (!allowedMethods.Contains(model.PaymentMethod))
+        {
+            ModelState.AddModelError(nameof(model.PaymentMethod), "Please select a valid payment method.");
+        }
+
+        var reservation = await context.HotelReservations
+            .Include(r => r.HotelRoom)
+            .FirstOrDefaultAsync(r =>
+                r.HotelReservationId == model.HotelReservationId &&
+                r.UserId == CurrentUserId);
+
+        if (reservation is null ||
+            reservation.ReservationStatus != HotelReservationStatus.Pending ||
+            reservation.PaymentStatus == "Paid")
+        {
+            return BadRequest();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            model.ReservationReference = reservation.ReservationReference;
+            model.HotelName = reservation.HotelRoom?.HotelName ?? "Hotel Reservation";
+            model.RoomName = reservation.HotelRoom?.RoomName ?? string.Empty;
+            model.TotalAmount = reservation.TotalAmount;
+            return View(model);
+        }
+
+        reservation.PaymentStatus = "Paid";
+        reservation.PaymentMethod = model.PaymentMethod;
+        reservation.ReservationStatus = HotelReservationStatus.Confirmed;
+
+        await context.SaveChangesAsync();
+
+        return RedirectToAction(nameof(Details), new { id = reservation.HotelReservationId });
+    }
+
+    [HttpGet]
     public async Task<IActionResult> Cancel(int id)
-        => await Owned(id) is { ReservationStatus: HotelReservationStatus.Confirmed } booking &&
+        => await Owned(id) is { } booking &&
+           (booking.ReservationStatus == HotelReservationStatus.Confirmed ||
+            booking.ReservationStatus == HotelReservationStatus.Pending) &&
            booking.CheckInDate > DateTime.Today
             ? View(booking)
             : BadRequest();
@@ -194,7 +267,8 @@ public class HotelReservationsController(AppDbContext context) : Controller
             .FirstOrDefaultAsync(b => b.HotelReservationId == id && b.UserId == CurrentUserId);
 
         if (booking is null ||
-            booking.ReservationStatus != HotelReservationStatus.Confirmed ||
+            (booking.ReservationStatus != HotelReservationStatus.Confirmed &&
+             booking.ReservationStatus != HotelReservationStatus.Pending) ||
             booking.CheckInDate <= DateTime.Today)
         {
             return BadRequest();

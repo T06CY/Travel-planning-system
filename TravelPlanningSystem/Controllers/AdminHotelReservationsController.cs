@@ -58,7 +58,21 @@ public class AdminHotelReservationsController(AppDbContext context) : Controller
         var reservation = await context.HotelReservations.FindAsync(id);
         if (reservation is null) return NotFound();
 
+        var wasCompleted = reservation.ReservationStatus == HotelReservationStatus.Completed;
         reservation.ReservationStatus = status;
+
+        if (status == HotelReservationStatus.Completed && !wasCompleted && !reservation.RewardPointsAwarded)
+        {
+            var contactEmail = reservation.ContactEmail.Trim().ToLower();
+            var user = await context.Users
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == contactEmail);
+
+            if (user is not null)
+            {
+                user.RewardPoints += 10;
+                reservation.RewardPointsAwarded = true;
+            }
+        }
 
         if (status == HotelReservationStatus.Cancelled)
         {

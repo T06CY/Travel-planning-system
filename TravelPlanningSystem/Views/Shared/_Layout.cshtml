@@ -98,7 +98,6 @@
                 </ul>
 
                 <div class="right-menu">
-                    <button class="moon-btn"><i class="bi bi-moon"></i></button>
                     @if (isAuth)
                     {
                         <div class="d-flex align-items-center gap-2">
@@ -147,55 +146,6 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-
-    <script>
-        // Dark mode toggle: toggles .dark-mode on <body>, persists preference in localStorage
-        (function() {
-            try {
-                var btn = document.querySelector('.moon-btn');
-                if (!btn) return;
-                var icon = btn.querySelector('i');
-
-                function applyMode(dark) {
-                    try {
-                        if (dark) {
-                            document.body.classList.add('dark-mode');
-                            document.documentElement.classList.add('dark-mode');
-                            document.documentElement.setAttribute('data-theme', 'dark');
-                            if (icon) { icon.classList.remove('bi-moon'); icon.classList.add('bi-sun-fill'); }
-                            btn.setAttribute('aria-pressed', 'true');
-                        } else {
-                            document.body.classList.remove('dark-mode');
-                            document.documentElement.classList.remove('dark-mode');
-                            document.documentElement.removeAttribute('data-theme');
-                            if (icon) { icon.classList.remove('bi-sun-fill'); icon.classList.add('bi-moon'); }
-                            btn.setAttribute('aria-pressed', 'false');
-                        }
-                        localStorage.setItem('darkMode', dark ? '1' : '0');
-                        console.log('dark mode set ->', dark);
-                    } catch (e){ console.error('applyMode error', e); }
-                }
-
-                // Initialize from saved preference or system
-                var saved = localStorage.getItem('darkMode');
-                if (saved === null) {
-                    var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-                    applyMode(prefersDark);
-                } else {
-                    applyMode(saved === '1');
-                }
-
-                btn.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    var isDark = document.body.classList.contains('dark-mode');
-                    applyMode(!isDark);
-                });
-            } catch (e) {
-                // silent
-                console.error(e);
-            }
-        })();
-    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

@@ -29,7 +29,12 @@
 
                 <div class="mb-3">
                     <label asp-for="Password" class="form-label"></label>
-                    <input asp-for="Password" class="form-control" />
+                    <div class="input-group">
+                        <input asp-for="Password" class="form-control" autocomplete="current-password" />
+                        <button type="button" class="btn btn-outline-secondary password-toggle" data-password-target="Password" aria-label="Show password">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
                     <span asp-validation-for="Password" class="text-danger"></span>
                 </div>
 
@@ -42,6 +47,18 @@
             @section Scripts {
                 <partial name="_ValidationScriptsPartial" />
                 <script>
+                    document.querySelectorAll('.password-toggle').forEach(function (button) {
+                        button.addEventListener('click', function () {
+                            var input = document.getElementById(button.dataset.passwordTarget);
+                            var icon = button.querySelector('i');
+                            var isPassword = input.type === 'password';
+
+                            input.type = isPassword ? 'text' : 'password';
+                            icon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+                            button.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+                        });
+                    });
+
                     (function(){
                         var form = document.querySelector('form[asp-action="PhoneLogin"]') || document.querySelector('form');
                         if (!form) return;

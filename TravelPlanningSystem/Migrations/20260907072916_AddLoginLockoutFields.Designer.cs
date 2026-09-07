@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TravelPlanningSystem.Data;
 
@@ -11,9 +12,11 @@ using TravelPlanningSystem.Data;
 namespace TravelPlanningSystem.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260907072916_AddLoginLockoutFields")]
+    partial class AddLoginLockoutFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -103,9 +106,6 @@ namespace TravelPlanningSystem.Migrations
                     b.Property<int>("ActivitySessionId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("AddonFee")
-                        .HasColumnType("decimal(10,2)");
-
                     b.Property<DateTime>("BookingDate")
                         .HasColumnType("datetime2");
 
@@ -139,28 +139,11 @@ namespace TravelPlanningSystem.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
 
-                    b.Property<decimal>("DiscountAmount")
-                        .HasColumnType("decimal(10,2)");
-
                     b.Property<int>("ParticipantCount")
                         .HasColumnType("int");
 
-                    b.Property<string>("PaymentMethod")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("PaymentStatus")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
                     b.Property<decimal>("PricePerPerson")
                         .HasColumnType("decimal(10,2)");
-
-                    b.Property<string>("PromoCode")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
 
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(12,2)");
@@ -559,14 +542,6 @@ namespace TravelPlanningSystem.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FlightBookingId"));
 
-                    b.Property<decimal>("AddonFee")
-                        .HasColumnType("decimal(12,2)");
-
-                    b.Property<string>("BaggageOption")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<DateTime>("BookingDate")
                         .HasColumnType("datetime2");
 
@@ -596,26 +571,6 @@ namespace TravelPlanningSystem.Migrations
                         .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
-
-                    b.Property<decimal>("DiscountAmount")
-                        .HasColumnType("decimal(12,2)");
-
-                    b.Property<bool>("HasTravelInsurance")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("PaymentMethod")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("PaymentStatus")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<string>("PromoCode")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -796,9 +751,6 @@ namespace TravelPlanningSystem.Migrations
 
                     b.Property<int>("HotelRoomId")
                         .HasColumnType("int");
-
-                    b.Property<bool>("RewardPointsAwarded")
-                        .HasColumnType("bit");
 
                     b.Property<string>("PaymentMethod")
                         .IsRequired()
@@ -1047,14 +999,6 @@ namespace TravelPlanningSystem.Migrations
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ProfilePic")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
-                    b.Property<string>("ProfilePictureUrl")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
 
                     b.Property<Guid>("RoleId")
                         .HasColumnType("uniqueidentifier");

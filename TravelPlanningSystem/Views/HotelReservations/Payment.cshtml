@@ -1,0 +1,86 @@
+@model TravelPlanningSystem.ViewModels.HotelPaymentViewModel
+
+@{
+    ViewData["Title"] = "Hotel Payment";
+}
+
+<link rel="stylesheet" href="~/css/activities.css" />
+
+<div class="form-page">
+    <div class="container narrow-container">
+        <div class="form-page-header">
+            <a asp-action="Details" asp-route-id="@Model.HotelReservationId">
+                <i class="bi bi-arrow-left"></i> Back to reservation
+            </a>
+            <h1>Complete your hotel payment</h1>
+            <p>Confirm your payment method to secure your stay.</p>
+        </div>
+
+        <div class="checkout-layout">
+            <form asp-action="Payment" method="post" class="form-card">
+                <input asp-for="HotelReservationId" type="hidden" />
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="booking-card mb-4">
+                    <h3><i class="bi bi-building text-primary"></i> Reservation</h3>
+                    <div class="d-flex justify-content-between gap-3 mb-2">
+                        <span class="text-muted">Hotel</span>
+                        <strong class="text-end">@Model.HotelName</strong>
+                    </div>
+                    <div class="d-flex justify-content-between gap-3">
+                        <span class="text-muted">Room</span>
+                        <strong class="text-end">@Model.RoomName</strong>
+                    </div>
+                </div>
+
+                <div class="booking-card">
+                    <h3><i class="bi bi-credit-card-2-front-fill text-primary"></i> Payment Method</h3>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="form-check payment-option p-3 border rounded h-100">
+                                <input class="form-check-input" type="radio" asp-for="PaymentMethod" value="Online Banking (FPX)" id="hotelPayFpx" />
+                                <label class="form-check-label fw-bold" for="hotelPayFpx"><i class="bi bi-bank"></i> Online Banking (FPX)</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check payment-option p-3 border rounded h-100">
+                                <input class="form-check-input" type="radio" asp-for="PaymentMethod" value="Credit / Debit Card" id="hotelPayCard" />
+                                <label class="form-check-label fw-bold" for="hotelPayCard"><i class="bi bi-credit-card"></i> Credit / Debit Card</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check payment-option p-3 border rounded h-100">
+                                <input class="form-check-input" type="radio" asp-for="PaymentMethod" value="Touch 'n Go eWallet" id="hotelPayTng" />
+                                <label class="form-check-label fw-bold" for="hotelPayTng"><i class="bi bi-wallet2"></i> Touch 'n Go eWallet</label>
+                            </div>
+                        </div>
+                    </div>
+                    <span asp-validation-for="PaymentMethod" class="text-danger small"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 mt-4 py-3 fw-bold">
+                    <i class="bi bi-shield-check me-2"></i>Pay RM @Model.TotalAmount.ToString("N2") Now
+                </button>
+                <p class="text-center text-muted small mt-3 mb-0"><i class="bi bi-lock-fill me-1"></i> Safe &amp; secure 256-bit SSL checkout</p>
+            </form>
+
+            <aside class="summary-sidebar">
+                <h4 class="fw-bold mb-3">Payment Summary</h4>
+                <div class="summary-row"><span>Reservation</span><strong>@Model.ReservationReference</strong></div>
+                <div class="summary-row"><span>Hotel</span><strong class="text-end">@Model.HotelName</strong></div>
+                <hr />
+                <div class="summary-row total"><span>Total Amount</span><strong>RM @Model.TotalAmount.ToString("N2")</strong></div>
+            </aside>
+        </div>
+    </div>
+</div>
+
+<style>
+    .payment-option { cursor: pointer; transition: border-color .2s ease, background .2s ease; }
+    .payment-option:has(input:checked) { border-color: #536dfe !important; background: #f1f4ff; }
+    .payment-option label { cursor: pointer; display: block; }
+</style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

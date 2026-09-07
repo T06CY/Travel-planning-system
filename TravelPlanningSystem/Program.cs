@@ -50,6 +50,14 @@ using (var scope = app.Services.CreateScope())
             BEGIN
                 ALTER TABLE [dbo].[Rooms] ADD [RoomType] nvarchar(max) NULL;
             END
+
+            IF OBJECT_ID(N'[dbo].[HotelReservations]', N'U') IS NOT NULL
+               AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[HotelReservations]') AND name = 'RewardPointsAwarded')
+            BEGIN
+                ALTER TABLE [dbo].[HotelReservations]
+                    ADD [RewardPointsAwarded] bit NOT NULL
+                        CONSTRAINT [DF_HotelReservations_RewardPointsAwarded] DEFAULT 0;
+            END
         ");
 
         await SeedData.InitializeAsync(context);

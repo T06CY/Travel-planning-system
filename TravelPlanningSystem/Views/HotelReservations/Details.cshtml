@@ -130,7 +130,8 @@
 
 
             @if (Model.ReservationStatus ==
-                 TravelPlanningSystem.Models.HotelReservationStatus.Confirmed)
+                 TravelPlanningSystem.Models.HotelReservationStatus.Confirmed ||
+                 Model.ReservationStatus == TravelPlanningSystem.Models.HotelReservationStatus.Pending)
             {
                 <div class="reservation-actions">
 
@@ -143,6 +144,44 @@
 
                     </a>
 
+                    @if (Model.ReservationStatus == TravelPlanningSystem.Models.HotelReservationStatus.Pending)
+                    {
+                        <a asp-action="Payment"
+                           asp-route-id="@Model.HotelReservationId"
+                           class="pay-reservation-btn">
+                            <i class="bi bi-credit-card"></i>
+                            Pay Now
+                        </a>
+                    }
+
+    .review-reservation-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 11px 18px;
+        border-radius: 9px;
+        background: #ffb020;
+        color: #fff;
+        text-decoration: none;
+        font-weight: 700;
+    }
+
+        .review-reservation-btn:hover {
+            background: #e89a0c;
+            color: #fff;
+        }
+                </div>
+            }
+            else if (Model.ReservationStatus ==
+                     TravelPlanningSystem.Models.HotelReservationStatus.Completed)
+            {
+                <div class="reservation-actions">
+                    <a asp-action="Review"
+                       asp-route-reservationId="@Model.HotelReservationId"
+                       class="review-reservation-btn">
+                        <i class="bi bi-star-fill"></i>
+                        @(Model.Review is null ? "Write a Review" : "Edit Review")
+                    </a>
                 </div>
             }
 
@@ -174,6 +213,19 @@
                 <span>Status</span>
                 <strong>@Model.ReservationStatus</strong>
             </div>
+
+            <div class="price-row">
+                <span>Payment</span>
+                <strong>@Model.PaymentStatus</strong>
+            </div>
+
+            @if (Model.PaymentStatus == "Paid")
+            {
+                <div class="price-row">
+                    <span>Method</span>
+                    <strong class="text-end">@Model.PaymentMethod</strong>
+                </div>
+            }
 
             <div class="reference-box">
                 <span>Reservation reference</span>
@@ -380,6 +432,24 @@
         text-decoration: none;
         font-weight: 700;
     }
+
+    .pay-reservation-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 11px 18px;
+        border-radius: 9px;
+        background: #536dfe;
+        color: white;
+        text-decoration: none;
+        font-weight: 700;
+        box-shadow: 0 8px 18px rgba(83, 109, 254, .2);
+    }
+
+        .pay-reservation-btn:hover {
+            background: #4055d6;
+            color: white;
+        }
 
         .cancel-reservation-btn:hover {
             background: #ff5c66;

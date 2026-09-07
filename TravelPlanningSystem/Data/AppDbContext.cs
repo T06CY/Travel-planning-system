@@ -24,6 +24,7 @@ public class AppDbContext : DbContext
     public DbSet<HotelRoomPhoto> HotelRoomPhotos { get; set; }
     public DbSet<HotelReservation> HotelReservations { get; set; }
     public DbSet<HotelReview> HotelReviews { get; set; }
+    public DbSet<HotelCity> HotelCities { get; set; }
 
     // Airline reservation and management tables
     public DbSet<Airline> Airlines { get; set; }

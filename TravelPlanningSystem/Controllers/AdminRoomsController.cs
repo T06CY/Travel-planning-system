@@ -32,17 +32,29 @@ public class AdminRoomsController(AppDbContext context, IWebHostEnvironment envi
         if (room is null) return NotFound();
 
         var model = ToForm(room);
+        await PopulateCitiesAsync(model);
         model.PhotoCount = room.Photos.Count;
         model.ReservationCount = room.Reservations.Count;
         model.ReviewCount = room.Reviews.Count;
         return View(model);
     }
-    [HttpGet] public IActionResult Create() => View(new HotelRoomFormViewModel());
+    [HttpGet]
+    public async Task<IActionResult> Create()
+    {
+        var model = new HotelRoomFormViewModel();
+        await PopulateCitiesAsync(model);
+        return View(model);
+    }
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(HotelRoomFormViewModel model)
     {
+        await ApplyNewCityAsync(model);
         if (await context.HotelRooms.AnyAsync(r => r.HotelName == model.HotelName && r.RoomName == model.RoomName && r.Destination == model.Destination)) ModelState.AddModelError(nameof(model.RoomName), "This hotel room already exists.");
-        if (!ModelState.IsValid) return View(model);
+        if (!ModelState.IsValid)
+        {
+            await PopulateCitiesAsync(model);
+            return View(model);
+        }
         var room = Map(new HotelRoom(), model);
         context.HotelRooms.Add(room);
         await context.SaveChangesAsync();
@@ -64,6 +76,7 @@ public class AdminRoomsController(AppDbContext context, IWebHostEnvironment envi
         var room = await context.HotelRooms.FindAsync(id);
         if (room is null) return NotFound();
 
+        await ApplyNewCityAsync(model);
         if (await context.HotelRooms.AnyAsync(r =>
             r.HotelRoomId != id &&
             r.HotelName == model.HotelName &&
@@ -75,6 +88,7 @@ public class AdminRoomsController(AppDbContext context, IWebHostEnvironment envi
 
         if (!ModelState.IsValid)
         {
+            await PopulateCitiesAsync(model);
             await PopulateSummaryAsync(model);
             return View("Details", model);
         }
@@ -117,6 +131,48 @@ public class AdminRoomsController(AppDbContext context, IWebHostEnvironment envi
     public async Task<IActionResult> DeletePhoto(int id)
     { var photo = await context.HotelRoomPhotos.FindAsync(id); if (photo is null) return NotFound(); var roomId = photo.HotelRoomId; var file = Path.Combine(environment.WebRootPath, photo.PhotoUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar)); if (System.IO.File.Exists(file)) System.IO.File.Delete(file); context.HotelRoomPhotos.Remove(photo); await context.SaveChangesAsync(); return RedirectToAction(nameof(Photos), new { id = roomId }); }
     private static HotelRoom Map(HotelRoom r, HotelRoomFormViewModel m) { r.HotelName = m.HotelName.Trim(); r.RoomName = m.RoomName.Trim(); r.RoomType = m.RoomType; r.Destination = m.Destination.Trim(); r.Address = m.Address.Trim(); r.Description = m.Description.Trim(); r.PricePerNight = m.PricePerNight; r.Capacity = m.Capacity; r.TotalRooms = m.TotalRooms; r.StarRating = m.StarRating; r.Amenities = m.Amenities?.Trim(); r.IsFeatured = m.IsFeatured; r.IsActive = m.IsActive; return r; }
+    private async Task ApplyNewCityAsync(HotelRoomFormViewModel model)
+    {
+        if (string.Equals(model.Destination, "__new__", StringComparison.Ordinal))
+        {
+            var city = model.NewCity?.Trim();
+            if (string.IsNullOrWhiteSpace(city))
+            {
+                ModelState.AddModelError(nameof(model.NewCity), "Enter a new city name.");
+                return;
+            }
+
+            model.Destination = city;
+        }
+
+        var existing = await context.HotelCities.FirstOrDefaultAsync(c => c.Name == model.Destination);
+        if (existing is null && !string.IsNullOrWhiteSpace(model.Destination))
+        {
+            context.HotelCities.Add(new HotelCity { Name = model.Destination });
+        }
+    }
+
+    private async Task PopulateCitiesAsync(HotelRoomFormViewModel model)
+    {
+        var roomCities = await context.HotelRooms
+            .AsNoTracking()
+            .Select(r => r.Destination)
+            .Distinct()
+            .ToListAsync();
+
+        var cities = await context.HotelCities
+            .AsNoTracking()
+            .Select(c => c.Name)
+            .ToListAsync();
+
+        model.CityOptions = cities
+            .Concat(roomCities)
+            .Where(c => !string.IsNullOrWhiteSpace(c))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(c => c)
+            .ToList();
+    }
+
     private static HotelRoomFormViewModel ToForm(HotelRoom r) => new() { HotelRoomId = r.HotelRoomId, HotelName = r.HotelName, RoomName = r.RoomName, RoomType = r.RoomType, Destination = r.Destination, Address = r.Address, Description = r.Description, PricePerNight = r.PricePerNight, Capacity = r.Capacity, TotalRooms = r.TotalRooms, StarRating = r.StarRating, Amenities = r.Amenities, IsFeatured = r.IsFeatured, IsActive = r.IsActive };
     private async Task PopulateSummaryAsync(HotelRoomFormViewModel model)
     {

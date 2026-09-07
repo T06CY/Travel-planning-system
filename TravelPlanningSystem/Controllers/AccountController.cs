@@ -62,15 +62,25 @@ namespace TravelPlanningSystem.Controllers
                     PasswordHash = u.PasswordHash,
                     FirstName = u.FirstName,
                     LastName = u.LastName,
-                    PhoneNumber = u.PhoneNumber
+                     PhoneNumber = u.PhoneNumber,
+                     FailedLoginAttempts = u.FailedLoginAttempts,
+                     LockoutUntil = u.LockoutUntil
                 })
                 .ToListAsync();
 
             var user = users.FirstOrDefault(u => NormalizePhone(u.PhoneNumber) == normalized);
 
+            if (user != null && IsLocked(user.LockoutUntil))
+            {
+                ModelState.AddModelError(string.Empty, LockoutMessage(user.LockoutUntil!.Value));
+                return View(model);
+            }
+
             if (user != null && user.PasswordHash == passwordHash)
             {
                 var fullUser = await _context.Users.FirstOrDefaultAsync(u => u.UserId == user.UserId) ?? user;
+                ResetLoginFailures(fullUser);
+                await _context.SaveChangesAsync();
 
                 var claims = new List<Claim>
                 {
@@ -89,6 +99,21 @@ namespace TravelPlanningSystem.Controllers
                     return Redirect(returnUrl);
 
                 return RedirectToAction("Index", "Home");
+            }
+
+            if (user != null)
+            {
+                var failedUser = await _context.Users.FirstOrDefaultAsync(u => u.UserId == user.UserId);
+                if (failedUser != null)
+                {
+                    RecordFailedLogin(failedUser);
+                    await _context.SaveChangesAsync();
+                    if (failedUser.LockoutUntil.HasValue)
+                    {
+                        ModelState.AddModelError(string.Empty, LockoutMessage(failedUser.LockoutUntil.Value));
+                        return View(model);
+                    }
+                }
             }
 
             ModelState.AddModelError(string.Empty, "Invalid phone or password.");
@@ -112,8 +137,17 @@ namespace TravelPlanningSystem.Controllers
                     .Include(s => s.StaffRole)
                     .FirstOrDefaultAsync(s => s.Email.ToLower() == identifier.ToLower());
 
+                if (staff != null && IsLocked(staff.LockoutUntil))
+                {
+                    ModelState.AddModelError(string.Empty, LockoutMessage(staff.LockoutUntil!.Value));
+                    return View(model);
+                }
+
                 if (staff != null && staff.Status == "Active" && staff.PasswordHash == passwordHash)
                 {
+                    ResetLoginFailures(staff);
+                    await _context.SaveChangesAsync();
+
                     var claims = new List<Claim>
                     {
                         new Claim(ClaimTypes.Name, $"{staff.FirstName} {staff.LastName}"),
@@ -133,6 +167,17 @@ namespace TravelPlanningSystem.Controllers
 
                     return RedirectToAction("Index", "Home");
                 }
+
+                if (staff != null && staff.Status == "Active")
+                {
+                    RecordFailedLogin(staff);
+                    await _context.SaveChangesAsync();
+                    if (staff.LockoutUntil.HasValue)
+                    {
+                        ModelState.AddModelError(string.Empty, LockoutMessage(staff.LockoutUntil.Value));
+                        return View(model);
+                    }
+                }
             }
 
             // Try application user login by email or phone
@@ -149,7 +194,9 @@ namespace TravelPlanningSystem.Controllers
                         PasswordHash = u.PasswordHash,
                         FirstName = u.FirstName,
                         LastName = u.LastName,
-                        PhoneNumber = u.PhoneNumber
+                         PhoneNumber = u.PhoneNumber,
+                         FailedLoginAttempts = u.FailedLoginAttempts,
+                         LockoutUntil = u.LockoutUntil
                     })
                     .FirstOrDefaultAsync();
             }
@@ -182,10 +229,18 @@ namespace TravelPlanningSystem.Controllers
                 user = users.FirstOrDefault(u => NormalizePhone(u.PhoneNumber) == normalized);
             }
 
+            if (user != null && IsLocked(user.LockoutUntil))
+            {
+                ModelState.AddModelError(string.Empty, LockoutMessage(user.LockoutUntil!.Value));
+                return View(model);
+            }
+
             if (user != null && user.PasswordHash == passwordHash)
             {
                 // reload full user to get profile picture fields
                 var fullUser = await _context.Users.FirstOrDefaultAsync(u => u.UserId == user.UserId) ?? user;
+                ResetLoginFailures(fullUser);
+                await _context.SaveChangesAsync();
 
                 var claims = new List<Claim>
                 {
@@ -204,6 +259,21 @@ namespace TravelPlanningSystem.Controllers
                     return Redirect(returnUrl);
 
                 return RedirectToAction("Index", "Home");
+            }
+
+            if (user != null)
+            {
+                var failedUser = await _context.Users.FirstOrDefaultAsync(u => u.UserId == user.UserId);
+                if (failedUser != null)
+                {
+                    RecordFailedLogin(failedUser);
+                    await _context.SaveChangesAsync();
+                    if (failedUser.LockoutUntil.HasValue)
+                    {
+                        ModelState.AddModelError(string.Empty, LockoutMessage(failedUser.LockoutUntil.Value));
+                        return View(model);
+                    }
+                }
             }
 
             ModelState.AddModelError(string.Empty, "Invalid email/phone or password.");
@@ -248,7 +318,8 @@ namespace TravelPlanningSystem.Controllers
                     Email = staff.Email,
                     IsStaff = true,
                     Department = staff.Department,
-                    RoleName = staff.StaffRole?.RoleName
+                    RoleName = staff.StaffRole?.RoleName,
+                    ProfilePictureUrl = staff.ProfilePictureUrl
                 });
             }
 
@@ -297,8 +368,20 @@ namespace TravelPlanningSystem.Controllers
                 staff.FirstName = model.FirstName ?? staff.FirstName;
                 staff.LastName = model.LastName ?? staff.LastName;
                 staff.Department = model.Department ?? staff.Department;
-                if (!string.IsNullOrWhiteSpace(model.Password))
-                    staff.PasswordHash = PasswordHashing.Hash(model.Password);
+
+                if (model.Upload != null && model.Upload.Length > 0)
+                {
+                    var uploads = Path.Combine(_environment.WebRootPath, "images", "profiles");
+                    Directory.CreateDirectory(uploads);
+
+                    var fileName = $"{Guid.NewGuid()}.jpg";
+                    var filePath = Path.Combine(uploads, fileName);
+                    await using var stream = System.IO.File.Create(filePath);
+                    await model.Upload.CopyToAsync(stream);
+
+                    staff.ProfilePictureUrl = $"/images/profiles/{fileName}";
+                    staff.ProfilePic = staff.ProfilePictureUrl;
+                }
 
                 await _context.SaveChangesAsync();
 
@@ -306,7 +389,9 @@ namespace TravelPlanningSystem.Controllers
                 {
                     new Claim(ClaimTypes.Name, $"{staff.FirstName} {staff.LastName}"),
                     new Claim(ClaimTypes.Email, staff.Email),
-                    new Claim(ClaimTypes.Role, staff.StaffRole?.RoleName ?? "Staff")
+                    new Claim(ClaimTypes.Role, staff.StaffRole?.RoleName ?? "Staff"),
+                    new Claim("ProfilePictureUrl", staff.ProfilePictureUrl ?? string.Empty),
+                    new Claim("ProfilePic", staff.ProfilePic ?? string.Empty)
                 };
 
                 var staffIdentity = new ClaimsIdentity(staffClaims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -393,6 +478,8 @@ namespace TravelPlanningSystem.Controllers
                 DateOfBirth = model.DateOfBirth,
                 PreferredCurrency = model.PreferredCurrency ?? "USD",
                 PreferredLanguage = model.PreferredLanguage ?? "en-US",
+                ProfilePictureUrl = "/images/profiles/pfpicon.png",
+                ProfilePic = "/images/profiles/pfpicon.png",
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -418,6 +505,53 @@ namespace TravelPlanningSystem.Controllers
         private static string NormalizePhone(string? p)
         {
             return string.IsNullOrEmpty(p) ? string.Empty : new string(p.Where(char.IsDigit).ToArray());
+        }
+
+        private static bool IsLocked(DateTime? lockoutUntil)
+            => lockoutUntil.HasValue && lockoutUntil.Value > DateTime.UtcNow;
+
+        private static string LockoutMessage(DateTime lockoutUntil)
+        {
+            var seconds = Math.Max(1, (int)Math.Ceiling((lockoutUntil - DateTime.UtcNow).TotalSeconds));
+            return $"Too many failed login attempts. Try again in {seconds} second(s).";
+        }
+
+        private static void RecordFailedLogin(ApplicationUser user)
+        {
+            if (user.LockoutUntil <= DateTime.UtcNow)
+                user.LockoutUntil = null;
+
+            user.FailedLoginAttempts++;
+            if (user.FailedLoginAttempts >= 3)
+            {
+                user.LockoutUntil = DateTime.UtcNow.AddMinutes(1);
+                user.FailedLoginAttempts = 0;
+            }
+        }
+
+        private static void RecordFailedLogin(StaffUser user)
+        {
+            if (user.LockoutUntil <= DateTime.UtcNow)
+                user.LockoutUntil = null;
+
+            user.FailedLoginAttempts++;
+            if (user.FailedLoginAttempts >= 3)
+            {
+                user.LockoutUntil = DateTime.UtcNow.AddMinutes(1);
+                user.FailedLoginAttempts = 0;
+            }
+        }
+
+        private static void ResetLoginFailures(ApplicationUser user)
+        {
+            user.FailedLoginAttempts = 0;
+            user.LockoutUntil = null;
+        }
+
+        private static void ResetLoginFailures(StaffUser user)
+        {
+            user.FailedLoginAttempts = 0;
+            user.LockoutUntil = null;
         }
     }
 }

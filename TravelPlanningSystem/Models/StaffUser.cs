@@ -40,6 +40,16 @@ namespace TravelPlanningSystem.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        [MaxLength(250)]
+        public string? ProfilePictureUrl { get; set; }
+
+        [MaxLength(250)]
+        public string? ProfilePic { get; set; }
+
+        public int FailedLoginAttempts { get; set; }
+
+        public DateTime? LockoutUntil { get; set; }
+
         // Foreign key for Role
         [Required]
         public Guid RoleId { get; set; }

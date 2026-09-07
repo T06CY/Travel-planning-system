@@ -345,6 +345,44 @@
             color: #e5454e;
         }
 
+    .booking-pay-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 8px;
+        padding: 7px 11px;
+        border-radius: 8px;
+        background: #536dfe;
+        color: #fff;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+        .booking-pay-btn:hover {
+            background: #4055d6;
+            color: #fff;
+        }
+
+    .booking-review-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 8px;
+        padding: 7px 11px;
+        border: 1px solid #ff5964;
+        border-radius: 8px;
+        color: #ff5964;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+        .booking-review-btn:hover {
+            background: #ff5964;
+            color: #fff;
+        }
+
 
     /* =========================================================
        EMPTY STATE
@@ -704,6 +742,28 @@
                                 <i class="bi bi-arrow-right"></i>
 
                             </a>
+
+                            @if (reservation.ReservationStatus == TravelPlanningSystem.Models.HotelReservationStatus.Pending)
+                            {
+                                <a asp-controller="HotelReservations"
+                                   asp-action="Payment"
+                                   asp-route-id="@reservation.HotelReservationId"
+                                   class="booking-pay-btn">
+                                    <i class="bi bi-credit-card"></i>
+                                    Pay Now
+                                </a>
+                            }
+
+                            @if (reservation.ReservationStatus == TravelPlanningSystem.Models.HotelReservationStatus.Completed)
+                            {
+                                <a asp-controller="HotelReservations"
+                                   asp-action="Review"
+                                   asp-route-reservationId="@reservation.HotelReservationId"
+                                   class="booking-review-btn">
+                                    <i class="bi bi-star-fill"></i>
+                                    @(reservation.Review is null ? "Write Review" : "Edit Review")
+                                </a>
+                            }
 
 
                         </div>

@@ -34,7 +34,7 @@ public class MemberManagementInput
     [Required, StringLength(10)]
     public string PreferredLanguage { get; set; } = "en-US";
 
-    [Required, StringLength(20)]
+    [Required, RegularExpression("^(Member|VIP)$", ErrorMessage = "Loyalty tier must be Member or VIP.")]
     public string LoyaltyTier { get; set; } = "Member";
 
     [Range(0, int.MaxValue)]

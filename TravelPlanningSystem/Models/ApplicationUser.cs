@@ -52,5 +52,9 @@ namespace TravelPlanningSystem.Models
         // New column: short-friendly profile picture path/filename
         [MaxLength(250)]
         public string? ProfilePic { get; set; }
+
+        public int FailedLoginAttempts { get; set; }
+
+        public DateTime? LockoutUntil { get; set; }
     }
 }

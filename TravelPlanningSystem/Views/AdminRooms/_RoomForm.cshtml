@@ -15,14 +15,50 @@
     </div>
     <div class="flight-field">
         <label asp-for="RoomType"></label>
-        <input asp-for="RoomType" placeholder="Example: Master Room" />
+        <select asp-for="RoomType">
+            <option value="">Choose a room type</option>
+            <option value="Master Room">Master Room</option>
+            <option value="Single Room">Single Room</option>
+            <option value="Double Room">Double Room</option>
+            <option value="Twin Room">Twin Room</option>
+            <option value="Deluxe Room">Deluxe Room</option>
+            <option value="Family Room">Family Room</option>
+            <option value="Suite">Suite</option>
+        </select>
         <span asp-validation-for="RoomType"></span>
     </div>
     <div class="flight-field">
         <label asp-for="Destination"></label>
-        <input asp-for="Destination" placeholder="City or destination" />
+        <select asp-for="Destination" id="destinationSelect">
+            <option value="">Choose a city</option>
+            @foreach (var city in Model.CityOptions)
+            {
+                <option value="@city">@city</option>
+            }
+            <option value="__new__">+ Add new city</option>
+        </select>
+        <input asp-for="NewCity" id="newCityInput" placeholder="Enter new city name" style="display:none; margin-top:8px;" />
         <span asp-validation-for="Destination"></span>
+        <span asp-validation-for="NewCity"></span>
     </div>
+
+<script>
+    (function () {
+        var destination = document.getElementById('destinationSelect');
+        var newCity = document.getElementById('newCityInput');
+        if (!destination || !newCity) return;
+
+        function toggleNewCity() {
+            var isNew = destination.value === '__new__';
+            newCity.style.display = isNew ? 'block' : 'none';
+            newCity.required = isNew;
+            if (!isNew) newCity.value = '';
+        }
+
+        destination.addEventListener('change', toggleNewCity);
+        toggleNewCity();
+    })();
+</script>
     <div class="flight-field wide-field">
         <label asp-for="Address"></label>
         <input asp-for="Address" />
@@ -55,7 +91,17 @@
     </div>
     <div class="flight-field wide-field">
         <label asp-for="Amenities"></label>
-        <input asp-for="Amenities" placeholder="Wi-Fi, breakfast, parking" />
+        <div class="amenity-options" id="amenityOptions">
+            @foreach (var amenity in new[] { "Wi-Fi", "Breakfast", "Parking", "Swimming Pool", "Gym", "Air Conditioning", "Restaurant", "Airport Shuttle" })
+            {
+                <label class="amenity-option">
+                    <input type="checkbox" value="@amenity" />
+                    <span>@amenity</span>
+                </label>
+            }
+        </div>
+        <input asp-for="Amenities" id="amenitiesInput" placeholder="Or type other amenities, separated by commas" />
+        <small>Select common amenities or add your own. Use commas to separate multiple items.</small>
         <span asp-validation-for="Amenities"></span>
     </div>
     <div class="flight-field wide-field">
@@ -63,6 +109,77 @@
         <input asp-for="Photos" type="file" accept="image/jpeg,image/png,image/webp" multiple class="hotel-photo-upload" />
         <small>Multiple JPG, PNG or WEBP photos, up to 5 MB each. Images are resized and centre-cropped before upload.</small>
     </div>
+
+<style>
+    .amenity-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+
+    .amenity-option {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 11px;
+        border: 1px solid #d7deea;
+        border-radius: 999px;
+        color: #33415c;
+        cursor: pointer;
+        font-size: 13px;
+    }
+
+    .amenity-option input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+    }
+
+    .amenity-option:has(input:checked) {
+        border-color: #536dfe;
+        background: #eef1ff;
+        color: #3156d3;
+    }
+</style>
+
+<script>
+    (function () {
+        var input = document.getElementById('amenitiesInput');
+        var options = document.querySelectorAll('#amenityOptions input[type="checkbox"]');
+        if (!input || !options.length) return;
+
+        var currentAmenities = (input.value || '')
+            .split(',')
+            .map(function (item) { return item.trim(); })
+            .filter(Boolean);
+
+        options.forEach(function (option) {
+            option.checked = currentAmenities.some(function (item) {
+                return item.toLowerCase() === option.value.toLowerCase();
+            });
+
+            option.addEventListener('change', function () {
+                var manualAmenities = input.value
+                    .split(',')
+                    .map(function (item) { return item.trim(); })
+                    .filter(Boolean)
+                    .filter(function (item) {
+                        return !Array.from(options).some(function (selectedOption) {
+                            return selectedOption.value.toLowerCase() === item.toLowerCase();
+                        });
+                    });
+
+                var selectedAmenities = Array.from(options)
+                    .filter(function (item) { return item.checked; })
+                    .map(function (item) { return item.value; });
+
+                input.value = selectedAmenities.concat(manualAmenities).join(', ');
+            });
+        });
+    })();
+</script>
     <label class="checkbox-field">
         <input asp-for="IsFeatured" />
         Featured in hotel search

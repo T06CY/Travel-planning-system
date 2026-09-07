@@ -4,6 +4,93 @@
     ViewData["Title"] = "My Profile";
 }
 
+<style>
+    .profile-picture-picker {
+        position: relative;
+        display: block;
+        width: 150px;
+        height: 150px;
+        margin: 0 auto;
+        overflow: hidden;
+        border-radius: 50%;
+        cursor: pointer;
+    }
+
+    .profile-picture-picker img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border: 3px solid #fff;
+        box-shadow: 0 4px 16px rgba(29, 41, 64, .18);
+        transition: transform .2s ease;
+    }
+
+    .profile-picture-picker::after {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: rgba(29, 41, 64, .58);
+        color: #fff;
+        content: "";
+        font-size: 28px;
+        opacity: 0;
+        transition: opacity .2s ease;
+    }
+
+    .profile-picture-picker:hover::after,
+    .profile-picture-picker:focus-within::after {
+        opacity: 1;
+    }
+
+    .profile-picture-picker:hover img {
+        transform: scale(1.04);
+    }
+
+    .profile-picture-picker .upload-picture-icon {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        z-index: 1;
+        color: #fff;
+        font-size: 30px;
+        opacity: 0;
+        transform: translate(-50%, -50%);
+        transition: opacity .2s ease;
+    }
+
+    .profile-picture-picker:hover .upload-picture-icon,
+    .profile-picture-picker:focus-within .upload-picture-icon {
+        opacity: 1;
+    }
+
+    .profile-picture-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+    }
+
+    .profile-editor {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 1050;
+        align-items: center;
+        justify-content: center;
+        background: rgba(15, 23, 42, .72);
+    }
+
+    .profile-editor.is-open { display: flex; }
+    .profile-editor-card { width: min(92vw, 560px); background: #fff; border-radius: 16px; padding: 1.25rem; }
+    .profile-editor-stage { display: flex; align-items: center; justify-content: center; min-height: 320px; overflow: hidden; background: #111827; border-radius: 12px; }
+    #profileEditorCanvas { max-width: 100%; max-height: 60vh; }
+</style>
+
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
@@ -12,11 +99,14 @@
             <form asp-action="Profile" method="post" enctype="multipart/form-data">
                 <div asp-validation-summary="All" class="text-danger"></div>
 
-                <div class="mb-3">
-                    @if (!string.IsNullOrEmpty(Model.ProfilePictureUrl))
-                    {
-                        <img src="@Model.ProfilePictureUrl" alt="Profile" class="img-thumbnail" style="max-width:150px;" />
-                    }
+                <div class="mb-3 text-center">
+                    <label for="Upload" class="profile-picture-picker" title="Change profile picture">
+                        <img id="profilePicturePreview"
+                             src="@(string.IsNullOrEmpty(Model.ProfilePictureUrl) ? "/images/default-profile.png" : Model.ProfilePictureUrl)"
+                             alt="Profile picture" />
+                        <i class="bi bi-cloud-arrow-up-fill upload-picture-icon" aria-hidden="true"></i>
+                    </label>
+                    <small class="d-block mt-2 text-muted">Click the photo to change it</small>
                 </div>
 
                 <div class="row">
@@ -32,9 +122,15 @@
                     </div>
                 </div>
 
-                <div class="mb-3">
+        <div class="mb-3">
                     <label asp-for="Email" class="form-label"></label>
                     <input asp-for="Email" class="form-control" readonly />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Upload" class="form-label"></label>
+                    <input asp-for="Upload" class="profile-picture-input" type="file" accept="image/jpeg,image/png,image/webp" />
+                    <span asp-validation-for="Upload" class="text-danger"></span>
                 </div>
 
                 @if (Model.IsStaff)
@@ -59,7 +155,30 @@
                 {
                     <div class="mb-3">
                         <label asp-for="PhoneNumber" class="form-label"></label>
-                        <input asp-for="PhoneNumber" class="form-control" />
+                        @{
+                            var storedPhone = Model.PhoneNumber?.Trim() ?? string.Empty;
+                            var profileCountryCode = "+60";
+                            var profileLocalPhone = storedPhone;
+                            var profileCodes = new[] { "+60", "+1", "+44", "+61", "+65", "+91" };
+                            var matchedCode = profileCodes.FirstOrDefault(code => storedPhone.StartsWith(code, StringComparison.Ordinal));
+                            if (matchedCode is not null)
+                            {
+                                profileCountryCode = matchedCode;
+                                profileLocalPhone = storedPhone[matchedCode.Length..].TrimStart();
+                            }
+                        }
+                        <div class="d-flex gap-2">
+                            <select id="profileCountryCode" class="form-select" style="max-width:150px;" aria-label="Country code">
+                                <option value="+60" selected="@(profileCountryCode == "+60")">+60 Malaysia</option>
+                                <option value="+1" selected="@(profileCountryCode == "+1")">+1 USA</option>
+                                <option value="+44" selected="@(profileCountryCode == "+44")">+44 UK</option>
+                                <option value="+61" selected="@(profileCountryCode == "+61")">+61 Australia</option>
+                                <option value="+65" selected="@(profileCountryCode == "+65")">+65 Singapore</option>
+                                <option value="+91" selected="@(profileCountryCode == "+91")">+91 India</option>
+                            </select>
+                            <input id="profileLocalPhone" class="form-control" value="@profileLocalPhone" placeholder="123456789" inputmode="tel" autocomplete="tel-national" />
+                        </div>
+                        <input asp-for="PhoneNumber" id="profilePhoneNumber" type="hidden" />
                         <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                     </div>
 
@@ -69,13 +188,10 @@
                         <span asp-validation-for="DateOfBirth" class="text-danger"></span>
                     </div>
 
-                    <div class="mb-3">
-                        <label asp-for="Upload" class="form-label"></label>
-                        <input asp-for="Upload" class="form-control" type="file" />
-                        <span asp-validation-for="Upload" class="text-danger"></span>
-                    </div>
                 }
 
+                @if (!Model.IsStaff)
+                {
                 <div class="mb-3">
                     <label asp-for="Password" class="form-label"></label>
                     <div class="input-group">
@@ -97,6 +213,7 @@
                     </div>
                     <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                 </div>
+                }
 
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-primary">Save profile</button>
@@ -104,9 +221,100 @@
                 </div>
             </form>
 
+            <div id="profileEditor" class="profile-editor" role="dialog" aria-modal="true" aria-labelledby="profileEditorTitle">
+                <div class="profile-editor-card">
+                    <h3 id="profileEditorTitle" class="h5">Adjust profile picture</h3>
+                    <div class="profile-editor-stage"><canvas id="profileEditorCanvas" width="420" height="420"></canvas></div>
+                    <div class="d-flex align-items-center gap-2 mt-3">
+                        <button type="button" id="zoomOut" class="btn btn-outline-secondary">−</button>
+                        <input id="profileZoom" type="range" class="form-range" min="1" max="3" step="0.05" value="1" aria-label="Zoom" />
+                        <button type="button" id="zoomIn" class="btn btn-outline-secondary">+</button>
+                    </div>
+                    <div class="d-flex gap-2 mt-2">
+                        <button type="button" id="rotateLeft" class="btn btn-outline-secondary">Rotate left</button>
+                        <button type="button" id="rotateRight" class="btn btn-outline-secondary">Rotate right</button>
+                        <button type="button" id="cancelProfileEdit" class="btn btn-outline-secondary ms-auto">Cancel</button>
+                        <button type="button" id="applyProfileEdit" class="btn btn-primary">Use image</button>
+                    </div>
+                </div>
+            </div>
+
             @section Scripts {
                 <partial name="_ValidationScriptsPartial" />
                 <script>
+                    var profileUpload = document.getElementById('Upload');
+                    var profilePreview = document.getElementById('profilePicturePreview');
+
+                    var editor = document.getElementById('profileEditor');
+                    var canvas = document.getElementById('profileEditorCanvas');
+                    var context = canvas && canvas.getContext('2d');
+                    var editorImage = new Image();
+                    var rotation = 0;
+                    var zoom = 1;
+
+                    function drawProfileImage() {
+                        if (!context || !editorImage.naturalWidth) return;
+                        var size = Math.min(editorImage.naturalWidth, editorImage.naturalHeight) / zoom;
+                        var sx = (editorImage.naturalWidth - size) / 2;
+                        var sy = (editorImage.naturalHeight - size) / 2;
+                        context.clearRect(0, 0, canvas.width, canvas.height);
+                        context.save();
+                        context.translate(canvas.width / 2, canvas.height / 2);
+                        context.rotate(rotation * Math.PI / 180);
+                        context.drawImage(editorImage, sx, sy, size, size, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
+                        context.restore();
+                    }
+
+                    if (profileUpload && editor) {
+                        profileUpload.addEventListener('change', function () {
+                            var file = this.files && this.files[0];
+                            if (!file || !file.type.startsWith('image/')) return;
+                            var reader = new FileReader();
+                            reader.onload = function (event) {
+                                editorImage.onload = function () {
+                                    rotation = 0;
+                                    zoom = 1;
+                                    document.getElementById('profileZoom').value = '1';
+                                    drawProfileImage();
+                                    editor.classList.add('is-open');
+                                };
+                                editorImage.src = event.target.result;
+                            };
+                            reader.readAsDataURL(file);
+                        });
+                    }
+
+                    document.getElementById('profileZoom')?.addEventListener('input', function () { zoom = Number(this.value); drawProfileImage(); });
+                    document.getElementById('zoomIn')?.addEventListener('click', function () { zoom = Math.min(3, zoom + .1); document.getElementById('profileZoom').value = zoom; drawProfileImage(); });
+                    document.getElementById('zoomOut')?.addEventListener('click', function () { zoom = Math.max(1, zoom - .1); document.getElementById('profileZoom').value = zoom; drawProfileImage(); });
+                    document.getElementById('rotateLeft')?.addEventListener('click', function () { rotation -= 90; drawProfileImage(); });
+                    document.getElementById('rotateRight')?.addEventListener('click', function () { rotation += 90; drawProfileImage(); });
+                    document.getElementById('cancelProfileEdit')?.addEventListener('click', function () { editor.classList.remove('is-open'); profileUpload.value = ''; });
+                    document.getElementById('applyProfileEdit')?.addEventListener('click', function () {
+                        canvas.toBlob(function (blob) {
+                            var editedFile = new File([blob], 'profile-picture.jpg', { type: 'image/jpeg' });
+                            var transfer = new DataTransfer();
+                            transfer.items.add(editedFile);
+                            profileUpload.files = transfer.files;
+                            profilePreview.src = URL.createObjectURL(blob);
+                            editor.classList.remove('is-open');
+                        }, 'image/jpeg', .9);
+                    });
+
+                    var profileForm = document.querySelector('form[asp-action="Profile"]');
+                    var profileCountryCode = document.getElementById('profileCountryCode');
+                    var profileLocalPhone = document.getElementById('profileLocalPhone');
+                    var profilePhoneNumber = document.getElementById('profilePhoneNumber');
+
+                    if (profileForm && profileCountryCode && profileLocalPhone && profilePhoneNumber) {
+                        profileForm.addEventListener('submit', function () {
+                            var digits = profileLocalPhone.value.replace(/\D/g, '');
+                            profilePhoneNumber.value = digits
+                                ? profileCountryCode.value + digits
+                                : '';
+                        });
+                    }
+
                     document.querySelectorAll('.password-toggle').forEach(function (button) {
                         button.addEventListener('click', function () {
                             var input = document.getElementById(button.dataset.passwordTarget);

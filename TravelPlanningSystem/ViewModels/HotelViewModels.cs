@@ -10,6 +10,8 @@ public class HotelRoomFormViewModel
     [Required, StringLength(120), Display(Name = "Hotel name")] public string HotelName { get; set; } = string.Empty;
     [Required, StringLength(120), Display(Name = "Room name")] public string RoomName { get; set; } = string.Empty;
     [Required, StringLength(80)] public string Destination { get; set; } = string.Empty;
+    public string? NewCity { get; set; }
+    public IReadOnlyList<string> CityOptions { get; set; } = Array.Empty<string>();
     [Required, StringLength(180)] public string Address { get; set; } = string.Empty;
     [Required, StringLength(2000)] public string Description { get; set; } = string.Empty;
     [Range(0.01, 999999), Display(Name = "Price per night (RM)")] public decimal PricePerNight { get; set; }
@@ -102,4 +104,16 @@ public class HotelReviewViewModel
     public string RoomName { get; set; } = string.Empty;
     [Range(1, 5)] public int Rating { get; set; } = 5;
     [Required, StringLength(800)] public string Comment { get; set; } = string.Empty;
+}
+
+public class HotelPaymentViewModel
+{
+    public int HotelReservationId { get; set; }
+    public string ReservationReference { get; set; } = string.Empty;
+    public string HotelName { get; set; } = string.Empty;
+    public string RoomName { get; set; } = string.Empty;
+    public decimal TotalAmount { get; set; }
+
+    [Required, Display(Name = "Payment Method")]
+    public string PaymentMethod { get; set; } = "Online Banking (FPX)";
 }
