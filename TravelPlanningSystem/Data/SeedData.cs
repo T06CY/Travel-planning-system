@@ -559,7 +559,8 @@ public static class SeedData
                 Destination = "Cameron Highlands",
                 Address = "30th Mile, Jalan Ringlet - Sg Koyan, 39000 Ringlet, Pahang",
                 Stars = 4,
-                Price = 380m
+                Price = 380m,
+                Photo = "/images/hotels/uploads/224a8e98dfc746dba24df4f82f765cbe.jpg"
             },
 
             new
@@ -568,7 +569,8 @@ public static class SeedData
                 Destination = "Cameron Highlands",
                 Address = "By The Golf Course, Brinchang, 39000 Tanah Rata, Pahang",
                 Stars = 5,
-                Price = 495m
+                Price = 495m,
+                Photo = "/images/hotels/uploads/2672403677854a46b231d007a3639bf4.jpg"
             },
 
             new
@@ -577,7 +579,8 @@ public static class SeedData
                 Destination = "Cameron Highlands",
                 Address = "Jalan Majlis, 39000 Tanah Rata, Pahang",
                 Stars = 4,
-                Price = 350m
+                Price = 350m,
+                Photo = "/images/hotels/uploads/2690fe66a9444f5f98881b8f4bcd726f.jpg"
             },
 
             new
@@ -586,7 +589,8 @@ public static class SeedData
                 Destination = "Cameron Highlands",
                 Address = "Kea Farm, Brinchang, 39100 Tanah Rata, Pahang",
                 Stars = 4,
-                Price = 420m
+                Price = 420m,
+                Photo = "/images/hotels/uploads/2a5b7574315142108faffb0fefb1cc31.jpg"
             },
 
             new
@@ -595,7 +599,8 @@ public static class SeedData
                 Destination = "Cameron Highlands",
                 Address = "By the Golf Course, Tanah Rata, 39000 Tanah Rata, Pahang",
                 Stars = 4,
-                Price = 460m
+                Price = 460m,
+                Photo = "/images/hotels/uploads/31110e3aecfb4f74bd0cafb513c2cb4e.jpg"
             },
 
             new
@@ -604,7 +609,8 @@ public static class SeedData
                 Destination = "George Town",
                 Address = "7, Jalan Penang, 10000 George Town, Pulau Pinang",
                 Stars = 3,
-                Price = 210m
+                Price = 210m,
+                Photo = "/images/hotels/uploads/3355a4d9d6e34195a7b354aab1aa7d5c.jpg"
             },
 
             new
@@ -613,7 +619,8 @@ public static class SeedData
                 Destination = "George Town",
                 Address = "10, Lebuh Farquhar, 10200 George Town, Pulau Pinang",
                 Stars = 5,
-                Price = 650m
+                Price = 650m,
+                Photo = "/images/hotels/uploads/489406cce2f749e5a02f0880d8ea545f.jpg"
             },
 
             new
@@ -622,7 +629,8 @@ public static class SeedData
                 Destination = "George Town",
                 Address = "8, Gat Lebuh Gereja, 10300 George Town, Pulau Pinang",
                 Stars = 5,
-                Price = 520m
+                Price = 520m,
+                Photo = "/images/hotels/uploads/49ab4ccd7c6747e693a4d5185a2f4025.jpg"
             },
 
             new
@@ -631,7 +639,8 @@ public static class SeedData
                 Destination = "George Town",
                 Address = "Magazine Road, George Town, 10300 George Town, Pulau Pinang",
                 Stars = 4,
-                Price = 390m
+                Price = 390m,
+                Photo = "/images/hotels/uploads/4f8b4acbaf92496eb508a144ec40cba9.jpg"
             },
 
             new
@@ -640,7 +649,8 @@ public static class SeedData
                 Destination = "George Town",
                 Address = "168A, Persiaran Gurney, 10250 George Town, Pulau Pinang",
                 Stars = 5,
-                Price = 580m
+                Price = 580m,
+                Photo = "/images/hotels/uploads/545d1cfa0d6743988c2754861f6bdd0a.jpg"
             },
 
             new
@@ -649,7 +659,8 @@ public static class SeedData
                 Destination = "Kuala Lumpur",
                 Address = "21, Jln PV12, Taman Danau Kota, Setapak, 53300 Kuala Lumpur",
                 Stars = 3,
-                Price = 150m
+                Price = 150m,
+                Photo = "/images/hotels/uploads/687b707519b849a1b530af8721e9d20f.jpg"
             },
 
             new
@@ -658,7 +669,8 @@ public static class SeedData
                 Destination = "Kuala Lumpur",
                 Address = "Kuala Lumpur City Centre, 50088 Kuala Lumpur",
                 Stars = 5,
-                Price = 720m
+                Price = 720m,
+                Photo = "/images/hotels/uploads/6edf0b954f5f43c0a875353857495208.jpg"
             },
 
             new
@@ -667,7 +679,8 @@ public static class SeedData
                 Destination = "Kuala Lumpur",
                 Address = "168, Jalan Imbi, Bukit Bintang, 55100 Kuala Lumpur",
                 Stars = 5,
-                Price = 850m
+                Price = 850m,
+                Photo = "/images/hotels/uploads/7ac69f4be5454b9f96b9f399c3f8c9c4.jpg"
             },
 
             new
@@ -676,7 +689,8 @@ public static class SeedData
                 Destination = "Kuala Lumpur",
                 Address = "11, Jalan Sultan Ismail, 50250 Kuala Lumpur",
                 Stars = 5,
-                Price = 620m
+                Price = 620m,
+                Photo = "/images/hotels/uploads/815fc99d23ef4ce7979ae530e136f20f.jpg"
             },
 
             new
@@ -685,7 +699,8 @@ public static class SeedData
                 Destination = "Kuala Lumpur",
                 Address = "No 6, Jalan Stesen Sentral 2, Kuala Lumpur Sentral, 50470 Kuala Lumpur",
                 Stars = 5,
-                Price = 950m
+                Price = 950m,
+                Photo = "/images/hotels/uploads/8980f952fde74d01a50d430f1885df96.jpg"
             },
 
             new
@@ -694,7 +709,8 @@ public static class SeedData
                 Destination = "Langkawi",
                 Address = "Lot PT 214 & 215, Mukim Kedawang, Pantai Cenang, 07000 Langkawi, Kedah",
                 Stars = 3,
-                Price = 230m
+                Price = 230m,
+                Photo = "/images/hotels/uploads/8bef0e971efb4076828b5ca3928e32ff.jpg"
             },
 
             new
@@ -703,7 +719,8 @@ public static class SeedData
                 Destination = "Langkawi",
                 Address = "Lot 60199, Pantai Tengah, Bandar Padang Matsirat, 07000 Langkawi, Kedah",
                 Stars = 5,
-                Price = 680m
+                Price = 680m,
+                Photo = "/images/hotels/uploads/940a3b87093c4f9793cf6bccfbf77899.jpg"
             },
 
             new
@@ -712,7 +729,8 @@ public static class SeedData
                 Destination = "Langkawi",
                 Address = "Jalan Pantai Kok, Teluk Nibong, 07000 Langkawi, Kedah",
                 Stars = 5,
-                Price = 1200m
+                Price = 1200m,
+                Photo = "/images/hotels/uploads/9638b54996dc465cb0030ae88a8253b6.jpg"
             },
 
             new
@@ -721,7 +739,8 @@ public static class SeedData
                 Destination = "Langkawi",
                 Address = "Pantai Cenang, 07000 Langkawi, Kedah",
                 Stars = 5,
-                Price = 750m
+                Price = 750m,
+                Photo = "/images/hotels/uploads/9d0214db17764ec18f479552863de5d8.jpg"
             },
 
             new
@@ -730,7 +749,8 @@ public static class SeedData
                 Destination = "Langkawi",
                 Address = "Karong Berkunci 200, Burau Bay, 07000 Langkawi, Kedah",
                 Stars = 5,
-                Price = 560m
+                Price = 560m,
+                Photo = "/images/hotels/uploads/a4db4c783b4f4360aa46c84cbc152664.jpg"
             },
 
             new
@@ -739,7 +759,8 @@ public static class SeedData
                 Destination = "Melaka",
                 Address = "Lebuh Ayer Keroh, Bandar Melaka, 75450 Melaka",
                 Stars = 3,
-                Price = 180m
+                Price = 180m,
+                Photo = "/images/hotels/uploads/aca0165c7c39499382212eea7a5513bb.jpg"
             },
 
             new
@@ -748,7 +769,8 @@ public static class SeedData
                 Destination = "Melaka",
                 Address = "Hatten Square, Jalan Merdeka, Bandar Hilir, 75000 Melaka",
                 Stars = 5,
-                Price = 450m
+                Price = 450m,
+                Photo = "/images/hotels/uploads/b911b00322464a079d7b13598a8b05ad.jpg"
             },
 
             new
@@ -757,7 +779,8 @@ public static class SeedData
                 Destination = "Melaka",
                 Address = "Hatten City, Jalan Melaka Raya 23, 75000 Melaka",
                 Stars = 5,
-                Price = 520m
+                Price = 520m,
+                Photo = "/images/hotels/uploads/ba2f1ea081714bc597867d7b9f714828.jpg"
             },
 
             new
@@ -766,7 +789,8 @@ public static class SeedData
                 Destination = "Melaka",
                 Address = "Lorong Haji Bachee, Kampung Bukit China, 75100 Melaka",
                 Stars = 4,
-                Price = 410m
+                Price = 410m,
+                Photo = "/images/hotels/uploads/c6e394129dc04958b8c5278c86825cfa.jpg"
             },
 
             new
@@ -775,7 +799,8 @@ public static class SeedData
                 Destination = "Melaka",
                 Address = "188, Jalan Bunga Raya, 75100 Melaka",
                 Stars = 5,
-                Price = 590m
+                Price = 590m,
+                Photo = "/images/hotels/uploads/e880e6c7df474cec8a757122c1134d9f.jpg"
             }
         };
 
@@ -889,10 +914,10 @@ public static class SeedData
                             room.HotelRoomId,
 
                         PhotoUrl =
-                            "/images/hotels/uploads/no-image.jpg",
+                            seed.Photo,
 
                         Caption =
-                            "Demo hotel placeholder",
+                            seed.Hotel,
 
                         IsPrimary =
                             true,
@@ -902,22 +927,26 @@ public static class SeedData
                     }
                 );
             }
-            else if (
-                photos.All(p =>
-                    p.Caption == room.RoomName ||
-                    p.Caption == "Hotel ambience"))
+            else
             {
-                foreach (var photo in photos)
-                {
-                    photo.PhotoUrl =
-                        "/images/hotels/uploads/no-image.jpg";
+                // Keep the existing record but point it to the seeded hotel photo.
+                // This also replaces the old no-image.jpg placeholder.
+                var primaryPhoto = photos
+                    .OrderByDescending(p => p.IsPrimary)
+                    .ThenBy(p => p.DisplayOrder)
+                    .First();
 
-                    photo.Caption =
-                        "Demo hotel placeholder";
-                }
+                primaryPhoto.PhotoUrl =
+                    seed.Photo;
 
-                photos[0].IsPrimary =
+                primaryPhoto.Caption =
+                    seed.Hotel;
+
+                primaryPhoto.IsPrimary =
                     true;
+
+                primaryPhoto.DisplayOrder =
+                    0;
             }
         }
 
