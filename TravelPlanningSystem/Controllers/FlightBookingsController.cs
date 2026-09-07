@@ -75,6 +75,15 @@ public class FlightBookingsController(AppDbContext context) : Controller
             if (IsPlaceholder(passenger.PassportNumber))
                 ModelState.AddModelError(nameof(model.Passengers), "Enter a valid passport or ID number.");
 
+            if (!IsValidPassportOrId(passenger.Nationality, passenger.PassportNumber))
+            {
+                ModelState.AddModelError(
+                    $"Passengers[{model.Passengers.IndexOf(passenger)}].PassportNumber",
+                    passenger.Nationality.Equals("Malaysian", StringComparison.OrdinalIgnoreCase)
+                        ? "Malaysian documents must be a 12-digit MyKad number or a passport number with 1 letter followed by 8 digits."
+                        : "Use 6 to 30 letters and numbers for the passport or ID number.");
+            }
+
             passenger.SeatNumber = (passenger.SeatNumber ?? string.Empty).Trim().ToUpperInvariant();
             if (string.IsNullOrWhiteSpace(passenger.SeatNumber))
             {
@@ -140,7 +149,7 @@ public class FlightBookingsController(AppDbContext context) : Controller
                 {
                     ModelState.AddModelError(nameof(model.Passengers), $"Seat {passenger.SeatNumber} is not available on this aircraft.");
                 }
-                if (isReturnTrip && !IsValidSeat(passenger.ReturnSeatNumber!, orderedFlights.SeatCapacity))
+                if (isReturnTrip && !IsValidSeat(passenger.ReturnSeatNumber!, orderedFlights[1].SeatCapacity))
                 {
                     ModelState.AddModelError(nameof(model.Passengers), $"Return seat {passenger.ReturnSeatNumber} is not available on this aircraft.");
                 }
@@ -193,7 +202,7 @@ public class FlightBookingsController(AppDbContext context) : Controller
 
         if (isReturnTrip && selectedReturnSeats.Count > 0)
         {
-            var returnFlightId = orderedFlights.FlightId;
+            var returnFlightId = orderedFlights[1].FlightId;
             var occupiedReturnSeats = await context.FlightPassengers
                 .Where(p => selectedReturnSeats.Contains(p.SeatNumber) &&
                     p.FlightBooking != null && p.FlightBooking.Status != FlightBookingStatus.Cancelled &&
@@ -478,6 +487,17 @@ public class FlightBookingsController(AppDbContext context) : Controller
         return country == "MY"
             ? System.Text.RegularExpressions.Regex.IsMatch(digits, @"^(01[0-9]{8,9}|601[0-9]{8,9})$")
             : System.Text.RegularExpressions.Regex.IsMatch(phone ?? string.Empty, @"^\+[1-9][0-9]{7,14}$");
+    }
+
+    private static bool IsValidPassportOrId(string? nationality, string? passportOrId)
+    {
+        var value = (passportOrId ?? string.Empty).Trim().ToUpperInvariant();
+        if (string.Equals(nationality, "Malaysian", StringComparison.OrdinalIgnoreCase))
+        {
+            return System.Text.RegularExpressions.Regex.IsMatch(value, @"^(\d{12}|[A-Z]\d{8})$", System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+        }
+
+        return System.Text.RegularExpressions.Regex.IsMatch(value, @"^[A-Z0-9]{6,30}$", System.Text.RegularExpressions.RegexOptions.CultureInvariant);
     }
 
     private static string FormatPhone(string country, string phone)

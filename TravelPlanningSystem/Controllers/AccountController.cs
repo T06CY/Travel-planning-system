@@ -36,7 +36,7 @@ namespace TravelPlanningSystem.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> PhoneLogin(LoginViewModel model, string returnUrl = null)
+        public async Task<IActionResult> PhoneLogin(LoginViewModel model, string? returnUrl = null)
         {
             if (!ModelState.IsValid)
                 return View(model);
@@ -97,7 +97,7 @@ namespace TravelPlanningSystem.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
+        public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
         {
             if (!ModelState.IsValid)
                 return View(model);

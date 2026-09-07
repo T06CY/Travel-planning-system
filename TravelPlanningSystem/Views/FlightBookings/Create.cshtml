@@ -103,7 +103,8 @@
                         </div>
                         <div class="flight-field">
                             <label asp-for="Passengers[index].PassportNumber">Passport / ID number</label>
-                            <input asp-for="Passengers[index].PassportNumber" required />
+                            <input asp-for="Passengers[index].PassportNumber" required maxlength="30" autocomplete="off" />
+                            <small class="text-muted">Malaysian: 12-digit MyKad or 1 letter + 8-digit passport.</small>
                             <span asp-validation-for="Passengers[index].PassportNumber"></span>
                         </div>
                         <div class="flight-field">
@@ -410,9 +411,9 @@
             if (promo === 'TRAVEL2026') {
                 flightDiscount = baseTotal * 0.15;
             } else if (promo === 'FLY50') {
-                flightDiscount = Math.Min(baseTotal, 50.00);
+                flightDiscount = Math.min(baseTotal, 50.00);
             } else if (promo === 'PROMO10') {
-                flightDiscount = Math.Min(baseTotal, 10.00);
+                flightDiscount = Math.min(baseTotal, 10.00);
             } else {
                 flightDiscount = 0;
             }
@@ -425,7 +426,7 @@
                 discRow.style.display = 'none';
             }
 
-            const grandTotal = Math.Max(0, baseTotal + baggageTotal + insuranceTotal - flightDiscount);
+            const grandTotal = Math.max(0, baseTotal + baggageTotal + insuranceTotal - flightDiscount);
             document.getElementById('flightGrandTotalText').innerText = 'RM ' + grandTotal.toFixed(2);
         }
 
@@ -449,5 +450,84 @@
         });
 
         document.addEventListener('DOMContentLoaded', calculateFlightTotal);
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const namePattern = /^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ' -]{1,79}$/;
+            const genericDocumentPattern = /^[A-Za-z0-9]{6,30}$/;
+            const malaysianDocumentPattern = /^(\d{12}|[A-Za-z]\d{8})$/;
+
+            function setFieldError(field, message) {
+                const container = field.closest('.flight-field');
+                const messageElement = container?.querySelector('[data-valmsg-for]');
+                if (!messageElement) return;
+
+                messageElement.textContent = message;
+                messageElement.classList.toggle('field-validation-error', Boolean(message));
+                messageElement.classList.toggle('field-validation-valid', !message);
+                field.setAttribute('aria-invalid', message ? 'true' : 'false');
+            }
+
+            function calculateAge(dateOfBirth) {
+                const today = new Date();
+                let age = today.getFullYear() - dateOfBirth.getFullYear();
+                const birthdayPassed = today.getMonth() > dateOfBirth.getMonth() ||
+                    (today.getMonth() === dateOfBirth.getMonth() && today.getDate() >= dateOfBirth.getDate());
+                if (!birthdayPassed) age--;
+                return age;
+            }
+
+            function validatePassengerField(field) {
+                const name = field.name || '';
+                const value = field.value.trim();
+                let message = '';
+
+                if (name.endsWith('.FirstName') || name.endsWith('.LastName')) {
+                    if (!value) message = 'This field is required.';
+                    else if (!namePattern.test(value)) message = 'Use 2–80 letters, spaces, apostrophes or hyphens only.';
+                } else if (name.endsWith('.Nationality')) {
+                    if (!value) message = 'Nationality is required.';
+                } else if (name.endsWith('.PassportNumber')) {
+                    const nationality = field.closest('.passenger-card')?.querySelector('[name$=".Nationality"]')?.value.trim() || '';
+                    const pattern = nationality.toLowerCase() === 'malaysian' ? malaysianDocumentPattern : genericDocumentPattern;
+                    if (!value) message = 'Passport or ID number is required.';
+                    else if (!pattern.test(value)) {
+                        message = nationality.toLowerCase() === 'malaysian'
+                            ? 'Use a 12-digit MyKad number or a passport number with 1 letter followed by 8 digits.'
+                            : 'Use 6–30 letters and numbers only.';
+                    }
+                } else if (name.endsWith('.DateOfBirth')) {
+                    if (!value) message = 'Date of birth is required.';
+                    else {
+                        const dateOfBirth = new Date(`${value}T00:00:00`);
+                        const age = calculateAge(dateOfBirth);
+                        const passengerType = field.closest('.passenger-card')?.querySelector('[name$=".PassengerType"]')?.value;
+                        if (dateOfBirth >= new Date(new Date().toDateString())) message = 'Date of birth must be before today.';
+                        else if (passengerType === 'Adult' && age < 12) message = 'Adult passengers must be at least 12 years old.';
+                        else if (passengerType === 'Child' && (age < 2 || age > 11)) message = 'Child passengers must be 2 to 11 years old.';
+                    }
+                } else if (name.endsWith('.PassengerType')) {
+                    const dateField = field.closest('.passenger-card')?.querySelector('[name$=".DateOfBirth"]');
+                    if (dateField?.value) validatePassengerField(dateField);
+                }
+
+                if (!name.endsWith('.PassengerType')) setFieldError(field, message);
+                return !message;
+            }
+
+            document.querySelectorAll('.passenger-card input, .passenger-card select').forEach(function (field) {
+                if (field.name.endsWith('.FirstName') || field.name.endsWith('.LastName') ||
+                    field.name.endsWith('.PassportNumber') || field.name.endsWith('.Nationality') ||
+                    field.name.endsWith('.DateOfBirth') || field.name.endsWith('.PassengerType')) {
+                    field.addEventListener('blur', function () { validatePassengerField(field); });
+                    field.addEventListener('change', function () {
+                        validatePassengerField(field);
+                        if (field.name.endsWith('.Nationality')) {
+                            const passport = field.closest('.passenger-card')?.querySelector('[name$=".PassportNumber"]');
+                            if (passport) validatePassengerField(passport);
+                        }
+                    });
+                }
+            });
+        });
     </script>
 }
