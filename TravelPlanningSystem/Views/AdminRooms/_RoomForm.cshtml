@@ -1,2 +1,74 @@
 @model TravelPlanningSystem.ViewModels.HotelRoomFormViewModel
-<form method="post" enctype="multipart/form-data" class="card p-4"><input asp-for="HotelRoomId" type="hidden" /><div asp-validation-summary="ModelOnly" class="text-danger"></div><div class="row g-3"><div class="col-md-6"><label asp-for="HotelName" class="form-label"></label><input asp-for="HotelName" class="form-control" /><span asp-validation-for="HotelName" class="text-danger"></span></div><div class="col-md-6"><label asp-for="RoomName" class="form-label"></label><input asp-for="RoomName" class="form-control" /><span asp-validation-for="RoomName" class="text-danger"></span></div><div class="col-md-4"><label asp-for="Destination" class="form-label"></label><input asp-for="Destination" class="form-control" /></div><div class="col-md-8"><label asp-for="Address" class="form-label"></label><input asp-for="Address" class="form-control" /></div><div class="col-12"><label asp-for="Description" class="form-label"></label><textarea asp-for="Description" class="form-control" rows="5"></textarea></div><div class="col-md-3"><label asp-for="PricePerNight" class="form-label"></label><input asp-for="PricePerNight" class="form-control" /></div><div class="col-md-3"><label asp-for="Capacity" class="form-label"></label><input asp-for="Capacity" class="form-control" /></div><div class="col-md-3"><label asp-for="TotalRooms" class="form-label"></label><input asp-for="TotalRooms" class="form-control" /></div><div class="col-md-3"><label asp-for="StarRating" class="form-label"></label><input asp-for="StarRating" class="form-control" /></div><div class="col-12"><label asp-for="Amenities" class="form-label"></label><input asp-for="Amenities" class="form-control" /></div><div class="col-md-8"><label asp-for="Photos" class="form-label"></label><input asp-for="Photos" type="file" class="form-control hotel-photo-upload" accept="image/jpeg,image/png,image/webp" multiple /><small class="text-muted">Multiple JPG, PNG or WEBP photos, up to 5 MB each. Images are resized and centre-cropped to 1600 × 1000 before upload.</small></div><div class="col-md-4 pt-4"><div class="form-check form-switch"><input asp-for="IsFeatured" class="form-check-input" /><label asp-for="IsFeatured" class="form-check-label"></label></div><div class="form-check form-switch"><input asp-for="IsActive" class="form-check-input" /><label asp-for="IsActive" class="form-check-label">Visible in catalog</label></div></div></div><div class="mt-4"><a asp-action="Index" class="btn btn-outline-secondary">Cancel</a> <button class="btn btn-primary">Save room</button></div></form>
+
+<div asp-validation-summary="ModelOnly" class="flight-validation"></div>
+
+<div class="admin-form-grid">
+    <div class="flight-field">
+        <label asp-for="HotelName"></label>
+        <input asp-for="HotelName" placeholder="Example: TravelMate Grand Hotel" />
+        <span asp-validation-for="HotelName"></span>
+    </div>
+    <div class="flight-field">
+        <label asp-for="RoomName"></label>
+        <input asp-for="RoomName" placeholder="Example: Deluxe King Room" />
+        <span asp-validation-for="RoomName"></span>
+    </div>
+    <div class="flight-field">
+        <label asp-for="RoomType"></label>
+        <input asp-for="RoomType" placeholder="Example: Master Room" />
+        <span asp-validation-for="RoomType"></span>
+    </div>
+    <div class="flight-field">
+        <label asp-for="Destination"></label>
+        <input asp-for="Destination" placeholder="City or destination" />
+        <span asp-validation-for="Destination"></span>
+    </div>
+    <div class="flight-field wide-field">
+        <label asp-for="Address"></label>
+        <input asp-for="Address" />
+        <span asp-validation-for="Address"></span>
+    </div>
+    <div class="flight-field wide-field">
+        <label asp-for="Description"></label>
+        <textarea asp-for="Description" rows="5"></textarea>
+        <span asp-validation-for="Description"></span>
+    </div>
+    <div class="flight-field">
+        <label asp-for="PricePerNight"></label>
+        <input asp-for="PricePerNight" type="number" step="0.01" />
+        <span asp-validation-for="PricePerNight"></span>
+    </div>
+    <div class="flight-field">
+        <label asp-for="Capacity"></label>
+        <input asp-for="Capacity" type="number" min="1" />
+        <span asp-validation-for="Capacity"></span>
+    </div>
+    <div class="flight-field">
+        <label asp-for="TotalRooms"></label>
+        <input asp-for="TotalRooms" type="number" min="1" />
+        <span asp-validation-for="TotalRooms"></span>
+    </div>
+    <div class="flight-field">
+        <label asp-for="StarRating"></label>
+        <input asp-for="StarRating" type="number" min="1" max="5" />
+        <span asp-validation-for="StarRating"></span>
+    </div>
+    <div class="flight-field wide-field">
+        <label asp-for="Amenities"></label>
+        <input asp-for="Amenities" placeholder="Wi-Fi, breakfast, parking" />
+        <span asp-validation-for="Amenities"></span>
+    </div>
+    <div class="flight-field wide-field">
+        <label asp-for="Photos"></label>
+        <input asp-for="Photos" type="file" accept="image/jpeg,image/png,image/webp" multiple class="hotel-photo-upload" />
+        <small>Multiple JPG, PNG or WEBP photos, up to 5 MB each. Images are resized and centre-cropped before upload.</small>
+    </div>
+    <label class="checkbox-field">
+        <input asp-for="IsFeatured" />
+        Featured in hotel search
+    </label>
+    <label class="checkbox-field">
+        <input asp-for="IsActive" />
+        Active and visible in hotel search
+    </label>
+</div>

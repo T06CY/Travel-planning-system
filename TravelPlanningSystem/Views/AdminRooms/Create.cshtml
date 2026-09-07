@@ -1,3 +1,32 @@
 @model TravelPlanningSystem.ViewModels.HotelRoomFormViewModel
-@{ ViewData["Title"] = "Add room"; }<h1 class="mb-4">Add hotel room</h1><partial name="_RoomForm" model="Model" />
-@section Scripts { <partial name="_ValidationScriptsPartial" /><script src="~/js/hotel-photo-processing.js" asp-append-version="true"></script> }
+
+@{
+    ViewData["Title"] = "Add Room";
+}
+
+<link rel="stylesheet" href="~/css/flight.css" asp-append-version="true" />
+
+<div class="flight-admin-page">
+    <div class="admin-page-header">
+        <div>
+            <span class="flight-eyebrow">NEW ROOM LISTING</span>
+            <h1>Add hotel room</h1>
+            <p>Create a room listing with pricing, capacity, availability and photos.</p>
+        </div>
+        <a asp-action="Index" class="secondary-flight-btn">← Room list</a>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="admin-flight-card admin-form-card">
+        @Html.AntiForgeryToken()
+        <partial name="_RoomForm" model="Model" />
+        <div class="admin-form-actions">
+            <a asp-action="Index" class="secondary-flight-btn">Cancel</a>
+            <button class="primary-flight-btn" type="submit"><i class="bi bi-check-lg"></i> Create room</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/hotel-photo-processing.js" asp-append-version="true"></script>
+}

@@ -145,6 +145,7 @@ public class HotelReservationsController(AppDbContext context) : Controller
             GuestCount = model.GuestCount,
             PricePerNight = room.PricePerNight,
             TotalAmount = room.PricePerNight * nights,
+            ReservationStatus = HotelReservationStatus.Pending,
             ContactName = model.ContactName.Trim(),
             ContactEmail = model.ContactEmail.Trim(),
             ContactPhone = model.ContactPhone.Trim()

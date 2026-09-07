@@ -1,2 +1,104 @@
-@model TravelPlanningSystem.Models.HotelRoom
-@{ ViewData["Title"] = "Manage room"; }<div class="d-flex justify-content-between"><div><h1>@Model.HotelName</h1><p>@Model.RoomName · @Model.Destination</p></div><div><a asp-action="Edit" asp-route-id="@Model.HotelRoomId" class="btn btn-primary">Edit</a><a asp-action="Photos" asp-route-id="@Model.HotelRoomId" class="btn btn-outline-primary">Photos (@Model.Photos.Count)</a></div></div><div class="card p-4"><p>@Model.Description</p><p><strong>RM @Model.PricePerNight.ToString("N2")</strong> per night · Capacity @Model.Capacity · @Model.TotalRooms room(s)</p><p>@Model.Reservations.Count reservation(s), @Model.Reviews.Count review(s)</p><a asp-action="Delete" asp-route-id="@Model.HotelRoomId" class="btn btn-outline-danger align-self-start">Delete / deactivate</a></div>
+@model TravelPlanningSystem.ViewModels.HotelRoomFormViewModel
+
+@{
+    ViewData["Title"] = "Manage Room";
+}
+
+<link rel="stylesheet" href="~/css/flight.css" asp-append-version="true" />
+
+<div class="flight-admin-page">
+    <div class="admin-page-header">
+        <div>
+            <span class="flight-eyebrow">HOTEL ROOM MANAGEMENT</span>
+            <h1>@Model.HotelName</h1>
+            <p>@Model.RoomName · @Model.Destination</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Photos" asp-route-id="@Model.HotelRoomId" class="secondary-flight-btn">
+                <i class="bi bi-images"></i> Photos (@Model.PhotoCount)
+            </a>
+            <a asp-action="Delete" asp-route-id="@Model.HotelRoomId" class="danger-flight-btn">
+                <i class="bi bi-trash"></i> Delete / deactivate
+            </a>
+        </div>
+    </div>
+
+    <div class="admin-flight-card room-summary-card">
+        <div class="room-summary-grid">
+            <div>
+                <span class="summary-label">Room type</span>
+                <strong>@Model.RoomType</strong>
+            </div>
+            <div>
+                <span class="summary-label">Price per night</span>
+                <strong>RM @Model.PricePerNight.ToString("N2")</strong>
+            </div>
+            <div>
+                <span class="summary-label">Capacity</span>
+                <strong>@Model.Capacity guest(s)</strong>
+            </div>
+            <div>
+                <span class="summary-label">Inventory</span>
+                <strong>@Model.TotalRooms room(s)</strong>
+            </div>
+            <div>
+                <span class="summary-label">Reservations</span>
+                <strong>@Model.ReservationCount</strong>
+            </div>
+            <div>
+                <span class="summary-label">Reviews</span>
+                <strong>@Model.ReviewCount</strong>
+            </div>
+            <div>
+                <span class="summary-label">Status</span>
+                @if (Model.IsActive)
+                {
+                    <strong class="text-success">Active</strong>
+                }
+                else
+                {
+                    <strong class="text-danger">Inactive</strong>
+                }
+            </div>
+        </div>
+        <p class="room-description">@Model.Description</p>
+    </div>
+
+    <form asp-action="Edit"
+          asp-route-id="@Model.HotelRoomId"
+          method="post"
+          enctype="multipart/form-data"
+          class="admin-flight-card admin-form-card">
+        @Html.AntiForgeryToken()
+        <input asp-for="HotelRoomId" type="hidden" />
+        <div class="admin-page-header form-section-header">
+            <div>
+                <span class="flight-eyebrow">ROOM EDITOR</span>
+                <h2>Edit room details</h2>
+                <p>Update the listing information, availability and photos.</p>
+            </div>
+        </div>
+        <partial name="_RoomForm" model="Model" />
+        <div class="admin-form-actions">
+            <a asp-action="Index" class="secondary-flight-btn">← Room list</a>
+            <button class="primary-flight-btn" type="submit"><i class="bi bi-check-lg"></i> Save changes</button>
+        </div>
+    </form>
+</div>
+
+<style>
+    .room-summary-card { margin-bottom: 22px; }
+    .room-summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+    .room-summary-grid > div { padding: 14px 16px; border: 1px solid #e8eaf0; border-radius: 10px; background: #fafbfe; }
+    .summary-label { display: block; margin-bottom: 5px; color: #7e8496; font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; }
+    .room-description { margin: 22px 0 0; color: #687386; line-height: 1.7; }
+    .form-section-header { margin: 0 0 22px; }
+    .form-section-header h2 { margin: 0; font-size: 24px; }
+    @@media (max-width: 900px) { .room-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @@media (max-width: 600px) { .room-summary-grid { grid-template-columns: 1fr; } }
+</style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/hotel-photo-processing.js" asp-append-version="true"></script>
+}

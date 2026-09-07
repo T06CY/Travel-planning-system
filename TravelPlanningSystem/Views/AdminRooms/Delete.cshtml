@@ -1,2 +1,32 @@
 @model TravelPlanningSystem.Models.HotelRoom
-<h1>Delete hotel room</h1><div class="alert alert-warning">@if(Model.Reservations.Any()){<span>This room has reservation history and will be deactivated instead of deleted.</span>}else{<span>This will permanently delete the room and its photo records.</span>}</div><h3>@Model.HotelName — @Model.RoomName</h3><form asp-action="Delete" method="post"><input type="hidden" name="id" value="@Model.HotelRoomId" /><button class="btn btn-danger">Confirm</button> <a asp-action="Details" asp-route-id="@Model.HotelRoomId" class="btn btn-outline-secondary">Cancel</a></form>
+
+@{
+    ViewData["Title"] = "Remove Room";
+}
+
+<link rel="stylesheet" href="~/css/flight.css" asp-append-version="true" />
+
+<div class="flight-admin-page">
+    <div class="delete-confirm-card">
+        <div class="delete-icon"><i class="bi bi-exclamation-triangle"></i></div>
+        <span class="flight-eyebrow">CONFIRM ACTION</span>
+        <h1>Remove @Model.HotelName?</h1>
+        <p>@Model.RoomName · @Model.Destination<br />RM @Model.PricePerNight.ToString("N2") per night</p>
+
+        @if (Model.Reservations.Any())
+        {
+            <div class="flight-alert error">This room has reservation history and will be deactivated and hidden instead of permanently deleted.</div>
+        }
+        else
+        {
+            <div class="flight-alert error">This will permanently delete the room and its photo records.</div>
+        }
+
+        <form asp-action="Delete" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.HotelRoomId" />
+            <a asp-action="Details" asp-route-id="@Model.HotelRoomId" class="secondary-flight-btn">Keep room</a>
+            <button type="submit" class="danger-flight-btn">Remove room</button>
+        </form>
+    </div>
+</div>

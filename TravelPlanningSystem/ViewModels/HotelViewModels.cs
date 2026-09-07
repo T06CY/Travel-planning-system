@@ -21,6 +21,10 @@ public class HotelRoomFormViewModel
     public bool IsFeatured { get; set; }
     public bool IsActive { get; set; } = true;
     [Display(Name = "Room photos")] public List<IFormFile> Photos { get; set; } = new List<IFormFile>();
+
+    public int PhotoCount { get; set; }
+    public int ReservationCount { get; set; }
+    public int ReviewCount { get; set; }
 }
 
 public class HotelSearchViewModel : IValidatableObject

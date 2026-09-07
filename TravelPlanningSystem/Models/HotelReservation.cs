@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 namespace TravelPlanningSystem.Models;
-public enum HotelReservationStatus { Confirmed, Completed, Cancelled }
+public enum HotelReservationStatus { Confirmed, Completed, Cancelled, Pending }
 [Table("HotelReservations")]
 public class HotelReservation
 {

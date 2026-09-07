@@ -2,358 +2,137 @@
 
 @{
     ViewData["Title"] = "Room Management";
-    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="hotel-admin-page">
+<link rel="stylesheet" href="~/css/flight.css" asp-append-version="true" />
 
-    <div class="hotel-admin-header">
+<div class="flight-admin-page">
+    <div class="admin-page-header">
         <div>
-            <span class="hotel-admin-eyebrow">HOTEL MANAGEMENT</span>
+            <span class="flight-eyebrow">HOTEL OPERATIONS</span>
             <h1>Room Management</h1>
-            <p>Manage hotel room listings, inventory, pricing and availability.</p>
+            <p>Maintain room listings, inventory, pricing, photos and availability.</p>
         </div>
-
-        <a asp-action="Create" class="hotel-primary-btn">
-            <i class="bi bi-plus-lg"></i>
-            Add Hotel Room
-        </a>
+        <a asp-action="Create" class="primary-flight-btn"><i class="bi bi-plus-lg"></i> Add room</a>
     </div>
 
-    <div class="hotel-admin-card">
+    @if (TempData["Message"] is not null)
+    {
+        <div class="flight-alert success">@TempData["Message"]</div>
+    }
 
-        <form method="get" class="hotel-search-bar">
-
-            <div class="hotel-search-input">
-                <i class="bi bi-search"></i>
-
-                <input type="text"
-                       name="search"
-                       value="@Context.Request.Query["search"]"
-                       placeholder="Search by hotel, room or destination..." />
+    <div class="admin-flight-card">
+        <form method="get" class="admin-filter-bar">
+            <div class="flight-field">
+                <label>Search</label>
+                <input name="search" value="@ViewBag.Search" placeholder="Hotel, room or destination" />
             </div>
-
-            <button type="submit" class="hotel-search-btn">
-                Search
-            </button>
-
-            @if (!string.IsNullOrWhiteSpace(Context.Request.Query["search"]))
-            {
-                <a asp-action="Index" class="hotel-clear-btn">
-                    Clear
-                </a>
-            }
-
+            <div class="flight-field">
+                <label>Status</label>
+                <select name="active">
+                    <option value="">All statuses</option>
+                    @if (ViewBag.Active is bool active && active)
+                    {
+                        <option value="true" selected>Active</option>
+                    }
+                    else
+                    {
+                        <option value="true">Active</option>
+                    }
+                    @if (ViewBag.Active is bool inactive && !inactive)
+                    {
+                        <option value="false" selected>Inactive</option>
+                    }
+                    else
+                    {
+                        <option value="false">Inactive</option>
+                    }
+                </select>
+            </div>
+            <button class="primary-flight-btn" type="submit"><i class="bi bi-search"></i> Filter</button>
+            <a asp-action="Index" class="secondary-flight-btn">Clear</a>
         </form>
 
-        <div class="table-responsive">
-
-            <table class="hotel-admin-table">
-
+        <div class="admin-table-wrap">
+            <table class="admin-flight-table">
                 <thead>
                     <tr>
                         <th>Hotel / Room</th>
                         <th>Destination</th>
-                        <th>Room Type</th>
+                        <th>Room type</th>
                         <th>Price</th>
                         <th>Inventory</th>
                         <th>Status</th>
-                        <th></th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
-
                 <tbody>
-
                     @if (!Model.Any())
                     {
                         <tr>
                             <td colspan="7">
-                                <div class="hotel-empty-state">
+                                <div class="empty-flights">
                                     <i class="bi bi-building-x"></i>
-                                    <h3>No hotel rooms found</h3>
-                                    <p>Try changing your search or add a new hotel room.</p>
+                                    <div><strong>No rooms found</strong><p>Add a room or change the filters.</p></div>
                                 </div>
                             </td>
                         </tr>
                     }
-                    else
+                    @foreach (var room in Model)
                     {
-                        @foreach (var room in Model)
-                        {
-                            <tr>
-                                <td>
-                                    <div class="hotel-room-name">
-                                        <strong>@room.HotelName</strong>
-                                        <span>@room.RoomName</span>
-                                    </div>
-                                </td>
-
-                                <td>@room.Destination</td>
-
-                                <td>
-                                    <span class="room-type-pill">
-                                        @room.RoomType
-                                    </span>
-                                </td>
-
-                                <td>
-                                    <strong>RM @room.PricePerNight.ToString("N2")</strong>
-                                </td>
-
-                                <td>
-                                    @room.TotalRooms room(s)
-                                </td>
-
-                                <td>
-                                    @if (room.IsActive)
+                        <tr>
+                            <td>
+                                <div class="admin-airline-cell">
+                                    @{ var photo = room.Photos.OrderByDescending(p => p.IsPrimary).ThenBy(p => p.DisplayOrder).FirstOrDefault(); }
+                                    @if (photo is not null)
                                     {
-                                        <span class="hotel-status active">
-                                            <i class="bi bi-check-circle-fill"></i>
-                                            Active
-                                        </span>
+                                        <img src="@photo.PhotoUrl" alt="" />
                                     }
                                     else
                                     {
-                                        <span class="hotel-status inactive">
-                                            <i class="bi bi-dash-circle-fill"></i>
-                                            Inactive
-                                        </span>
+                                        <span class="airline-fallback"><i class="bi bi-building"></i></span>
                                     }
-                                </td>
-
-                                <td>
-                                    <a asp-action="Details"
-                                       asp-route-id="@room.HotelRoomId"
-                                       class="hotel-manage-btn">
-
-                                        <i class="bi bi-gear"></i>
-                                        Manage
-                                    </a>
-                                </td>
-                            </tr>
-                        }
+                                    <div><strong>@room.HotelName</strong><small>@room.RoomName</small></div>
+                                </div>
+                            </td>
+                            <td><strong>@room.Destination</strong><small class="table-subtext">@room.Address</small></td>
+                            <td>@room.RoomType</td>
+                            <td>RM @room.PricePerNight.ToString("N2")<small class="table-subtext">per night</small></td>
+                            <td><strong>@room.TotalRooms</strong><small class="table-subtext">room(s), up to @room.Capacity guests</small></td>
+                            <td>
+                                <form asp-action="ToggleActive" method="post" class="status-form">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@room.HotelRoomId" />
+                                    <button type="submit" class="status-text-button">
+                                        @if (room.IsActive)
+                                        {
+                                            <span class="hotel-status active"><i class="bi bi-check-circle-fill"></i> Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="hotel-status inactive"><i class="bi bi-dash-circle-fill"></i> Inactive</span>
+                                        }
+                                    </button>
+                                </form>
+                            </td>
+                            <td>
+                                <div class="table-actions">
+                                    <a asp-action="Edit" asp-route-id="@room.HotelRoomId" title="Edit"><i class="bi bi-pencil"></i></a>
+                                    <a asp-action="Delete" asp-route-id="@room.HotelRoomId" class="danger" title="Delete"><i class="bi bi-trash"></i></a>
+                                </div>
+                            </td>
+                        </tr>
                     }
-
                 </tbody>
-
             </table>
-
         </div>
-
     </div>
-
 </div>
 
 <style>
-
-    .hotel-admin-page {
-        padding: 34px;
-    }
-
-    .hotel-admin-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        gap: 20px;
-        margin-bottom: 24px;
-    }
-
-    .hotel-admin-eyebrow {
-        display: block;
-        color: #7c4dff;
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: 1.5px;
-        margin-bottom: 7px;
-    }
-
-    .hotel-admin-header h1 {
-        margin: 0;
-        font-size: 34px;
-        font-weight: 800;
-    }
-
-    .hotel-admin-header p {
-        margin: 7px 0 0;
-        color: #7e8496;
-    }
-
-    .hotel-primary-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 12px 19px;
-        background: linear-gradient(135deg, #7c4dff, #5c7cff);
-        color: white;
-        border-radius: 10px;
-        text-decoration: none;
-        font-weight: 700;
-        box-shadow: 0 8px 20px rgba(124, 77, 255, 0.22);
-    }
-
-        .hotel-primary-btn:hover {
-            color: white;
-            transform: translateY(-1px);
-        }
-
-    .hotel-admin-card {
-        background: white;
-        border-radius: 18px;
-        border: 1px solid #e7e7ef;
-        padding: 22px;
-        box-shadow: 0 8px 30px rgba(20, 20, 50, 0.05);
-    }
-
-    .hotel-search-bar {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
-    }
-
-    .hotel-search-input {
-        position: relative;
-        flex: 1;
-    }
-
-        .hotel-search-input i {
-            position: absolute;
-            top: 50%;
-            left: 14px;
-            transform: translateY(-50%);
-            color: #979cad;
-        }
-
-        .hotel-search-input input {
-            width: 100%;
-            height: 44px;
-            border: 1px solid #dedfea;
-            border-radius: 10px;
-            padding: 0 14px 0 40px;
-            outline: none;
-        }
-
-            .hotel-search-input input:focus {
-                border-color: #7c4dff;
-                box-shadow: 0 0 0 3px rgba(124, 77, 255, .08);
-            }
-
-    .hotel-search-btn,
-    .hotel-clear-btn {
-        height: 44px;
-        padding: 0 18px;
-        border-radius: 9px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        text-decoration: none;
-    }
-
-    .hotel-search-btn {
-        border: 0;
-        background: #7c4dff;
-        color: white;
-        font-weight: 700;
-    }
-
-    .hotel-clear-btn {
-        border: 1px solid #d5d7df;
-        color: #666c7e;
-        background: white;
-    }
-
-    .hotel-admin-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-        .hotel-admin-table th {
-            padding: 13px 14px;
-            text-align: left;
-            background: #f8f8fc;
-            color: #808597;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: .4px;
-        }
-
-        .hotel-admin-table td {
-            padding: 16px 14px;
-            border-bottom: 1px solid #eeeeF4;
-            vertical-align: middle;
-        }
-
-        .hotel-admin-table tbody tr:hover {
-            background: #faf9ff;
-        }
-
-    .hotel-room-name strong,
-    .hotel-room-name span {
-        display: block;
-    }
-
-    .hotel-room-name span {
-        color: #777d90;
-        margin-top: 3px;
-        font-size: 13px;
-    }
-
-    .room-type-pill {
-        display: inline-block;
-        background: #f0ebff;
-        color: #7048dc;
-        padding: 5px 9px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 700;
-    }
-
-    .hotel-status {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        font-size: 12px;
-        font-weight: 700;
-        padding: 5px 10px;
-        border-radius: 20px;
-    }
-
-        .hotel-status.active {
-            background: #e7f8ef;
-            color: #17885b;
-        }
-
-        .hotel-status.inactive {
-            background: #f1f2f5;
-            color: #777d88;
-        }
-
-    .hotel-manage-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 8px 12px;
-        border: 1px solid #7c4dff;
-        color: #7048dc;
-        border-radius: 8px;
-        text-decoration: none;
-        font-size: 13px;
-        font-weight: 700;
-    }
-
-        .hotel-manage-btn:hover {
-            background: #7c4dff;
-            color: white;
-        }
-
-    .hotel-empty-state {
-        text-align: center;
-        padding: 50px 20px;
-        color: #858a9c;
-    }
-
-        .hotel-empty-state i {
-            font-size: 38px;
-            color: #9a78f7;
-        }
-
+    .status-text-button { padding: 0; border: 0; background: transparent; }
+    .status-text-button:hover { cursor: pointer; opacity: .8; }
+    .hotel-status { display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px; border-radius: 999px; font-size: .75rem; font-weight: 700; }
+    .hotel-status.active { color: #147a43; background: #e3f7eb; }
+    .hotel-status.inactive { color: #b42332; background: #fde7e9; }
 </style>

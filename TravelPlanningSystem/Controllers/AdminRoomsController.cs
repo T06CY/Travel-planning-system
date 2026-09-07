@@ -10,14 +10,33 @@ namespace TravelPlanningSystem.Controllers;
 [Authorize(Roles = "Administrator")]
 public class AdminRoomsController(AppDbContext context, IWebHostEnvironment environment) : Controller
 {
-    public async Task<IActionResult> Index(string? search)
+    public async Task<IActionResult> Index(string? search, bool? active)
     {
         var rooms = context.HotelRooms.AsNoTracking().Include(r => r.Photos).AsQueryable();
         if (!string.IsNullOrWhiteSpace(search)) rooms = rooms.Where(r => r.HotelName.Contains(search) || r.RoomName.Contains(search) || r.Destination.Contains(search));
+        if (active.HasValue) rooms = rooms.Where(r => r.IsActive == active.Value);
         ViewBag.Search = search;
+        ViewBag.Active = active;
         return View(await rooms.OrderBy(r => r.HotelName).ThenBy(r => r.RoomName).ToListAsync());
     }
-    public async Task<IActionResult> Details(int id) => await context.HotelRooms.AsNoTracking().AsSplitQuery().Include(r => r.Photos).Include(r => r.Reservations).Include(r => r.Reviews).FirstOrDefaultAsync(r => r.HotelRoomId == id) is { } room ? View(room) : NotFound();
+    public async Task<IActionResult> Details(int id)
+    {
+        var room = await context.HotelRooms
+            .AsNoTracking()
+            .AsSplitQuery()
+            .Include(r => r.Photos)
+            .Include(r => r.Reservations)
+            .Include(r => r.Reviews)
+            .FirstOrDefaultAsync(r => r.HotelRoomId == id);
+
+        if (room is null) return NotFound();
+
+        var model = ToForm(room);
+        model.PhotoCount = room.Photos.Count;
+        model.ReservationCount = room.Reservations.Count;
+        model.ReviewCount = room.Reviews.Count;
+        return View(model);
+    }
     [HttpGet] public IActionResult Create() => View(new HotelRoomFormViewModel());
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(HotelRoomFormViewModel model)
@@ -34,8 +53,9 @@ public class AdminRoomsController(AppDbContext context, IWebHostEnvironment envi
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
-        var room = await context.HotelRooms.FindAsync(id); if (room is null) return NotFound();
-        return View(ToForm(room));
+        var exists = await context.HotelRooms.AnyAsync(r => r.HotelRoomId == id);
+        if (!exists) return NotFound();
+        return RedirectToAction(nameof(Details), new { id });
     }
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, HotelRoomFormViewModel model)
@@ -53,7 +73,11 @@ public class AdminRoomsController(AppDbContext context, IWebHostEnvironment envi
             ModelState.AddModelError(nameof(model.RoomName), "This hotel room already exists.");
         }
 
-        if (!ModelState.IsValid) return View(model);
+        if (!ModelState.IsValid)
+        {
+            await PopulateSummaryAsync(model);
+            return View("Details", model);
+        }
 
         Map(room, model);
         await context.SaveChangesAsync();
@@ -94,6 +118,12 @@ public class AdminRoomsController(AppDbContext context, IWebHostEnvironment envi
     { var photo = await context.HotelRoomPhotos.FindAsync(id); if (photo is null) return NotFound(); var roomId = photo.HotelRoomId; var file = Path.Combine(environment.WebRootPath, photo.PhotoUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar)); if (System.IO.File.Exists(file)) System.IO.File.Delete(file); context.HotelRoomPhotos.Remove(photo); await context.SaveChangesAsync(); return RedirectToAction(nameof(Photos), new { id = roomId }); }
     private static HotelRoom Map(HotelRoom r, HotelRoomFormViewModel m) { r.HotelName = m.HotelName.Trim(); r.RoomName = m.RoomName.Trim(); r.RoomType = m.RoomType; r.Destination = m.Destination.Trim(); r.Address = m.Address.Trim(); r.Description = m.Description.Trim(); r.PricePerNight = m.PricePerNight; r.Capacity = m.Capacity; r.TotalRooms = m.TotalRooms; r.StarRating = m.StarRating; r.Amenities = m.Amenities?.Trim(); r.IsFeatured = m.IsFeatured; r.IsActive = m.IsActive; return r; }
     private static HotelRoomFormViewModel ToForm(HotelRoom r) => new() { HotelRoomId = r.HotelRoomId, HotelName = r.HotelName, RoomName = r.RoomName, RoomType = r.RoomType, Destination = r.Destination, Address = r.Address, Description = r.Description, PricePerNight = r.PricePerNight, Capacity = r.Capacity, TotalRooms = r.TotalRooms, StarRating = r.StarRating, Amenities = r.Amenities, IsFeatured = r.IsFeatured, IsActive = r.IsActive };
+    private async Task PopulateSummaryAsync(HotelRoomFormViewModel model)
+    {
+        model.PhotoCount = await context.HotelRoomPhotos.CountAsync(p => p.HotelRoomId == model.HotelRoomId);
+        model.ReservationCount = await context.HotelReservations.CountAsync(r => r.HotelRoomId == model.HotelRoomId);
+        model.ReviewCount = await context.HotelReviews.CountAsync(r => r.HotelRoomId == model.HotelRoomId);
+    }
     private async Task SavePhotos(int roomId, IEnumerable<IFormFile> photos)
     {
         var uploads = photos.Where(p => p.Length > 0).ToList(); if (uploads.Count == 0) return;

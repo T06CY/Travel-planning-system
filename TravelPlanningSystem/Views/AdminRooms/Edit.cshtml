@@ -1,3 +1,33 @@
 @model TravelPlanningSystem.ViewModels.HotelRoomFormViewModel
-@{ ViewData["Title"] = "Edit room"; }<h1 class="mb-4">Edit hotel room</h1><partial name="_RoomForm" model="Model" />
-@section Scripts { <partial name="_ValidationScriptsPartial" /><script src="~/js/hotel-photo-processing.js" asp-append-version="true"></script> }
+
+@{
+    ViewData["Title"] = "Edit Room";
+}
+
+<link rel="stylesheet" href="~/css/flight.css" asp-append-version="true" />
+
+<div class="flight-admin-page">
+    <div class="admin-page-header">
+        <div>
+            <span class="flight-eyebrow">ROOM MAINTENANCE</span>
+            <h1>Edit @Model.HotelName / @Model.RoomName</h1>
+            <p>Update room details, pricing, inventory, visibility and photos.</p>
+        </div>
+        <a asp-action="Index" class="secondary-flight-btn">← Room list</a>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="admin-flight-card admin-form-card">
+        @Html.AntiForgeryToken()
+        <input asp-for="HotelRoomId" type="hidden" />
+        <partial name="_RoomForm" model="Model" />
+        <div class="admin-form-actions">
+            <a asp-action="Index" class="secondary-flight-btn">Cancel</a>
+            <button class="primary-flight-btn" type="submit"><i class="bi bi-check-lg"></i> Save changes</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/hotel-photo-processing.js" asp-append-version="true"></script>
+}
