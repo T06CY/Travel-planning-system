@@ -1,4 +1,4 @@
-@{
+﻿@{
     var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
     var action = ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty;
 
@@ -15,6 +15,9 @@
     var isAddHotelRoom = controller == "AdminRooms" && action == "Create";
     var isHotelReservations = controller == "AdminHotelReservations";
 
+    // Transportation
+    var isTransportation = controller == "AdminTransportation";
+
     // Activity
     var isActivityList = controller == "AdminActivities" && action == "Index";
     var isAddActivity = controller == "AdminActivities" && action == "Create";
@@ -22,449 +25,234 @@
 }
 
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
     <meta charset="utf-8" />
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - TravelMate Admin</title>
 
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css"
-          rel="stylesheet" />
-
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css"
-          rel="stylesheet" />
-
-    <link rel="stylesheet"
-          href="~/css/activities.css"
-          asp-append-version="true" />
-
-    <link rel="stylesheet"
-          href="~/css/admin-activities.css"
-          asp-append-version="true" />
-
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/activities.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin-activities.css" asp-append-version="true" />
 </head>
-
 <body>
 
     <div class="admin-wrapper">
 
         <aside class="admin-sidebar">
 
-
             <!-- LOGO -->
-
             <div class="admin-logo">
-
                 <div class="admin-logo-icon">
-
                     <i class="bi bi-airplane-fill"></i>
-
                 </div>
-
                 <div>
-
-                    <h3>
-                        Travel<span>Mate</span>
-                    </h3>
-
-                    <small>
-                        Travel Planning Administration
-                    </small>
-
+                    <h3>Travel<span>Mate</span></h3>
+                    <small>Travel Planning Administration</small>
                 </div>
-
             </div>
-
 
             <!-- ADMIN PROFILE -->
-
             <div class="admin-profile">
-
                 <div class="admin-profile-avatar">
-
                     <i class="bi bi-person-fill"></i>
-
                 </div>
-
                 <div class="admin-profile-info">
-
-                    <strong>
-                        Administrator
-                    </strong>
-
-                    <span>
-                        System Administrator
-                    </span>
-
+                    <strong>Administrator</strong>
+                    <span>System Administrator</span>
                 </div>
-
             </div>
-
 
             <nav class="admin-navigation">
 
-
                 <!-- OVERVIEW -->
-
-                <span class="admin-menu-title">
-                    OVERVIEW
-                </span>
+                <span class="admin-menu-title">OVERVIEW</span>
 
                 <a asp-controller="AdminDashboard"
                    asp-action="Index"
                    class="@(isDashboard ? "active" : "")">
-
                     <i class="bi bi-grid-1x2-fill"></i>
-
-                    <span>
-                        Dashboard
-                    </span>
-
+                    <span>Dashboard</span>
                 </a>
 
                 <a asp-controller="AdminUserManagement"
                    asp-action="Index"
                    class="@(isUserManagement ? "active" : "")">
-
                     <i class="bi bi-people"></i>
-
-                    <span>
-                        User Management
-                    </span>
-
+                    <span>User Management</span>
                 </a>
 
-
                 <!-- FLIGHT MANAGEMENT -->
-
-                <span class="admin-menu-title">
-                    FLIGHT MANAGEMENT
-                </span>
-
-
-                <!-- FLIGHT LIST -->
+                <span class="admin-menu-title">FLIGHT MANAGEMENT</span>
 
                 <a asp-controller="AdminFlights"
                    asp-action="Index"
                    class="@(isFlightManagement ? "active" : "")">
-
                     <i class="bi bi-airplane"></i>
-
-                    <span>
-                        Flight Management
-                    </span>
-
+                    <span>Flight Management</span>
                 </a>
-
-
-                <!-- ADD FLIGHT -->
 
                 <a asp-controller="AdminFlights"
                    asp-action="Create"
                    class="@(isAddFlight ? "active" : "")">
-
                     <i class="bi bi-plus-circle"></i>
-
-                    <span>
-                        Add Flight
-                    </span>
-
+                    <span>Add Flight</span>
                 </a>
-
-
-                <!-- FLIGHT BOOKINGS -->
 
                 <a asp-controller="AdminFlightBookings"
                    asp-action="Index"
                    class="@(isFlightBookings ? "active" : "")">
-
                     <i class="bi bi-calendar2-check"></i>
-
-                    <span>
-                        Flight Bookings
-                    </span>
-
+                    <span>Flight Bookings</span>
                 </a>
 
-
                 <!-- HOTEL MANAGEMENT -->
-
-                <span class="admin-menu-title">
-                    HOTEL MANAGEMENT
-                </span>
+                <span class="admin-menu-title">HOTEL MANAGEMENT</span>
 
                 <a asp-controller="AdminRooms"
                    asp-action="Index"
                    class="@(isRoomManagement ? "active" : "")">
-
                     <i class="bi bi-building"></i>
-
-                    <span>
-                        Room Management
-                    </span>
-
+                    <span>Room Management</span>
                 </a>
 
                 <a asp-controller="AdminRooms"
                    asp-action="Create"
                    class="@(isAddHotelRoom ? "active" : "")">
-
                     <i class="bi bi-plus-circle"></i>
-
-                    <span>
-                        Add Hotel Room
-                    </span>
-
+                    <span>Add Hotel Room</span>
                 </a>
 
                 <a asp-controller="AdminHotelReservations"
                    asp-action="Index"
                    class="@(isHotelReservations ? "active" : "")">
-
                     <i class="bi bi-calendar2-check"></i>
-
-                    <span>
-                        Hotel Reservations
-                    </span>
-
+                    <span>Hotel Reservations</span>
                 </a>
 
+<!-- TRANSPORTATION -->
+                <span class="admin-menu-title">TRANSPORTATION</span>
 
-                <!-- TRANSPORTATION -->
-
-                <span class="admin-menu-title">
-                    TRANSPORTATION
-                </span>
-
-                <a asp-controller="AdminTransportation" asp-action="Index"
-                   class="...">
-
-                    <i class="bi bi-car-front"></i>
-
-                    <span>
-                        Transportation Management
-                    </span>
-
+                <!-- 1. 交通总控制台 -->
+                <a asp-controller="AdminTransportation"
+                   asp-action="Index"
+                   class="@(isTransportation && string.IsNullOrEmpty(Context.Request.Query["tab"]) ? "active" : "")">
+                    <i class="bi bi-bus-front"></i>
+                    <span>Transportation Hub</span>
                 </a>
 
+                <!-- 2. 直达车次排班与登车清单 -->
+                <a asp-controller="AdminTransportation"
+                   asp-action="Index"
+                   asp-route-tab="schedules"
+                   class="@(isTransportation && Context.Request.Query["tab"] == "schedules" ? "active" : "")">
+                    <i class="bi bi-calendar2-check"></i>
+                    <span>Trip Schedules</span>
+                </a>
+
+                <!-- 3. 直达车队与路线网络 -->
+                <a asp-controller="AdminTransportation"
+                   asp-action="Index"
+                   asp-route-tab="fleet"
+                   class="@(isTransportation && Context.Request.Query["tab"] == "fleet" ? "active" : "")">
+                    <i class="bi bi-truck-front"></i>
+                    <span>Fleet &amp; Routes</span>
+                </a>
 
                 <!-- ACTIVITY MANAGEMENT -->
-
-                <span class="admin-menu-title">
-                    ACTIVITY MANAGEMENT
-                </span>
-
-
-                <!-- ACTIVITY LIST -->
+                <span class="admin-menu-title">ACTIVITY MANAGEMENT</span>
 
                 <a asp-controller="AdminActivities"
                    asp-action="Index"
                    class="@(isActivityList ? "active" : "")">
-
                     <i class="bi bi-ticket-perforated"></i>
-
-                    <span>
-                        Activity List
-                    </span>
-
+                    <span>Activity List</span>
                 </a>
-
-
-                <!-- ADD ACTIVITY -->
 
                 <a asp-controller="AdminActivities"
                    asp-action="Create"
                    class="@(isAddActivity ? "active" : "")">
-
                     <i class="bi bi-plus-circle"></i>
-
-                    <span>
-                        Add Activity
-                    </span>
-
+                    <span>Add Activity</span>
                 </a>
-
-
-                <!-- ACTIVITY BOOKINGS -->
 
                 <a asp-controller="AdminActivityBookings"
                    asp-action="Index"
                    class="@(isActivityBookings ? "active" : "")">
-
                     <i class="bi bi-calendar-check"></i>
-
-                    <span>
-                        Activity Bookings
-                    </span>
-
+                    <span>Activity Bookings</span>
                 </a>
-
 
             </nav>
 
         </aside>
 
-
-
         <div class="admin-main-area">
-
 
             <header class="admin-topbar">
 
-
                 <!-- LEFT SIDE -->
-
                 <div class="admin-topbar-left">
-
-                    <button type="button"
-                            class="sidebar-toggle"
-                            id="sidebarToggle">
-
+                    <button type="button" class="sidebar-toggle" id="sidebarToggle">
                         <i class="bi bi-list"></i>
-
                     </button>
-
                 </div>
 
-
                 <!-- RIGHT SIDE -->
-
                 <div class="admin-topbar-right">
-
-                    <a asp-controller="Home"
-                       asp-action="Index"
-                       class="btn btn-sm btn-outline-secondary">
-
-                        <i class="bi bi-house-door"></i>
-
-                        Home
-
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-house-door"></i> Home
                     </a>
 
-                    <form asp-controller="Account"
-                          asp-action="Logout"
-                          method="post"
-                          class="d-inline">
-
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
                         @Html.AntiForgeryToken()
-
-                        <button type="submit"
-                                class="btn btn-sm btn-outline-danger">
-
-                            <i class="bi bi-box-arrow-right"></i>
-
-                            Logout
-
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-box-arrow-right"></i> Logout
                         </button>
-
                     </form>
 
                     <div class="topbar-admin-user">
-
-
                         <div class="topbar-avatar">
-
                             <i class="bi bi-person-fill"></i>
-
                         </div>
-
-
                         <div>
-
-                            <strong>
-                                Administrator
-                            </strong>
-
-                            <small>
-                                System Administrator
-                            </small>
-
-                            <a asp-controller="Account"
-                               asp-action="Profile"
-                               class="small text-decoration-none">
-
+                            <strong>Administrator</strong>
+                            <small>System Administrator</small>
+                            <a asp-controller="Account" asp-action="Profile" class="small text-decoration-none">
                                 Edit Profile
-
                             </a>
-
                         </div>
-
-
                     </div>
-
                 </div>
-
 
             </header>
 
-
             <main class="admin-content-area">
-
                 @RenderBody()
-
             </main>
-
 
         </div>
 
     </div>
 
-
-
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 
-
     <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const button = document.getElementById("sidebarToggle");
+            const wrapper = document.querySelector(".admin-wrapper");
 
-        document.addEventListener(
-        "DOMContentLoaded",
-        function () {
-
-        const button =
-        document.getElementById(
-        "sidebarToggle"
-        );
-
-        const wrapper =
-        document.querySelector(
-        ".admin-wrapper"
-        );
-
-
-        if (button && wrapper) {
-
-        button.addEventListener(
-        "click",
-        function () {
-
-        wrapper.classList.toggle(
-        "sidebar-collapsed"
-        );
-
-        }
-        );
-
-        }
-
-        }
-        );
-
+            if (button && wrapper) {
+                button.addEventListener("click", function () {
+                    wrapper.classList.toggle("sidebar-collapsed");
+                });
+            }
+        });
     </script>
 
-
-    @await RenderSectionAsync(
-        "Scripts",
-        required: false
-    )
+    @await RenderSectionAsync("Scripts", required: false)
 
 </body>
-
 </html>

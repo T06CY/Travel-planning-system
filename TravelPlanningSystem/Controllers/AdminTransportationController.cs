@@ -191,4 +191,81 @@ public class AdminTransportationController(AppDbContext context) : Controller
         }
         return RedirectToAction(nameof(Index));
     }
+
+    // ==========================================
+    // 导出功能 1：导出指定班次的乘客登车清单 (CSV)
+    // ==========================================
+    [HttpGet]
+    public async Task<IActionResult> ExportManifest(int tripId)
+    {
+        var trip = await context.Trips
+            .Include(t => t.Route)
+            .Include(t => t.Vehicle)
+            .FirstOrDefaultAsync(t => t.TripId == tripId);
+
+        if (trip == null) return NotFound();
+
+        var bookings = await context.TransportationBookings
+            .Include(b => b.Passengers)
+            .Where(b => b.TripId == tripId && b.BookingStatus == "Confirmed")
+            .ToListAsync();
+
+        var builder = new System.Text.StringBuilder();
+        // UTF-8 BOM 确保 Excel 打开不乱码
+        builder.AppendLine("Seat,Passenger Name,IC/Passport,Type,Baggage,Insurance,Booking Reference,Contact Phone");
+
+        foreach (var b in bookings)
+        {
+            foreach (var p in b.Passengers)
+            {
+                builder.AppendLine($"\"{p.SeatNumber}\",\"{p.FullName}\",\"{p.IdNumber}\",\"{p.PassengerType}\",\"{p.BaggageOption}\",\"{(p.HasTravelInsurance ? "Yes" : "No")}\",\"{b.BookingReference}\",\"{b.ContactPhone}\"");
+            }
+        }
+
+        byte[] buffer = System.Text.Encoding.UTF8.GetPreamble().Concat(System.Text.Encoding.UTF8.GetBytes(builder.ToString())).ToArray();
+        string filename = $"Manifest_Trip_{tripId}_{trip.Route?.Origin}_to_{trip.Route?.Destination}_{DateTime.UtcNow:yyyyMMdd}.csv";
+
+        return File(buffer, "text/csv", filename);
+    }
+
+    // ==========================================
+    // 导出功能 2：导出全站交通营收与预订总表 (CSV)
+    // ==========================================
+    [HttpGet]
+    public async Task<IActionResult> ExportRevenueReport()
+    {
+        var bookings = await context.TransportationBookings
+            .AsNoTracking()
+            .Include(b => b.Trip).ThenInclude(t => t!.Route)
+            .Include(b => b.Trip).ThenInclude(t => t!.Vehicle)
+            .OrderByDescending(b => b.BookingDate)
+            .ToListAsync();
+
+        var builder = new System.Text.StringBuilder();
+        builder.AppendLine("Booking Reference,Booking Date,Route,Vehicle,Seats Count,Base Fare,Discount,Total Paid,Status,Payment Method");
+
+        foreach (var b in bookings)
+        {
+            builder.AppendLine($"\"{b.BookingReference}\",\"{b.BookingDate:yyyy-MM-dd HH:mm}\",\"{b.Trip?.Route?.Origin} -> {b.Trip?.Route?.Destination}\",\"{b.Trip?.Vehicle?.VehicleModel}\",\"{b.Passengers.Count}\",\"{b.BaseFareTotal}\",\"{b.DiscountAmount}\",\"{b.TotalAmount}\",\"{b.BookingStatus}\",\"{b.PaymentMethod}\"");
+        }
+
+        byte[] buffer = System.Text.Encoding.UTF8.GetPreamble().Concat(System.Text.Encoding.UTF8.GetBytes(builder.ToString())).ToArray();
+        return File(buffer, "text/csv", $"Transportation_Revenue_Summary_{DateTime.UtcNow:yyyyMMdd}.csv");
+    }
+
+    // ==========================================
+    // 实时保存乘客登车状态 (AJAX POST)
+    // ==========================================
+    [HttpPost]
+    public async Task<IActionResult> ToggleBoarding(int passengerId, bool isBoarded)
+    {
+        var passenger = await context.TransportationPassengers.FindAsync(passengerId);
+        if (passenger == null) return NotFound();
+
+        passenger.IsBoarded = isBoarded;
+        passenger.BoardedAt = isBoarded ? DateTime.UtcNow : null;
+        await context.SaveChangesAsync();
+
+        return Json(new { success = true, isBoarded = passenger.IsBoarded });
+    }
 }

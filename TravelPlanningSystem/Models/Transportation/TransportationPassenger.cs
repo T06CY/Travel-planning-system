@@ -51,4 +51,8 @@ public class TransportationPassenger
 
     [StringLength(255)]
     public string? SpecialRequests { get; set; } // 特殊需求（轮椅、老人协助等）
+
+    // ⭐ 是否已登车检票
+    public bool IsBoarded { get; set; } = false;
+    public DateTime? BoardedAt { get; set; }
 }

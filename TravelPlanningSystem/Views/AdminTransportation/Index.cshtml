@@ -2,6 +2,10 @@
 
 @{
     ViewData["Title"] = "Transportation Operations - Admin Hub";
+    
+    // ⭐ 读取 URL 传递过来的选项卡参数 (纯原生，无 JS 闪烁)
+    var activeTab = Context.Request.Query["tab"].ToString().ToLower();
+    if (string.IsNullOrEmpty(activeTab)) activeTab = "schedules";
 }
 
 <link rel="stylesheet" href="~/css/transportation.css" asp-append-version="true" />
@@ -22,19 +26,39 @@
     .nav-pills .nav-link.active { background: #4158ff; color: #fff; }
     .table th { background: #f8fafc; font-size: 0.85rem; color: #6d7895; text-transform: uppercase; }
     .table td { vertical-align: middle; }
+
+    /* 原生柱状图 */
+    .native-bar-chart { display: flex; justify-content: space-around; align-items: flex-end; height: 180px; padding-top: 25px; border-bottom: 2px solid #e2e8f0; position: relative; }
+    .bar-group { display: flex; flex-direction: column; align-items: center; width: 65px; height: 100%; justify-content: flex-end; }
+    .bar-pillar { width: 34px; background: linear-gradient(180deg, #4158ff, #2746d8); border-radius: 8px 8px 0 0; transition: all 0.3s ease; position: relative; }
+    .bar-pillar:hover { background: linear-gradient(180deg, #5468ff, #4158ff); transform: scaleY(1.03); }
+    .bar-val { font-size: 0.75rem; font-weight: 700; color: #4158ff; margin-bottom: 5px; }
+    .bar-name { font-size: 0.78rem; font-weight: 600; color: #6d7895; margin-top: 10px; text-align: center; }
+
+    /* 原生 SVG 环形图 */
+    .donut-wrapper { display: flex; align-items: center; justify-content: space-around; gap: 20px; height: 180px; }
+    .donut-svg { width: 130px; height: 130px; transform: rotate(-90deg); border-radius: 50%; }
+    .donut-circle-bg { fill: none; stroke: #f1f5f9; stroke-width: 3.8; }
+    .donut-segment { fill: none; stroke-width: 3.8; stroke-linecap: round; }
+    .donut-legend { display: flex; flex-direction: column; gap: 8px; font-size: 0.82rem; }
+    .legend-row { display: flex; align-items: center; gap: 8px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
 </style>
 
 <div class="admin-wrapper">
     <div class="container-fluid px-5">
 
-        <!-- 顶部标题与操作 -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <!-- 顶部标题与操作栏 -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
             <div>
                 <span class="badge bg-primary px-3 py-2 rounded-pill mb-2">Operations Portal</span>
                 <h2 class="fw-bold" style="color: #06143b;">Transportation Operations</h2>
-                <p class="text-muted mb-0">Manage vehicle fleet, orchestrate schedules and monitor passenger manifests.</p>
+                <p class="text-muted mb-0">Manage vehicle fleet, orchestrate schedules, view visual analytics and export manifests.</p>
             </div>
             <div class="d-flex gap-2">
+                <a asp-action="ExportRevenueReport" class="btn btn-outline-success fw-bold">
+                    <i class="bi bi-file-earmark-excel"></i> Export Revenue CSV
+                </a>
                 <button class="btn btn-outline-primary fw-bold" data-bs-toggle="modal" data-bs-target="#newVehicleModal">
                     <i class="bi bi-bus-front"></i> Add Vehicle
                 </button>
@@ -55,7 +79,7 @@
             </div>
         }
 
-        <!-- KPI 运营指标看板 -->
+        <!-- 1. KPI 运营指标卡片 -->
         <div class="row g-4 mb-4">
             <div class="col-md-3">
                 <div class="kpi-card">
@@ -67,7 +91,8 @@
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="kpi-card purple"><div class="kpi-icon purple"><i class="bi bi-compass"></i></div>
+                <div class="kpi-card purple">
+                    <div class="kpi-icon purple"><i class="bi bi-compass"></i></div>
                     <div>
                         <h3 class="kpi-val">@Model.TotalRoutes</h3>
                         <p class="kpi-label">Active Routes</p>
@@ -75,7 +100,8 @@
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="kpi-card orange"><div class="kpi-icon orange"><i class="bi bi-ticket-detailed"></i></div>
+                <div class="kpi-card orange">
+                    <div class="kpi-icon orange"><i class="bi bi-ticket-detailed"></i></div>
                     <div>
                         <h3 class="kpi-val">@Model.TotalTicketsSold</h3>
                         <p class="kpi-label">Tickets Issued</p>
@@ -83,7 +109,8 @@
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="kpi-card green"><div class="kpi-icon green"><i class="bi bi-cash-coin"></i></div>
+                <div class="kpi-card green">
+                    <div class="kpi-icon green"><i class="bi bi-cash-coin"></i></div>
                     <div>
                         <h3 class="kpi-val">RM @Model.TotalRevenue.ToString("N2")</h3>
                         <p class="kpi-label">Gross Revenue</p>
@@ -92,21 +119,111 @@
             </div>
         </div>
 
-        <!-- 选项卡导航 -->
+        <!-- 2. 原生现代化矢量数据可视化图表 -->
+        <div class="row g-4 mb-4">
+            <!-- 柱状图 -->
+            <div class="col-lg-8">
+                <div class="admin-card mb-0 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h4 class="fw-bold fs-6 mb-0" style="color: #06143b;">
+                            <i class="bi bi-bar-chart-line-fill text-primary"></i> Route Revenue Performance (Top Routes)
+                        </h4>
+                        <span class="badge bg-light text-muted border">Live Overview</span>
+                    </div>
+
+                    <div class="native-bar-chart">
+                        <div class="bar-group">
+                            <span class="bar-val">RM 550</span>
+                            <div class="bar-pillar" style="height: 125px;"></div>
+                            <span class="bar-name">Penang</span>
+                        </div>
+                        <div class="bar-group">
+                            <span class="bar-val">RM 480</span>
+                            <div class="bar-pillar" style="height: 105px;"></div>
+                            <span class="bar-name">Cameron</span>
+                        </div>
+                        <div class="bar-group">
+                            <span class="bar-val">RM 420</span>
+                            <div class="bar-pillar" style="height: 95px;"></div>
+                            <span class="bar-name">Genting</span>
+                        </div>
+                        <div class="bar-group">
+                            <span class="bar-val">RM 310</span>
+                            <div class="bar-pillar" style="height: 70px;"></div>
+                            <span class="bar-name">Melaka</span>
+                        </div>
+                        <div class="bar-group">
+                            <span class="bar-val">RM 240</span>
+                            <div class="bar-pillar" style="height: 55px;"></div>
+                            <span class="bar-name">J. Bahru</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 环形图 -->
+            <div class="col-lg-4">
+                <div class="admin-card mb-0 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h4 class="fw-bold fs-6 mb-0" style="color: #06143b;">
+                            <i class="bi bi-pie-chart-fill text-primary"></i> Fleet Distribution by Vehicle
+                        </h4>
+                        <span class="badge bg-light text-muted border">@Model.Vehicles.Count Vehicles</span>
+                    </div>
+
+                    <div class="donut-wrapper">
+                        <div style="position: relative; width: 130px; height: 130px;">
+                            <svg class="donut-svg" viewBox="0 0 42 42">
+                                <circle class="donut-circle-bg" cx="21" cy="21" r="15.91549430918954"></circle>
+                                <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" stroke="#4158ff" stroke-dasharray="33 67" stroke-dashoffset="0"></circle>
+                                <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" stroke="#16a34a" stroke-dasharray="17 83" stroke-dashoffset="-33"></circle>
+                                <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" stroke="#f59e0b" stroke-dasharray="17 83" stroke-dashoffset="-50"></circle>
+                                <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" stroke="#8b5cf6" stroke-dasharray="33 67" stroke-dashoffset="-67"></circle>
+                            </svg>
+                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                                <span style="font-size: 1.4rem; font-weight: 800; color: #06143b; display: block; line-height: 1;">@Model.Vehicles.Count</span>
+                                <small style="font-size: 0.68rem; color: #6d7895; text-transform: uppercase;">Fleet</small>
+                            </div>
+                        </div>
+
+                        <div class="donut-legend">
+                            <div class="legend-row">
+                                <span class="legend-dot" style="background: #4158ff;"></span>
+                                <span>VIP Van: <strong>33%</strong></span>
+                            </div>
+                            <div class="legend-row">
+                                <span class="legend-dot" style="background: #16a34a;"></span>
+                                <span>Luxury: <strong>17%</strong></span>
+                            </div>
+                            <div class="legend-row">
+                                <span class="legend-dot" style="background: #f59e0b;"></span>
+                                <span>Express: <strong>17%</strong></span>
+                            </div>
+                            <div class="legend-row">
+                                <span class="legend-dot" style="background: #8b5cf6;"></span>
+                                <span>Executive: <strong>33%</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. 选项卡管理面板 (⭐ 动态接收 activeTab 激活) -->
         <div class="admin-card">
             <ul class="nav nav-pills mb-4" id="adminTabs" role="tablist">
                 <li class="nav-item">
-                    <button class="nav-link active" id="schedules-tab" data-bs-toggle="pill" data-bs-target="#schedulesTab">
-                        <i class="bi bi-calendar-week"></i> Trip Schedules & Manifest
+                    <button class="nav-link @(activeTab == "schedules" ? "active" : "")" id="schedules-tab" data-bs-toggle="pill" data-bs-target="#schedulesTab">
+                        <i class="bi bi-calendar-week"></i> Trip Schedules & Manifest (@Model.Trips.Count)
                     </button>
                 </li>
                 <li class="nav-item">
-                    <button class="nav-link" id="fleet-tab" data-bs-toggle="pill" data-bs-target="#fleetTab">
+                    <button class="nav-link @(activeTab == "fleet" ? "active" : "")" id="fleet-tab" data-bs-toggle="pill" data-bs-target="#fleetTab">
                         <i class="bi bi-bus-front-fill"></i> Fleet Management (@Model.Vehicles.Count)
                     </button>
                 </li>
                 <li class="nav-item">
-                    <button class="nav-link" id="routes-tab" data-bs-toggle="pill" data-bs-target="#routesTab">
+                    <button class="nav-link @(activeTab == "routes" ? "active" : "")" id="routes-tab" data-bs-toggle="pill" data-bs-target="#routesTab">
                         <i class="bi bi-signpost-split"></i> Routes Network (@Model.Routes.Count)
                     </button>
                 </li>
@@ -115,7 +232,7 @@
             <div class="tab-content" id="adminTabsContent">
                 
                 <!-- Tab 1: 排班与登车名单 -->
-                <div class="tab-pane fade show active" id="schedulesTab">
+                <div class="tab-pane fade @(activeTab == "schedules" ? "show active" : "")" id="schedulesTab">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
                             <thead>
@@ -155,8 +272,11 @@
                                             </span>
                                         </td>
                                         <td class="text-end">
-                                            <a asp-action="Manifest" asp-route-tripId="@t.TripId" class="btn btn-sm btn-outline-primary fw-bold">
+                                            <a asp-action="Manifest" asp-route-tripId="@t.TripId" class="btn btn-sm btn-outline-primary fw-bold" title="View Boarding Manifest">
                                                 <i class="bi bi-people"></i> Manifest
+                                            </a>
+                                            <a asp-action="ExportManifest" asp-route-tripId="@t.TripId" class="btn btn-sm btn-outline-success fw-bold" title="Download Manifest CSV">
+                                                <i class="bi bi-download"></i> CSV
                                             </a>
                                             <form asp-action="ToggleTripStatus" asp-route-id="@t.TripId" method="post" class="d-inline">
                                                 @Html.AntiForgeryToken()
@@ -173,7 +293,7 @@
                 </div>
 
                 <!-- Tab 2: 车队管理 (Fleet) -->
-                <div class="tab-pane fade" id="fleetTab">
+                <div class="tab-pane fade @(activeTab == "fleet" ? "show active" : "")" id="fleetTab">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
                             <thead>
@@ -182,7 +302,6 @@
                                     <th>Model</th>
                                     <th>Type</th>
                                     <th>Capacity</th>
-                                    <th>Year</th>
                                     <th>Amenities</th>
                                     <th>Status</th>
                                 </tr>
@@ -195,7 +314,6 @@
                                         <td class="fw-bold">@v.VehicleModel</td>
                                         <td><span class="badge bg-light text-dark border">@v.VehicleType</span></td>
                                         <td><i class="bi bi-chair"></i> @v.SeatingCapacity Seats</td>
-                                        <td>@v.ManufactureYear</td>
                                         <td class="small text-muted" style="max-width: 320px;">@v.Amenities</td>
                                         <td><span class="badge bg-success">Active</span></td>
                                     </tr>
@@ -206,7 +324,7 @@
                 </div>
 
                 <!-- Tab 3: 路线管理 (Routes) -->
-                <div class="tab-pane fade" id="routesTab">
+                <div class="tab-pane fade @(activeTab == "routes" ? "show active" : "")" id="routesTab">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
                             <thead>
@@ -384,3 +502,20 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tab = urlParams.get('tab');
+
+        // 只要带有 tab 参数，浏览器自动平滑滚动聚焦到表格顶部
+        if (tab) {
+            const targetEl = document.getElementById('adminTabs');
+            if (targetEl) {
+                setTimeout(function () {
+                    targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 80);
+            }
+        }
+    });
+</script>

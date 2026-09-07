@@ -3,90 +3,244 @@
 @{
     var trip = (TravelPlanningSystem.Models.Transportation.Trip)ViewBag.Trip;
     ViewData["Title"] = $"Passenger Manifest - Trip #{trip.TripId}";
-    int totalPassengers = Model.Sum(b => b.Passengers.Count);
+    var allPassengers = Model.SelectMany(b => b.Passengers).ToList();
+    int totalBooked = allPassengers.Count;
+    int boardedCount = allPassengers.Count(p => p.IsBoarded);
 }
 
 <style>
+    .manifest-page { background: #f3f5fb; padding: 35px 0; min-height: 85vh; }
+    .manifest-card { background: #fff; border-radius: 16px; padding: 30px; box-shadow: 0 8px 25px rgba(6,20,59,0.06); border: 1px solid #e2e8f0; }
+
+    /* ⭐ 完美横向打印引擎 (彻底撑开宽度，消除难看折行与滚动条) */
     @@media print {
-        .no-print { display: none !important; }
-        body { background: #fff !important; }
+        @@page {
+            size: landscape;
+            margin: 0.8cm 1cm; /* 适当缩小页边距，最大化利用横向空间 */
+        }
+        
+        /* 隐藏无用界面元素 */
+        nav, header, footer, .navbar, .sidebar, .no-print, .btn, .dashboard-heading {
+            display: none !important;
+        }
+
+        body, .manifest-page {
+            background: #fff !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+        }
+
+        /* 强制主卡片和容器占满整张横向纸张 */
+        .container, .container-fluid, .manifest-card {
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+        }
+
+        .table-responsive {
+            overflow: visible !important;
+            display: block !important;
+            width: 100% !important;
+        }
+
+        /* 表格 100% 宽度展开 */
+        table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            table-layout: auto !important;
+        }
+
+        table th, table td {
+            border: 1px solid #334155 !important;
+            padding: 8px 10px !important;
+            font-size: 9.5pt !important;
+            color: #000 !important;
+            vertical-align: middle !important;
+        }
+
+        .table-dark th {
+            background: #0f172a !important;
+            color: #fff !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .nowrap {
+            white-space: nowrap !important;
+        }
+
+        /* 打印时显示的文字标签 */
+        .print-only {
+            display: inline !important;
+        }
+        .screen-only {
+            display: none !important;
+        }
     }
+
+    .print-only { display: none; }
 </style>
 
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
-        <a asp-action="Index" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Back to Operations
-        </a>
-        <button onclick="window.print()" class="btn btn-primary fw-bold">
-            <i class="bi bi-printer"></i> Print Manifest
-        </button>
-    </div>
-
-    <!-- 登车清单单据卡片 -->
-    <div class="card p-4 border-0 shadow-sm rounded-4">
-        <div class="border-bottom pb-3 mb-4">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h2 class="fw-bold mb-1" style="color: #06143b;">Passenger Boarding Manifest</h2>
-                    <p class="text-muted mb-0">Official Dispatch Document • TravelMate Express</p>
-                </div>
-                <div class="text-end">
-                    <span class="badge bg-primary fs-6 px-3 py-2">Trip #@trip.TripId</span>
-                </div>
+<div class="manifest-page">
+    <div class="container">
+        
+        <!-- 顶部操作条 -->
+        <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+            <a asp-action="Index" class="btn btn-outline-secondary fw-bold">
+                <i class="bi bi-arrow-left"></i> Back to Operations Hub
+            </a>
+            <div class="d-flex gap-2">
+                <a asp-action="ExportManifest" asp-route-tripId="@trip.TripId" class="btn btn-outline-success fw-bold">
+                    <i class="bi bi-file-earmark-excel"></i> Export CSV
+                </a>
+                <button onclick="window.print()" class="btn btn-primary fw-bold px-4">
+                    <i class="bi bi-printer"></i> Print Boarding Sheet
+                </button>
             </div>
         </div>
 
-        <div class="row g-3 p-3 bg-light rounded-3 mb-4">
-            <div class="col-md-3"><strong>Route:</strong> @trip.Route?.Origin → @trip.Route?.Destination</div>
-            <div class="col-md-3"><strong>Departure:</strong> @trip.DepartureTime.ToString("HH:mm, dd MMM yyyy")</div>
-            <div class="col-md-3"><strong>Vehicle:</strong> @trip.Vehicle?.VehicleModel (@trip.Vehicle?.LicensePlate)</div>
-            <div class="col-md-3"><strong>Manifest Headcount:</strong> @totalPassengers / @trip.TotalSeats Passengers</div>
-        </div>
+        <!-- 登车检票单主卡片 -->
+        <div class="manifest-card">
+            
+            <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3 flex-wrap gap-2">
+                <div>
+                    <h2 class="fw-bold mb-1" style="color: #06143b;">Passenger Boarding Manifest</h2>
+                    <p class="text-muted mb-0">Official Dispatch & Check-in Document • TravelMate Express</p>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-primary fs-6 px-3 py-2">Trip #@trip.TripId</span>
+                    <small class="d-block text-muted mt-1">Generated: @DateTime.UtcNow.ToString("dd MMM yyyy, HH:mm") UTC</small>
+                </div>
+            </div>
 
-        <h5 class="fw-bold mb-3">Boarding Passenger Checklist</h5>
-        <div class="table-responsive">
-            <table class="table table-bordered table-striped align-middle">
-                <thead class="table-dark">
-                    <tr>
-                        <th style="width: 80px;">Boarded</th>
-                        <th style="width: 100px;">Seat</th>
-                        <th>Passenger Full Name</th>
-                        <th>IC / Passport</th>
-                        <th>Type</th>
-                        <th>Baggage</th>
-                        <th>Reference</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model.Any())
-                    {
-                        @foreach (var b in Model)
+            <!-- 车次信息栏 (横向舒展排版) -->
+            <div class="row g-3 p-3 bg-light rounded-3 mb-4 border align-items-center">
+                <div class="col-3">
+                    <span class="text-muted small d-block">Route</span>
+                    <strong class="fs-6 text-dark nowrap">@trip.Route?.Origin → @trip.Route?.Destination</strong>
+                </div>
+                <div class="col-3">
+                    <span class="text-muted small d-block">Departure Time</span>
+                    <strong class="fs-6 text-dark nowrap">@trip.DepartureTime.ToString("HH:mm, dd MMM yyyy")</strong>
+                </div>
+                <div class="col-3">
+                    <span class="text-muted small d-block">Assigned Vehicle</span>
+                    <strong class="fs-6 text-dark">@trip.Vehicle?.VehicleModel (@trip.Vehicle?.LicensePlate)</strong>
+                </div>
+                <div class="col-3 text-end">
+                    <span class="text-muted small d-block">Boarding Headcount</span>
+                    <strong class="fs-6 text-primary nowrap" id="headcountText">@boardedCount / @totalBooked Boarded</strong>
+                    <span class="text-muted small nowrap">(@trip.TotalSeats Capacity)</span>
+                </div>
+            </div>
+
+            <!-- 检票清单表格 -->
+            <h5 class="fw-bold mb-3" style="color: #06143b;">Boarding Passenger Checklist</h5>
+            
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="nowrap text-center" style="width: 90px;">Boarded</th>
+                            <th class="nowrap text-center" style="width: 75px;">Seat</th>
+                            <th>Passenger Full Name</th>
+                            <th class="nowrap" style="width: 170px;">IC / Passport</th>
+                            <th class="nowrap text-center" style="width: 90px;">Type</th>
+                            <th class="nowrap" style="width: 200px;">Baggage Allowance</th>
+                            <th class="nowrap" style="width: 190px;">Booking Reference</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Any())
                         {
-                            @foreach (var p in b.Passengers)
+                            @foreach (var b in Model)
                             {
-                                <tr>
-                                    <td class="text-center">
-                                        <input type="checkbox" style="width: 20px; height: 20px;" />
-                                    </td>
-                                    <td class="fw-bold fs-6 text-primary">@p.SeatNumber</td>
-                                    <td class="fw-bold">@p.FullName</td>
-                                    <td>@p.IdNumber</td>
-                                    <td>@p.PassengerType</td>
-                                    <td>@p.BaggageOption</td>
-                                    <td class="small font-monospace">@b.BookingReference</td>
-                                </tr>
+                                @foreach (var p in b.Passengers)
+                                {
+                                    <tr id="row_@p.PassengerId" class="@(p.IsBoarded ? "table-success" : "")">
+                                        <!-- 检票状态列 -->
+                                        <td class="text-center">
+                                            <!-- 屏幕上显示可点击的勾选框（带自动保存） -->
+                                            <input type="checkbox" 
+                                                   class="boarding-checkbox form-check-input screen-only" 
+                                                   style="width: 20px; height: 20px; cursor: pointer;"
+                                                   data-id="@p.PassengerId"
+                                                   @(p.IsBoarded ? "checked" : "")
+                                                   onchange="saveBoardingStatus(@p.PassengerId, this.checked)" />
+
+                                            <!-- 打印在纸面上显示整齐的文字状态 -->
+                                            <span class="print-only fw-bold @(p.IsBoarded ? "text-success" : "text-muted")">
+                                                @(p.IsBoarded ? "☑ Boarded" : "☐ Unchecked")
+                                            </span>
+                                        </td>
+                                        <td class="fw-bold fs-6 text-primary text-center nowrap">@p.SeatNumber</td>
+                                        <td class="fw-bold">
+                                            @p.FullName
+                                            @if (p.HasTravelInsurance)
+                                            {
+                                                <span class="badge bg-info text-dark ms-1 no-print" style="font-size: 0.65rem;">Insured</span>
+                                            }
+                                        </td>
+                                        <td class="font-monospace nowrap">@p.IdNumber</td>
+                                        <td class="text-center nowrap"><span class="badge bg-light text-dark border">@p.PassengerType</span></td>
+                                        <td class="nowrap small">@p.BaggageOption</td>
+                                        <td class="font-monospace nowrap text-dark fw-bold small">@b.BookingReference</td>
+                                    </tr>
+                                }
                             }
                         }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">No passengers have booked on this trip yet.</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    <i class="bi bi-people display-6 d-block mb-2 text-muted"></i>
+                                    No passengers have booked on this trip yet.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 底部签字区 -->
+            <div class="mt-4 pt-3 border-top d-flex justify-content-between text-muted small">
+                <span>Driver Signature: _______________________</span>
+                <span>Station Dispatcher: _______________________</span>
+            </div>
+
         </div>
     </div>
 </div>
+
+<script>
+    function saveBoardingStatus(passengerId, isBoarded) {
+        const row = document.getElementById('row_' + passengerId);
+        if (isBoarded) {
+            row.classList.add('table-success');
+        } else {
+            row.classList.remove('table-success');
+        }
+
+        const formData = new FormData();
+        formData.append('passengerId', passengerId);
+        formData.append('isBoarded', isBoarded);
+
+        fetch('@Url.Action("ToggleBoarding", "AdminTransportation")', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            const checkedCount = document.querySelectorAll('.boarding-checkbox:checked').length;
+            const totalCount = document.querySelectorAll('.boarding-checkbox').length;
+            document.getElementById('headcountText').innerText = checkedCount + ' / ' + totalCount + ' Boarded';
+        })
+        .catch(err => {
+            console.error('Auto-save error:', err);
+        });
+    }
+</script>
