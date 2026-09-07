@@ -166,57 +166,158 @@
 
                 </div>
 
-                <!-- Ratings & Reviews -->
-                @if (Model.Reviews.Any())
-                {
-                    <div class="reviews-card">
+               <!-- Ratings & Reviews (增强版) -->
+                <div class="reviews-card" id="reviewsSection">
 
-                        <div class="reviews-header">
-                            <h2>Passenger Reviews</h2>
+                    <div class="reviews-header d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h2 class="mb-1">Passenger Reviews</h2>
                             <div class="average-rating">
-                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill text-warning"></i>
                                 <span class="rating">@avgRating</span>
                                 <span class="count">(@Model.Reviews.Count() reviews)</span>
                             </div>
                         </div>
 
-                        <div class="reviews-list">
-                            @foreach (var review in Model.Reviews.OrderByDescending(r => r.CreatedAt).Take(5))
+                        <!-- ⭐ 点击弹出写评价弹窗 -->
+                        <button type="button" class="btn btn-outline-primary fw-bold" data-bs-toggle="modal" data-bs-target="#writeReviewModal">
+                            <i class="bi bi-pencil-square"></i> Write a Review
+                        </button>
+                    </div>
+
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show">
+                            <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show">
+                            <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <div class="reviews-list">
+                        @if (Model.Reviews.Any())
+                        {
+                            @foreach (var review in Model.Reviews.OrderByDescending(r => r.CreatedAt).Take(8))
                             {
                                 <div class="review-item">
-                                    <div class="review-header">
+                                    <div class="review-header d-flex justify-content-between">
                                         <div class="reviewer-info">
-                                            <span class="reviewer-name">@review.User?.FirstName @review.User?.LastName</span>
-                                            <span class="review-date">@review.CreatedAt.ToString("MMM d, yyyy")</span>
+                                            <span class="reviewer-name fw-bold">@review.User?.FirstName @review.User?.LastName</span>
+                                            <span class="review-date text-muted small ms-2">@review.CreatedAt.ToString("MMM d, yyyy")</span>
                                         </div>
-                                        <div class="review-rating">
+                                        <div class="review-rating text-warning">
                                             @for (int i = 1; i <= 5; i++)
                                             {
-                                                @if (i <= review.Rating)
-                                                {
-                                                    <i class="bi bi-star-fill"></i>
-                                                }
-                                                else
-                                                {
-                                                    <i class="bi bi-star"></i>
-                                                }
+                                                <i class="bi @(i <= review.Rating ? "bi-star-fill" : "bi-star")"></i>
                                             }
                                         </div>
                                     </div>
                                     @if (!string.IsNullOrWhiteSpace(review.Title))
                                     {
-                                        <h4 class="review-title">@review.Title</h4>
+                                        <h4 class="review-title fw-bold mt-2 fs-6">@review.Title</h4>
                                     }
                                     @if (!string.IsNullOrWhiteSpace(review.Comment))
                                     {
-                                        <p class="review-comment">@review.Comment</p>
+                                        <p class="review-comment text-muted mb-0">@review.Comment</p>
                                     }
                                 </div>
                             }
-                        </div>
-
+                        }
+                        else
+                        {
+                            <div class="text-center py-4 text-muted">
+                                <i class="bi bi-chat-square-heart fs-3 d-block mb-2"></i>
+                                <span>No reviews for this journey yet. Be the first passenger to share your experience!</span>
+                            </div>
+                        }
                     </div>
-                }
+
+                </div>
+
+                <!-- ⭐ 写评价弹窗 Modal -->
+                <div class="modal fade" id="writeReviewModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form asp-controller="Transportation" asp-action="AddReview" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="TripId" value="@Model.TripId" />
+                                <input type="hidden" name="Rating" id="selectedStarRating" value="5" />
+
+                                <div class="modal-header">
+                                    <h5 class="modal-title fw-bold" style="color: #06143b;">
+                                        <i class="bi bi-star-fill text-warning"></i> Review Your Journey
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+
+                                <div class="modal-body">
+                                    <!-- 交互式五星评分条 -->
+                                    <div class="text-center mb-3">
+                                        <label class="form-label small fw-bold d-block text-muted">How was your overall experience?</label>
+                                        <div id="starRatingGroup" class="fs-2 text-warning" style="cursor: pointer;">
+                                            <i class="bi bi-star-fill star-btn" data-star="1"></i>
+                                            <i class="bi bi-star-fill star-btn" data-star="2"></i>
+                                            <i class="bi bi-star-fill star-btn" data-star="3"></i>
+                                            <i class="bi bi-star-fill star-btn" data-star="4"></i>
+                                            <i class="bi bi-star-fill star-btn" data-star="5"></i>
+                                        </div>
+                                        <span id="starRatingDesc" class="badge bg-light text-primary border mt-1">5 Stars - Excellent</span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Review Title</label>
+                                        <input type="text" name="Title" class="form-control" placeholder="e.g. Comfortable ride &amp; on time!" required />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Your Review Comments</label>
+                                        <textarea name="Comment" class="form-control" rows="4" placeholder="Tell other passengers about the vehicle cleanliness, punctuality and driver service..." required></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-primary fw-bold px-4">Submit Review</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 星级点击互动脚本 -->
+                <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+                        const stars = document.querySelectorAll('.star-btn');
+                        const ratingInput = document.getElementById('selectedStarRating');
+                        const desc = document.getElementById('starRatingDesc');
+                        const descriptions = ['', '1 Star - Poor', '2 Stars - Fair', '3 Stars - Good', '4 Stars - Very Good', '5 Stars - Excellent'];
+
+                        stars.forEach(s => {
+                            s.addEventListener('click', function () {
+                                const val = parseInt(this.getAttribute('data-star'));
+                                ratingInput.value = val;
+                                desc.innerText = descriptions[val];
+
+                                stars.forEach((item, idx) => {
+                                    if (idx < val) {
+                                        item.classList.remove('bi-star');
+                                        item.classList.add('bi-star-fill');
+                                    } else {
+                                        item.classList.remove('bi-star-fill');
+                                        item.classList.add('bi-star');
+                                    }
+                                });
+                            });
+                        });
+                    });
+                </script>
 
             </main>
 

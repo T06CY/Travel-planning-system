@@ -95,7 +95,7 @@
                         <div id="hiddenSeatInputs"></div>
                     </div>
 
-                    <!-- 2. 乘客名册明细 (Passenger Roster Details) -->
+                    <!-- 2. 乘客名册明细 (带严格前端输入校验) -->
                     <div class="booking-card">
                         <h3><i class="bi bi-people-fill text-primary"></i> 2. Passenger Details</h3>
                         <div id="noSeatSelectedAlert" class="alert alert-warning">
@@ -104,23 +104,30 @@
                         <div id="passengersContainer"></div>
                     </div>
 
-                    <!-- 3. 联络人信息 (Contact Details) -->
+                    <!-- ⭐ 3. 联络人信息 (自动绑定当前账户 Gmail 与姓名，设为只读) -->
                     <div class="booking-card">
-                        <h3><i class="bi bi-person-lines-fill text-primary"></i> 3. Contact Information</h3>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h3 class="mb-0"><i class="bi bi-person-check-fill text-primary"></i> 3. Contact Information</h3>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1">
+                                <i class="bi bi-shield-check"></i> Account Details Verified
+                            </span>
+                        </div>
+                        <p class="text-muted small mb-3">E-tickets and boarding notifications will be sent directly to your registered account.</p>
+
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <label asp-for="ContactName" class="form-label fw-bold">Full Name</label>
-                                <input asp-for="ContactName" class="form-control" placeholder="John Doe" required />
+                                <input asp-for="ContactName" class="form-control bg-light" readonly style="cursor: not-allowed;" />
                                 <span asp-validation-for="ContactName" class="text-danger small"></span>
                             </div>
                             <div class="col-md-4">
-                                <label asp-for="ContactEmail" class="form-label fw-bold">Email Address</label>
-                                <input asp-for="ContactEmail" type="email" class="form-control" placeholder="john@example.com" required />
+                                <label asp-for="ContactEmail" class="form-label fw-bold">Account Gmail / Email</label>
+                                <input asp-for="ContactEmail" type="email" class="form-control bg-light" readonly style="cursor: not-allowed;" />
                                 <span asp-validation-for="ContactEmail" class="text-danger small"></span>
                             </div>
                             <div class="col-md-4">
-                                <label asp-for="ContactPhone" class="form-label fw-bold">Phone Number</label>
-                                <input asp-for="ContactPhone" class="form-control" placeholder="+60 12-345 6789" required />
+                                <label asp-for="ContactPhone" class="form-label fw-bold">Contact Phone Number <span class="text-danger">*</span></label>
+                                <input asp-for="ContactPhone" class="form-control" placeholder="012-3456789" required />
                                 <span asp-validation-for="ContactPhone" class="text-danger small"></span>
                             </div>
                         </div>
@@ -229,7 +236,7 @@
     </div>
 </div>
 
-<!-- 交互脚本：座位选择、动态乘客表单与实时算价 -->
+<!-- 交互脚本：选座、动态乘客表单、实时算价与表单合法性校验 -->
 <script>
     let selectedSeats = [];
     const baseFare = parseFloat(document.getElementById('baseFareInput').value);
@@ -251,7 +258,7 @@
     });
 
     function updateBookingUI() {
-        // 1. 更新隐藏 Input 供 Form POST
+        // 1. 更新隐藏 Input
         const hiddenContainer = document.getElementById('hiddenSeatInputs');
         hiddenContainer.innerHTML = '';
         selectedSeats.forEach(seat => {
@@ -262,7 +269,7 @@
             hiddenContainer.appendChild(input);
         });
 
-        // 2. 动态渲染每位乘客名册表单
+        // 2. 动态渲染每位乘客名册表单（包含正则校验与字符限制）
         const passengersContainer = document.getElementById('passengersContainer');
         const alertBox = document.getElementById('noSeatSelectedAlert');
 
@@ -285,12 +292,28 @@
                         <input type="hidden" name="Passengers[${idx}].SeatNumber" value="${seat}" />
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold">Full Name (as in IC/Passport)</label>
-                                <input type="text" name="Passengers[${idx}].FullName" class="form-control form-control-sm" placeholder="e.g. Tan Ah Kow" required />
+                                <label class="form-label small fw-bold">Full Name (as in IC/Passport) <span class="text-danger">*</span></label>
+                                <input type="text" name="Passengers[${idx}].FullName" 
+                                       class="form-control form-control-sm passenger-name-input" 
+                                       placeholder="e.g. Tan Ah Kow" 
+                                       required 
+                                       minlength="2"
+                                       maxlength="80"
+                                       pattern="^[A-Za-zÀ-ÿ\\s'-]{2,80}$"
+                                       title="Letters and spaces only (minimum 2 characters)" />
+                                <small class="text-muted" style="font-size: 0.72rem;">Letters and spaces only (2-80 characters).</small>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label small fw-bold">IC / Passport Number</label>
-                                <input type="text" name="Passengers[${idx}].IdNumber" class="form-control form-control-sm" placeholder="e.g. 980101-14-5566" required />
+                                <label class="form-label small fw-bold">IC / Passport Number <span class="text-danger">*</span></label>
+                                <input type="text" name="Passengers[${idx}].IdNumber" 
+                                       class="form-control form-control-sm passenger-id-input text-uppercase" 
+                                       placeholder="e.g. 010203-14-5678 or A12345678" 
+                                       required 
+                                       minlength="6"
+                                       maxlength="20"
+                                       pattern="^[A-Za-z0-9-]{6,20}$"
+                                       title="Valid Malaysian IC or Passport number (6-20 characters)" />
+                                <small class="text-muted" style="font-size: 0.72rem;">6-20 characters (letters, numbers, hyphens).</small>
                             </div>
                             <div class="col-md-2">
                                 <label class="form-label small fw-bold">Type</label>
@@ -323,7 +346,6 @@
             passengersContainer.innerHTML = html;
         }
 
-        // 3. 计算并刷新金额
         calculateGrandTotal();
     }
 
@@ -335,21 +357,18 @@
         const baseTotal = count * baseFare;
         document.getElementById('baseSubtotalText').innerText = 'RM ' + baseTotal.toFixed(2);
 
-        // 计算行李加购费
         let baggageTotal = 0;
         document.querySelectorAll('.baggage-select').forEach(sel => {
             baggageTotal += parseFloat(sel.value || 0);
         });
         document.getElementById('baggageTotalText').innerText = 'RM ' + baggageTotal.toFixed(2);
 
-        // 计算保险费
         let insuranceTotal = 0;
         document.querySelectorAll('.insurance-check').forEach(chk => {
             if (chk.checked) insuranceTotal += 5.00;
         });
         document.getElementById('insuranceTotalText').innerText = 'RM ' + insuranceTotal.toFixed(2);
 
-        // 优惠码处理
         const promoCode = document.getElementById('promoCodeInput').value.trim().toUpperCase();
         if (promoCode === 'TRAVEL2026' && count > 0) {
             discount = baseTotal * 0.15;
@@ -364,11 +383,11 @@
             document.getElementById('discountRow').style.display = 'none';
         }
 
-        const grandTotal = Math.max(0, baseTotal + baggageTotal + insuranceTotal - discount);
+
+const grandTotal = Math.max(0, baseTotal + baggageTotal + insuranceTotal - discount);
         document.getElementById('grandTotalText').innerText = 'RM ' + grandTotal.toFixed(2);
     }
 
-    // 优惠码点击激活
     document.getElementById('applyPromoBtn')?.addEventListener('click', function () {
         const promoCode = document.getElementById('promoCodeInput').value.trim().toUpperCase();
         const msg = document.getElementById('promoMessage');
@@ -383,5 +402,39 @@
             msg.innerText = 'Invalid or expired promo code.';
         }
         calculateGrandTotal();
+    });
+
+    // ⭐ 表单提交前的严格格式验证
+    document.getElementById('bookingForm')?.addEventListener('submit', function (e) {
+        let isValid = true;
+        const namePattern = /^[A-Za-zÀ-ÿ\s'-]{2,80}$/;
+        const idPattern = /^[A-Za-z0-9-]{6,20}$/;
+
+        document.querySelectorAll('.passenger-name-input').forEach((input, index) => {
+            const val = input.value.trim();
+            if (!namePattern.test(val)) {
+                alert(`Passenger ${index + 1}: Please enter a valid name using letters and spaces only.`);
+                input.focus();
+                isValid = false;
+            }
+        });
+
+        if (!isValid) {
+            e.preventDefault();
+            return;
+        }
+
+        document.querySelectorAll('.passenger-id-input').forEach((input, index) => {
+            const val = input.value.trim();
+            if (!idPattern.test(val)) {
+                alert(`Passenger ${index + 1}: Please enter a valid IC number or Passport (minimum 6 characters).`);
+                input.focus();
+                isValid = false;
+            }
+        });
+
+        if (!isValid) {
+            e.preventDefault();
+        }
     });
 </script>

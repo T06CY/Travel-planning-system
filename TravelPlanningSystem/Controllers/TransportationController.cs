@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 using TravelPlanningSystem.Data;
 using TravelPlanningSystem.Models;
 using TravelPlanningSystem.Models.Transportation;
@@ -229,17 +230,18 @@ public class TransportationController(AppDbContext context) : Controller
             TotalAmount = unitPrice
         };
 
-        // ⭐ 自动预填当前登录用户的联络信息（已正确归位到 GET Book 方法中）
-        var userGuidStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        // ⭐ 自动拉取当前登录账户的真实姓名与 Gmail
+        var identityName = User.Identity?.Name;
         ApplicationUser? loggedUser = null;
-        if (Guid.TryParse(userGuidStr, out var gid))
+        if (!string.IsNullOrEmpty(identityName))
         {
-            loggedUser = await context.Users.FirstOrDefaultAsync(u => u.UserId == gid);
+            loggedUser = await context.Users.FirstOrDefaultAsync(u =>
+                (u.FirstName + " " + u.LastName).Trim() == identityName ||
+                u.FirstName == identityName ||
+                u.Email == identityName);
         }
-        if (loggedUser == null && !string.IsNullOrEmpty(User.Identity?.Name))
-        {
-            loggedUser = await context.Users.FirstOrDefaultAsync(u => u.Email == User.Identity.Name);
-        }
+        loggedUser ??= await context.Users.FirstOrDefaultAsync(u => u.AccountStatus == "Active")
+                       ?? await context.Users.FirstOrDefaultAsync();
 
         if (loggedUser != null)
         {
@@ -272,17 +274,14 @@ public class TransportationController(AppDbContext context) : Controller
             ModelState.AddModelError("", "Please select at least one seat on the seat map.");
         }
 
-        // 多重识别当前登录用户，确保 100% 匹配成功，杜绝误跳登录页
+        // 多重识别当前登录用户
         ApplicationUser? currentUser = null;
-
-        // 1. 通过 NameIdentifier Claim (UserId Guid)
         var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (Guid.TryParse(userIdStr, out var userGuid))
         {
             currentUser = await context.Users.FirstOrDefaultAsync(u => u.UserId == userGuid);
         }
 
-        // 2. 通过 Email Claim 匹配
         if (currentUser == null)
         {
             var emailClaim = User.FindFirst(ClaimTypes.Email)?.Value;
@@ -292,22 +291,58 @@ public class TransportationController(AppDbContext context) : Controller
             }
         }
 
-        // 3. 通过表单填写的联系人邮箱匹配
         if (currentUser == null && !string.IsNullOrWhiteSpace(model.ContactEmail))
         {
             currentUser = await context.Users.FirstOrDefaultAsync(u => u.Email == model.ContactEmail.Trim());
         }
 
-        // 4. 终极兜底：匹配当前活跃账号
-        if (currentUser == null)
-        {
-            currentUser = await context.Users.FirstOrDefaultAsync(u => u.AccountStatus == "Active")
-                          ?? await context.Users.FirstOrDefaultAsync();
-        }
+        currentUser ??= await context.Users.FirstOrDefaultAsync(u => u.AccountStatus == "Active")
+                       ?? await context.Users.FirstOrDefaultAsync();
 
         if (currentUser == null)
         {
             return RedirectToAction("Login", "Account");
+        }
+
+        // ⭐ 1. 强制将联系人姓名与 Gmail 锁定为当前登录账户（后端安全保障）
+        model.ContactName = $"{currentUser.FirstName} {currentUser.LastName}".Trim();
+        if (string.IsNullOrEmpty(model.ContactName)) model.ContactName = currentUser.FirstName;
+        model.ContactEmail = currentUser.Email;
+
+        // ⭐ 2. 逐一校验每位乘客姓名与证件号的合规性
+        for (int i = 0; i < model.Passengers.Count; i++)
+        {
+            var p = model.Passengers[i];
+
+            // 姓名验证：真实姓名（只允许字母与空格，2~80个字符）
+            if (string.IsNullOrWhiteSpace(p.FullName) || p.FullName.Trim().Length < 2)
+            {
+                ModelState.AddModelError("", $"Passenger {i + 1} (Seat {p.SeatNumber}): Full name is required (minimum 2 letters).");
+            }
+            else if (!Regex.IsMatch(p.FullName.Trim(), @"^[A-Za-zÀ-ÿ\s'-]{2,80}$"))
+            {
+                ModelState.AddModelError("", $"Passenger {i + 1} (Seat {p.SeatNumber}): Full name must contain letters and spaces only.");
+            }
+
+            // 证件号验证：身份证或护照格式 (6~20位字母数字破折号)
+            if (string.IsNullOrWhiteSpace(p.IdNumber) || p.IdNumber.Trim().Length < 6)
+            {
+                ModelState.AddModelError("", $"Passenger {i + 1} (Seat {p.SeatNumber}): Valid IC or Passport number is required (minimum 6 characters).");
+            }
+            else if (!Regex.IsMatch(p.IdNumber.Trim(), @"^[A-Za-z0-9-]{6,20}$"))
+            {
+                ModelState.AddModelError("", $"Passenger {i + 1} (Seat {p.SeatNumber}): IC/Passport must contain valid alphanumeric characters or hyphens only.");
+            }
+        }
+
+        // 3. 验证所选座位是否依然可用
+        var selectedSeats = trip.Seats
+            .Where(s => model.SelectedSeatNumbers!.Contains(s.SeatNumber))
+            .ToList();
+
+        if (selectedSeats.Any(s => !s.IsAvailable || s.Status == "Booked"))
+        {
+            ModelState.AddModelError("", "One or more selected seats have just been booked by another passenger. Please select other seats.");
         }
 
         if (!ModelState.IsValid)
@@ -318,43 +353,23 @@ public class TransportationController(AppDbContext context) : Controller
             return View(model);
         }
 
-        // 1. 验证所选座位是否依然可用
-        var selectedSeats = trip.Seats
-            .Where(s => model.SelectedSeatNumbers!.Contains(s.SeatNumber))
-            .ToList();
-
-        if (selectedSeats.Any(s => !s.IsAvailable || s.Status == "Booked"))
-        {
-            ModelState.AddModelError("", "One or more selected seats have just been booked by another passenger. Please select other seats.");
-            model.Trip = trip;
-            model.Seats = trip.Seats.OrderBy(s => s.SeatId).ToList();
-            return View(model);
-        }
-
-        // 2. 费用计算
+        // 4. 费用计算
         decimal seatPrice = trip.BaseFare * (1 - trip.DiscountPercentage / 100);
         decimal baseTotal = seatPrice * selectedSeats.Count;
         decimal baggageTotal = model.Passengers.Sum(p => p.BaggagePrice);
         decimal insuranceTotal = model.Passengers.Sum(p => p.HasInsurance ? 5.00m : 0m);
 
-        // 优惠码逻辑 (演示码: TRAVEL2026 减 15%, PROMO10 减 RM10)
         decimal discount = 0;
         if (!string.IsNullOrWhiteSpace(model.PromoCode))
         {
             var code = model.PromoCode.Trim().ToUpper();
-            if (code == "TRAVEL2026")
-            {
-                discount = Math.Round(baseTotal * 0.15m, 2);
-            }
-            else if (code == "PROMO10")
-            {
-                discount = Math.Min(baseTotal, 10.00m);
-            }
+            if (code == "TRAVEL2026") discount = Math.Round(baseTotal * 0.15m, 2);
+            else if (code == "PROMO10") discount = Math.Min(baseTotal, 10.00m);
         }
 
         decimal grandTotal = Math.Max(0, baseTotal + baggageTotal + insuranceTotal - discount);
 
-        // 3. 创建预订记录实体 (TransportationBooking)
+        // 5. 创建预订记录实体 (TransportationBooking)
         var booking = new TransportationBooking
         {
             BookingReference = "TB-" + DateTime.UtcNow.ToString("yyyyMMdd") + "-" + Guid.NewGuid().ToString("N")[..5].ToUpper(),
@@ -376,14 +391,14 @@ public class TransportationController(AppDbContext context) : Controller
             UpdatedAt = DateTime.UtcNow
         };
 
-        // 4. 添加乘客名册并锁定座位
+        // 6. 添加乘客名册并锁定座位
         foreach (var pInput in model.Passengers)
         {
             var targetSeat = selectedSeats.FirstOrDefault(s => s.SeatNumber == pInput.SeatNumber);
             booking.Passengers.Add(new TransportationPassenger
             {
-                FullName = pInput.FullName,
-                IdNumber = pInput.IdNumber,
+                FullName = pInput.FullName.Trim(),
+                IdNumber = pInput.IdNumber.Trim().ToUpper(),
                 PassengerType = pInput.PassengerType ?? "Adult",
                 SeatId = targetSeat?.SeatId,
                 SeatNumber = pInput.SeatNumber,
@@ -395,35 +410,30 @@ public class TransportationController(AppDbContext context) : Controller
             });
         }
 
-        // 更新座位物理状态
         foreach (var seat in selectedSeats)
         {
             seat.IsAvailable = false;
             seat.Status = "Booked";
         }
 
-        // 扣减车次剩余可用座位数
         trip.AvailableSeats = Math.Max(0, trip.AvailableSeats - selectedSeats.Count);
 
         context.TransportationBookings.Add(booking);
         await context.SaveChangesAsync();
 
-        // 预订成功，跳转到出票确认页
         return RedirectToAction(nameof(Confirmation), new { id = booking.BookingId });
     }
 
     // ==========================================
-    // Core Module 2: 电子车票与预订成功确认页 (GET)
+    // Core Module 2: 电子车票确认页 (GET)
     // ==========================================
     [HttpGet]
     public async Task<IActionResult> Confirmation(int id)
     {
         var booking = await context.TransportationBookings
             .AsNoTracking()
-            .Include(b => b.Trip)
-                .ThenInclude(t => t!.Route)
-            .Include(b => b.Trip)
-                .ThenInclude(t => t!.Vehicle)
+            .Include(b => b.Trip).ThenInclude(t => t!.Route)
+            .Include(b => b.Trip).ThenInclude(t => t!.Vehicle)
             .Include(b => b.Passengers)
             .FirstOrDefaultAsync(b => b.BookingId == id);
 
@@ -434,16 +444,14 @@ public class TransportationController(AppDbContext context) : Controller
     }
 
     // ==========================================
-    // Core Module 2: 我的车票列表 (GET: /Transportation/MyBookings)
+    // Core Module 2: 我的车票列表 (GET)
     // ==========================================
     [HttpGet]
     public async Task<IActionResult> MyBookings()
     {
-        // 1. 精准识别当前登录用户 "Blanken Choong"
         var identityName = User.Identity?.Name;
         ApplicationUser? currentUser = null;
 
-        // 通过姓名匹配 (FirstName + LastName) 或 Email 匹配
         if (!string.IsNullOrEmpty(identityName))
         {
             currentUser = await context.Users.FirstOrDefaultAsync(u =>
@@ -452,7 +460,6 @@ public class TransportationController(AppDbContext context) : Controller
                 u.Email == identityName);
         }
 
-        // 兜底：如果没匹配上，取当前活跃用户
         currentUser ??= await context.Users.FirstOrDefaultAsync(u => u.AccountStatus == "Active")
                        ?? await context.Users.FirstOrDefaultAsync();
 
@@ -461,13 +468,10 @@ public class TransportationController(AppDbContext context) : Controller
             return RedirectToAction("Login", "Account");
         }
 
-        // 2. 查出归属于当前用户或联系人的所有预订
         var bookings = await context.TransportationBookings
             .AsNoTracking()
-            .Include(b => b.Trip)
-                .ThenInclude(t => t!.Route)
-            .Include(b => b.Trip)
-                .ThenInclude(t => t!.Vehicle)
+            .Include(b => b.Trip).ThenInclude(t => t!.Route)
+            .Include(b => b.Trip).ThenInclude(t => t!.Vehicle)
             .Include(b => b.Passengers)
             .Where(b => b.UserId == currentUser.UserId
                      || b.ContactEmail == currentUser.Email
@@ -486,8 +490,7 @@ public class TransportationController(AppDbContext context) : Controller
     public async Task<IActionResult> CancelBooking(int id)
     {
         var booking = await context.TransportationBookings
-            .Include(b => b.Trip)
-                .ThenInclude(t => t!.Seats)
+            .Include(b => b.Trip).ThenInclude(t => t!.Seats)
             .Include(b => b.Passengers)
             .FirstOrDefaultAsync(b => b.BookingId == id);
 
@@ -500,12 +503,10 @@ public class TransportationController(AppDbContext context) : Controller
             return RedirectToAction(nameof(MyBookings));
         }
 
-        // 1. 更新订单状态为已取消并退款
         booking.BookingStatus = "Cancelled";
         booking.PaymentStatus = "Refunded";
         booking.UpdatedAt = DateTime.UtcNow;
 
-        // 2. 释放占用的座位并恢复车次库存
         if (booking.Trip != null)
         {
             var seatNumbers = booking.Passengers.Select(p => p.SeatNumber).ToList();
@@ -519,7 +520,6 @@ public class TransportationController(AppDbContext context) : Controller
                 seat.Status = "Available";
             }
 
-            // 归还座位库存
             booking.Trip.AvailableSeats += booking.Passengers.Count;
         }
 
@@ -527,5 +527,57 @@ public class TransportationController(AppDbContext context) : Controller
         TempData["SuccessMessage"] = "Booking cancelled successfully. Seats have been released and refund is processed.";
 
         return RedirectToAction(nameof(MyBookings));
+    }
+
+    // ==========================================
+    // Core Module 1/3: 提交车次评价 (POST)
+    // ==========================================
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddReview(TransportationReviewViewModel model)
+    {
+        var trip = await context.Trips.FindAsync(model.TripId);
+        if (trip == null) return NotFound("Trip not found.");
+
+        if (!ModelState.IsValid)
+        {
+            TempData["ErrorMessage"] = "Please provide a valid rating (1-5 stars) and comment.";
+            return RedirectToAction(nameof(Details), new { id = model.TripId });
+        }
+
+        var identityName = User.Identity?.Name;
+        ApplicationUser? currentUser = null;
+        if (!string.IsNullOrEmpty(identityName))
+        {
+            currentUser = await context.Users.FirstOrDefaultAsync(u =>
+                (u.FirstName + " " + u.LastName).Trim() == identityName ||
+                u.FirstName == identityName ||
+                u.Email == identityName);
+        }
+        currentUser ??= await context.Users.FirstOrDefaultAsync(u => u.AccountStatus == "Active")
+                       ?? await context.Users.FirstOrDefaultAsync();
+
+        if (currentUser == null)
+        {
+            return RedirectToAction("Login", "Account");
+        }
+
+        var review = new TransportationReview
+        {
+            TripId = model.TripId,
+            UserId = currentUser.UserId,
+            Rating = Math.Clamp(model.Rating, 1, 5),
+            Title = string.IsNullOrWhiteSpace(model.Title) ? "Great Experience" : model.Title.Trim(),
+            Comment = model.Comment.Trim(),
+            IsVisible = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        context.TransportationReviews.Add(review);
+        await context.SaveChangesAsync();
+
+        TempData["SuccessMessage"] = "Thank you! Your review has been submitted successfully.";
+        return RedirectToAction(nameof(Details), new { id = model.TripId });
     }
 }
