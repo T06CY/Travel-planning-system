@@ -1,291 +1,2217 @@
 ﻿@model TravelPlanningSystem.ViewModels.ActivityFormViewModel
+@using System.Globalization
 
-<form method="post"
+@{
+    var isEdit = Model.ActivityId > 0;
+    var formAction = isEdit ? "Edit" : "Create";
+
+    var existingPhotoUrl =
+        ViewBag.ExistingPhotoUrl as string;
+
+    var priceValue =
+        Model.PricePerPerson > 0
+            ? Model.PricePerPerson.ToString("0.00", CultureInfo.InvariantCulture)
+            : "";
+}
+
+<form asp-controller="AdminActivities"
+      asp-action="@formAction"
+      asp-route-id="@(isEdit ? Model.ActivityId : null)"
+      method="post"
       enctype="multipart/form-data"
-      class="form-card admin-form-card">
+      id="activityForm">
 
-    <input asp-for="ActivityId" type="hidden" />
+    @Html.AntiForgeryToken()
+
+    @if (isEdit)
+    {
+        <input asp-for="ActivityId"
+               type="hidden" />
+    }
 
     <div asp-validation-summary="ModelOnly"
-         class="text-danger validation-summary">
+         class="alert alert-danger validation-summary">
     </div>
 
-    <!-- Basic Information -->
-    <div class="form-section-title">
-        <span>1</span>
+    <div class="activity-form-layout">
 
-        <div>
-            <h3>Basic Information</h3>
-            <p>
-                Describe what travellers will see in the activity catalogue.
-            </p>
-        </div>
-    </div>
+        <div class="activity-form-main">
 
-    <div class="row g-3">
+            <div class="activity-form-card">
 
-        <div class="col-md-8">
-            <label asp-for="ActivityName" class="form-label"></label>
+                <div class="activity-section-header">
 
-            <input asp-for="ActivityName"
-                   class="form-control" />
+                    <div class="section-number section-purple">
+                        1
+                    </div>
 
-            <span asp-validation-for="ActivityName"
-                  class="text-danger">
-            </span>
-        </div>
+                    <div class="section-icon icon-purple">
+                        <i class="bi bi-info-square"></i>
+                    </div>
 
-        <div class="col-md-4">
-            <label asp-for="ActivityCategoryId"
-                   class="form-label">
-                Category
-            </label>
+                    <div>
+                        <h2>Basic Information</h2>
 
-            <select asp-for="ActivityCategoryId"
-                    asp-items="ViewBag.Categories"
-                    class="form-select">
-                <option value="">Select Category</option>
-            </select>
+                        <p>
+                            Describe what travellers will see
+                            in the activity catalogue.
+                        </p>
+                    </div>
 
-            <span asp-validation-for="ActivityCategoryId"
-                  class="text-danger">
-            </span>
-        </div>
+                </div>
 
-        <div class="col-md-5">
-            <label asp-for="Destination"
-                   class="form-label">
-            </label>
+                <div class="form-grid form-grid-two">
 
-            <input asp-for="Destination"
-                   class="form-control" />
+                    <div class="activity-field">
 
-            <span asp-validation-for="Destination"
-                  class="text-danger">
-            </span>
-        </div>
+                        <label asp-for="ActivityName">
+                            Activity Name
+                            <span class="required">*</span>
+                        </label>
 
-        <div class="col-md-7">
-            <label asp-for="Location"
-                   class="form-label">
-            </label>
+                        <input asp-for="ActivityName"
+                               class="activity-control"
+                               placeholder="e.g. Cameron Highlands Tea Experience"
+                               maxlength="120" />
 
-            <input asp-for="Location"
-                   class="form-control" />
+                        <span asp-validation-for="ActivityName"
+                              class="field-validation"></span>
 
-            <span asp-validation-for="Location"
-                  class="text-danger">
-            </span>
-        </div>
+                    </div>
 
-        <div class="col-12">
-            <label asp-for="Description"
-                   class="form-label">
-            </label>
+                    <div class="activity-field">
 
-            <textarea asp-for="Description"
-                      class="form-control"
-                      rows="6">
-            </textarea>
+                        <label asp-for="ActivityCategoryId">
+                            Category
+                            <span class="required">*</span>
+                        </label>
 
-            <span asp-validation-for="Description"
-                  class="text-danger">
-            </span>
-        </div>
+                        <select asp-for="ActivityCategoryId"
+                                asp-items="ViewBag.Categories"
+                                class="activity-control activity-select">
 
-    </div>
+                            <option value="">
+                                Select Category
+                            </option>
 
-    <hr />
+                        </select>
 
-    <!-- Pricing -->
-    <div class="form-section-title">
-        <span>2</span>
+                        <span asp-validation-for="ActivityCategoryId"
+                              class="field-validation"></span>
 
-        <div>
-            <h3>Pricing and Participation</h3>
-            <p>
-                Set the business rules used during booking.
-            </p>
-        </div>
-    </div>
+                    </div>
 
-    <div class="row g-3">
+                </div>
 
-        <div class="col-md-3">
-            <label asp-for="PricePerPerson"
-                   class="form-label">
-            </label>
+                <div class="form-grid form-grid-two">
 
-            <input asp-for="PricePerPerson"
-                   class="form-control" />
+                    <div class="activity-field">
 
-            <span asp-validation-for="PricePerPerson"
-                  class="text-danger">
-            </span>
-        </div>
+                        <label asp-for="Destination">
+                            Destination
+                            <span class="required">*</span>
+                        </label>
 
-        <div class="col-md-3">
-            <label asp-for="DurationHours"
-                   class="form-label">
-            </label>
+                        <input asp-for="Destination"
+                               class="activity-control"
+                               placeholder="e.g. Langkawi, Kedah"
+                               maxlength="80" />
 
-            <input asp-for="DurationHours"
-                   class="form-control"
-                   step="0.5" />
+                        <span asp-validation-for="Destination"
+                              class="field-validation"></span>
 
-            <span asp-validation-for="DurationHours"
-                  class="text-danger">
-            </span>
-        </div>
+                    </div>
 
-        <div class="col-md-2">
-            <label asp-for="MinimumParticipants"
-                   class="form-label">
-                Min People
-            </label>
+                    <div class="activity-field">
 
-            <input asp-for="MinimumParticipants"
-                   class="form-control" />
+                        <label asp-for="Location">
+                            Location
+                            <span class="required">*</span>
+                        </label>
 
-            <span asp-validation-for="MinimumParticipants"
-                  class="text-danger">
-            </span>
-        </div>
+                        <input asp-for="Location"
+                               class="activity-control"
+                               placeholder="e.g. Pantai Cenang, Langkawi"
+                               maxlength="180" />
 
-        <div class="col-md-2">
-            <label asp-for="MaximumParticipants"
-                   class="form-label">
-                Max People
-            </label>
+                        <span asp-validation-for="Location"
+                              class="field-validation"></span>
 
-            <input asp-for="MaximumParticipants"
-                   class="form-control" />
+                    </div>
 
-            <span asp-validation-for="MaximumParticipants"
-                  class="text-danger">
-            </span>
-        </div>
+                </div>
 
-        <div class="col-md-2">
-            <label asp-for="MinimumAge"
-                   class="form-label">
-                Min Age
-            </label>
+                <div class="activity-field">
 
-            <input asp-for="MinimumAge"
-                   class="form-control" />
+                    <label asp-for="Description">
+                        Description
+                        <span class="required">*</span>
+                    </label>
 
-            <span asp-validation-for="MinimumAge"
-                  class="text-danger">
-            </span>
-        </div>
+                    <textarea asp-for="Description"
+                              class="activity-control activity-textarea description-textarea"
+                              maxlength="2000"
+                              placeholder="Describe the activity, highlights, experience and what makes it special..."></textarea>
 
-        <div class="col-md-6">
-            <label asp-for="IncludedItems"
-                   class="form-label">
-            </label>
+                    <div class="textarea-footer">
 
-            <textarea asp-for="IncludedItems"
-                      class="form-control"
-                      rows="3">
-            </textarea>
-        </div>
+                        <span asp-validation-for="Description"
+                              class="field-validation"></span>
 
-        <div class="col-md-6">
-            <label asp-for="WhatToBring"
-                   class="form-label">
-            </label>
+                        <span id="descriptionCounter"
+                              class="character-counter">
+                            0 / 2000
+                        </span>
 
-            <textarea asp-for="WhatToBring"
-                      class="form-control"
-                      rows="3">
-            </textarea>
-        </div>
+                    </div>
 
-    </div>
+                </div>
 
-    <hr />
-
-    <!-- Photos -->
-    <div class="form-section-title">
-        <span>3</span>
-
-        <div>
-            <h3>Photos and Visibility</h3>
-            <p>
-                Upload multiple images and control where the activity appears.
-            </p>
-        </div>
-    </div>
-
-    <div class="row g-3">
-
-        <div class="col-md-8">
-
-            <label asp-for="Photos"
-                   class="form-label">
-                Activity Photos
-            </label>
-
-            <input asp-for="Photos"
-                   type="file"
-                   class="form-control"
-                   accept="image/jpeg,image/png,image/webp"
-                   multiple />
-
-            <small class="form-text">
-                JPG, PNG or WEBP. Maximum 5 MB each.
-            </small>
-
-            <span asp-validation-for="Photos"
-                  class="text-danger">
-            </span>
-
-        </div>
-
-        <div class="col-md-4 d-flex flex-column justify-content-center gap-2">
-
-            <div class="form-check form-switch">
-                <input asp-for="IsFeatured"
-                       class="form-check-input" />
-
-                <label asp-for="IsFeatured"
-                       class="form-check-label">
-                    Featured Activity
-                </label>
             </div>
 
-            <div class="form-check form-switch">
-                <input asp-for="IsActive"
-                       class="form-check-input" />
 
-                <label asp-for="IsActive"
-                       class="form-check-label">
-                    Active and Visible
-                </label>
+            <div class="activity-form-card">
+
+                <div class="activity-section-header">
+
+                    <div class="section-number section-red">
+                        2
+                    </div>
+
+                    <div class="section-icon icon-red">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
+
+                    <div>
+                        <h2>Pricing and Participation</h2>
+
+                        <p>
+                            Set the business rules used during booking.
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="pricing-grid">
+
+                    <div class="activity-field">
+
+                        <label for="PricePerPerson">
+                            Price per Person
+                            <span class="required">*</span>
+                        </label>
+
+                        <div class="input-addon-wrapper price-wrapper">
+
+                            <span class="input-addon">
+                                RM
+                            </span>
+
+                            <input id="PricePerPerson"
+                                   name="PricePerPerson"
+                                   type="text"
+                                   inputmode="decimal"
+                                   class="activity-control input-with-addon"
+                                   value="@priceValue"
+                                   placeholder="120.00"
+                                   autocomplete="off"
+                                   maxlength="10" />
+
+                        </div>
+
+                        <span asp-validation-for="PricePerPerson"
+                              class="field-validation"></span>
+
+                    </div>
+
+
+                    <div class="activity-field">
+
+                        <label asp-for="DurationHours">
+                            Duration (Hours)
+                            <span class="required">*</span>
+                        </label>
+
+                        <input asp-for="DurationHours"
+                               type="number"
+                               min="0.5"
+                               max="72"
+                               step="0.5"
+                               class="activity-control"
+                               placeholder="3" />
+
+                        <span asp-validation-for="DurationHours"
+                              class="field-validation"></span>
+
+                    </div>
+
+
+                    <div class="activity-field">
+
+                        <label asp-for="MinimumParticipants">
+                            Minimum Participants
+                            <span class="required">*</span>
+                        </label>
+
+                        <input asp-for="MinimumParticipants"
+                               type="number"
+                               min="1"
+                               max="100"
+                               step="1"
+                               class="activity-control"
+                               placeholder="1" />
+
+                        <span asp-validation-for="MinimumParticipants"
+                              class="field-validation"></span>
+
+                    </div>
+
+
+                    <div class="activity-field">
+
+                        <label asp-for="MaximumParticipants">
+                            Maximum Participants
+                            <span class="required">*</span>
+                        </label>
+
+                        <input asp-for="MaximumParticipants"
+                               type="number"
+                               min="1"
+                               max="500"
+                               step="1"
+                               class="activity-control"
+                               placeholder="20" />
+
+                        <span asp-validation-for="MaximumParticipants"
+                              class="field-validation"></span>
+
+                    </div>
+
+
+                    <div class="activity-field">
+
+                        <label asp-for="MinimumAge">
+                            Minimum Age
+                        </label>
+
+                        <input asp-for="MinimumAge"
+                               type="number"
+                               min="0"
+                               max="100"
+                               step="1"
+                               class="activity-control"
+                               placeholder="0" />
+
+                        <span asp-validation-for="MinimumAge"
+                              class="field-validation"></span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="duration-information">
+
+                    <div class="duration-info-icon">
+                        <i class="bi bi-info-lg"></i>
+                    </div>
+
+                    <div>
+                        <strong>
+                            Duration Information
+                        </strong>
+
+                        <span>
+                            Duration automatically determines
+                            the session end time.
+                        </span>
+
+                        <small id="durationExample">
+                            Example: If duration is 3 hours
+                            and the session starts at 9:00 AM,
+                            the end time will be 12:00 PM.
+                        </small>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="activity-form-card">
+
+                <div class="activity-section-header">
+
+                    <div class="section-number section-green">
+                        3
+                    </div>
+
+                    <div class="section-icon icon-green">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+
+                    <div>
+                        <h2>Guest Information</h2>
+
+                        <p>
+                            Tell travellers what is included
+                            and what to bring.
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="form-grid form-grid-two">
+
+                    <div class="activity-field">
+
+                        <label asp-for="IncludedItems">
+                            What's Included
+                        </label>
+
+                        <textarea asp-for="IncludedItems"
+                                  class="activity-control activity-textarea guest-textarea"
+                                  maxlength="300"
+                                  placeholder="e.g. Guided tour, entrance fees, refreshments..."></textarea>
+
+                        <span asp-validation-for="IncludedItems"
+                              class="field-validation"></span>
+
+                    </div>
+
+
+                    <div class="activity-field">
+
+                        <label asp-for="WhatToBring">
+                            What to Bring
+                        </label>
+
+                        <textarea asp-for="WhatToBring"
+                                  class="activity-control activity-textarea guest-textarea"
+                                  maxlength="300"
+                                  placeholder="e.g. Comfortable shoes, sunscreen, camera..."></textarea>
+
+                        <span asp-validation-for="WhatToBring"
+                              class="field-validation"></span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="activity-form-card">
+
+                <div class="activity-section-header">
+
+                    <div class="section-number section-orange">
+                        4
+                    </div>
+
+                    <div class="section-icon icon-orange">
+                        <i class="bi bi-image"></i>
+                    </div>
+
+                    <div>
+                        <h2>Photo and Visibility</h2>
+
+                        <p>
+                            @if (isEdit)
+                            {
+                                <text>
+                                    Upload a new photo to replace
+                                    the current activity gallery.
+                                </text>
+                            }
+                            else
+                            {
+                                <text>
+                                    Upload activity photos and
+                                    control customer visibility.
+                                </text>
+                            }
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="photo-upload-box"
+                     id="photoUploadBox">
+
+                    <input asp-for="Photos"
+                           id="activityPhotos"
+                           type="file"
+                           accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                           multiple
+                           hidden />
+
+                    <label for="activityPhotos"
+                           class="photo-upload-label">
+
+                        <div class="upload-icon">
+                            <i class="bi bi-cloud-arrow-up"></i>
+                        </div>
+
+                        <strong>
+                            @(isEdit
+                                ? "Replace Activity Photos"
+                                : "Upload Activity Photos")
+                        </strong>
+
+                        <span>
+                            Click to browse or drag photos here
+                        </span>
+
+                        <small>
+                            JPG, PNG or WEBP · Maximum 5 MB each
+                        </small>
+
+                    </label>
+
+                </div>
+
+                <div id="selectedPhotoInfo"
+                     class="selected-photo-info">
+                </div>
+
+                <span asp-validation-for="Photos"
+                      class="field-validation"></span>
+
+
+                <div class="visibility-grid">
+
+                    <label class="visibility-option">
+
+                        <div class="visibility-text">
+
+                            <div class="visibility-icon active-visibility-icon">
+                                <i class="bi bi-eye"></i>
+                            </div>
+
+                            <div>
+                                <strong>Active</strong>
+
+                                <span>
+                                    Show this activity to customers.
+                                </span>
+                            </div>
+
+                        </div>
+
+                        <span class="switch-control">
+
+                            <input asp-for="IsActive"
+                                   type="checkbox" />
+
+                            <span class="switch-slider"></span>
+
+                        </span>
+
+                    </label>
+
+
+                    <label class="visibility-option">
+
+                        <div class="visibility-text">
+
+                            <div class="visibility-icon featured-visibility-icon">
+                                <i class="bi bi-star"></i>
+                            </div>
+
+                            <div>
+                                <strong>Featured</strong>
+
+                                <span>
+                                    Promote this activity to customers.
+                                </span>
+                            </div>
+
+                        </div>
+
+                        <span class="switch-control">
+
+                            <input asp-for="IsFeatured"
+                                   type="checkbox" />
+
+                            <span class="switch-slider"></span>
+
+                        </span>
+
+                    </label>
+
+                </div>
+
             </div>
 
         </div>
 
-    </div>
 
-    <div class="form-submit-row">
+        <div class="activity-form-sidebar">
 
-        <a asp-action="Index"
-           class="btn btn-outline-secondary">
-            Cancel
-        </a>
+            <div class="activity-preview-card">
 
-        <button type="submit"
-                class="btn btn-confirm-booking">
-            <i class="bi bi-check-lg"></i>
-            Save Activity
-        </button>
+                <div class="preview-heading">
+
+                    <div class="preview-heading-icon">
+                        <i class="bi bi-eye"></i>
+                    </div>
+
+                    <div>
+                        <h3>Activity Preview</h3>
+
+                        <span>
+                            Preview the activity before saving.
+                        </span>
+                    </div>
+
+                </div>
+
+
+                <div class="preview-image-area">
+
+                    @if (!string.IsNullOrWhiteSpace(existingPhotoUrl))
+                    {
+                        <img id="activityPreviewImage"
+                             src="@existingPhotoUrl"
+                             alt="Activity preview"
+                             class="preview-image" />
+
+                        <div id="previewImagePlaceholder"
+                             class="preview-image-placeholder"
+                             style="display:none;">
+
+                            <i class="bi bi-image"></i>
+
+                            <strong>No image selected</strong>
+
+                        </div>
+                    }
+                    else
+                    {
+                        <img id="activityPreviewImage"
+                             src=""
+                             alt="Activity preview"
+                             class="preview-image"
+                             style="display:none;" />
+
+                        <div id="previewImagePlaceholder"
+                             class="preview-image-placeholder">
+
+                            <i class="bi bi-image"></i>
+
+                            <strong>
+                                No image selected
+                            </strong>
+
+                            <span>
+                                Upload a photo to see a preview
+                            </span>
+
+                        </div>
+                    }
+
+                </div>
+
+
+                <h2 id="previewActivityName"
+                    class="preview-activity-name">
+
+                    @(string.IsNullOrWhiteSpace(Model.ActivityName)
+                        ? "Activity Name"
+                        : Model.ActivityName)
+
+                </h2>
+
+
+                <div class="preview-location">
+
+                    <i class="bi bi-geo-alt-fill"></i>
+
+                    <span id="previewLocation">
+                        @{
+                            var previewDestination =
+                                string.IsNullOrWhiteSpace(Model.Destination)
+                                    ? "Destination"
+                                    : Model.Destination;
+
+                            var previewLocationText =
+                                string.IsNullOrWhiteSpace(Model.Location)
+                                    ? "Location"
+                                    : Model.Location;
+                        }
+
+                        @previewDestination, @previewLocationText
+                    </span>
+
+                </div>
+
+
+                <div class="preview-stat-grid">
+
+                    <div class="preview-stat">
+
+                        <i class="bi bi-clock"></i>
+
+                        <span id="previewDuration">
+                            @Model.DurationHours hrs
+                        </span>
+
+                    </div>
+
+
+                    <div class="preview-stat">
+
+                        <i class="bi bi-people"></i>
+
+                        <span id="previewParticipants">
+                            @Model.MinimumParticipants -
+                            @Model.MaximumParticipants
+                        </span>
+
+                    </div>
+
+
+                    <div class="preview-stat">
+
+                        <i class="bi bi-person"></i>
+
+                        <span id="previewAge">
+                            Age @Model.MinimumAge+
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="preview-price">
+
+                    RM
+                    <span id="previewPrice">
+                        @Model.PricePerPerson.ToString("N2")
+                    </span>
+
+                </div>
+
+                <span class="preview-price-caption">
+                    per person
+                </span>
+
+
+                <p id="previewDescription"
+                   class="preview-description">
+
+                    @(string.IsNullOrWhiteSpace(Model.Description)
+                        ? "Add a description to give travellers an overview of this activity."
+                        : Model.Description)
+
+                </p>
+
+            </div>
+
+
+            <div class="activity-tips-card">
+
+                <div class="tips-heading">
+
+                    <div class="tips-icon">
+                        <i class="bi bi-lightbulb"></i>
+                    </div>
+
+                    <h3>
+                        Tips for a Great Activity Listing
+                    </h3>
+
+                </div>
+
+                <ul>
+
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        Use a clear activity name.
+                    </li>
+
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        Provide accurate activity information.
+                    </li>
+
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        Upload a high-quality activity photo.
+                    </li>
+
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        Set realistic participant limits.
+                    </li>
+
+                </ul>
+
+            </div>
+
+
+            <div class="activity-form-actions">
+
+                <a asp-action="@(isEdit ? "Details" : "Index")"
+                   asp-route-id="@(isEdit ? Model.ActivityId : null)"
+                   class="cancel-activity-button">
+
+                    <i class="bi bi-x-lg"></i>
+                    Cancel
+
+                </a>
+
+                <button type="submit"
+                        class="save-activity-button">
+
+                    <i class="bi bi-check-lg"></i>
+
+                    @(isEdit
+                        ? "Save Changes"
+                        : "Create Activity")
+
+                </button>
+
+            </div>
+
+        </div>
 
     </div>
 
 </form>
 
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
-<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+<style>
+
+    .activity-form-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 360px;
+        gap: 22px;
+        align-items: start;
+    }
+
+    .activity-form-main {
+        min-width: 0;
+    }
+
+    .activity-form-card {
+        margin-bottom: 20px;
+        padding: 24px;
+        background: #ffffff;
+        border: 1px solid #ececf5;
+        border-radius: 20px;
+        box-shadow: 0 7px 25px rgba(15, 23, 42, .045);
+    }
+
+    .activity-section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 22px;
+    }
+
+    .section-number {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 900;
+    }
+
+    .section-icon {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 16px;
+    }
+
+    .section-purple {
+        color: #7c3aed;
+        background: #f3e8ff;
+    }
+
+    .icon-purple {
+        color: #7c3aed;
+        background: #faf5ff;
+    }
+
+    .section-red {
+        color: #ef4444;
+        background: #fee2e2;
+    }
+
+    .icon-red {
+        color: #ef4444;
+        background: #fff1f2;
+    }
+
+    .section-green {
+        color: #16a34a;
+        background: #dcfce7;
+    }
+
+    .icon-green {
+        color: #16a34a;
+        background: #f0fdf4;
+    }
+
+    .section-orange {
+        color: #d97706;
+        background: #fef3c7;
+    }
+
+    .icon-orange {
+        color: #d97706;
+        background: #fffbeb;
+    }
+
+    .activity-section-header h2 {
+        margin: 0;
+        color: #111827;
+        font-size: 17px;
+        font-weight: 850;
+    }
+
+    .activity-section-header p {
+        margin: 3px 0 0;
+        color: #9ca3af;
+        font-size: 11px;
+    }
+
+    .form-grid {
+        display: grid;
+        gap: 14px;
+        margin-bottom: 14px;
+    }
+
+    .form-grid-two {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .pricing-grid {
+        display: grid;
+        grid-template-columns: 1.1fr .95fr .95fr .95fr .8fr;
+        gap: 12px;
+        align-items: start;
+    }
+
+    .activity-field {
+        min-width: 0;
+    }
+
+        .activity-field > label {
+            display: block;
+            margin-bottom: 7px;
+            color: #374151;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+    .required {
+        color: #ef4444;
+    }
+
+    .activity-control {
+        width: 100%;
+        height: 42px;
+        padding: 0 12px;
+        border: 1px solid #dfe3ec;
+        border-radius: 10px;
+        outline: none;
+        background: #ffffff;
+        color: #111827;
+        font-family: inherit;
+        font-size: 12px;
+        transition: border-color .18s ease, box-shadow .18s ease;
+        box-sizing: border-box;
+    }
+
+        .activity-control:focus {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, .09);
+        }
+
+        .activity-control::placeholder {
+            color: #b6bdc9;
+        }
+
+    .activity-select {
+        cursor: pointer;
+    }
+
+    .activity-textarea {
+        height: auto;
+        min-height: 90px;
+        padding: 11px 12px;
+        resize: vertical;
+        line-height: 1.55;
+    }
+
+    .description-textarea {
+        min-height: 105px;
+    }
+
+    .guest-textarea {
+        min-height: 88px;
+    }
+
+    .textarea-footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 5px;
+    }
+
+    .character-counter {
+        margin-left: auto;
+        color: #9ca3af;
+        font-size: 9px;
+    }
+
+    .field-validation {
+        display: block;
+        min-height: 13px;
+        margin-top: 4px;
+        color: #dc2626;
+        font-size: 9px;
+        font-weight: 600;
+    }
+
+    .input-addon-wrapper {
+        position: relative;
+        display: flex;
+        width: 100%;
+    }
+
+    .input-addon {
+        width: 48px;
+        height: 42px;
+        flex: 0 0 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #dfe3ec;
+        border-right: none;
+        border-radius: 10px 0 0 10px;
+        background: #f8fafc;
+        color: #374151;
+        font-size: 11px;
+        font-weight: 850;
+        box-sizing: border-box;
+    }
+
+    .input-with-addon {
+        border-radius: 0 10px 10px 0;
+    }
+
+    .price-wrapper:focus-within .input-addon {
+        border-color: #8b5cf6;
+    }
+
+    .duration-information {
+        display: flex;
+        align-items: flex-start;
+        gap: 11px;
+        margin-top: 3px;
+        padding: 11px 14px;
+        border: 1px solid #dbeafe;
+        border-radius: 11px;
+        background: #eff6ff;
+    }
+
+    .duration-info-icon {
+        width: 27px;
+        height: 27px;
+        flex: 0 0 27px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #2563eb;
+        color: #ffffff;
+        font-size: 13px;
+    }
+
+    .duration-information strong {
+        display: block;
+        margin-bottom: 2px;
+        color: #2563eb;
+        font-size: 10px;
+        font-weight: 850;
+    }
+
+    .duration-information span {
+        display: block;
+        color: #64748b;
+        font-size: 9px;
+    }
+
+    .duration-information small {
+        display: block;
+        margin-top: 3px;
+        color: #94a3b8;
+        font-size: 8px;
+    }
+
+    .photo-upload-box {
+        position: relative;
+        min-height: 135px;
+        border: 2px dashed #d8dbea;
+        border-radius: 14px;
+        background: #fcfcff;
+        transition: .18s ease;
+    }
+
+        .photo-upload-box:hover,
+        .photo-upload-box.dragging {
+            border-color: #8b5cf6;
+            background: #faf7ff;
+        }
+
+    .photo-upload-label {
+        min-height: 135px;
+        width: 100%;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 18px;
+        box-sizing: border-box;
+    }
+
+    .upload-icon {
+        width: 42px;
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 7px;
+        border-radius: 13px;
+        background: #f5f3ff;
+        color: #7c3aed;
+        font-size: 19px;
+    }
+
+    .photo-upload-label strong {
+        color: #111827;
+        font-size: 11px;
+        font-weight: 850;
+    }
+
+    .photo-upload-label span {
+        margin-top: 3px;
+        color: #7c3aed;
+        font-size: 9px;
+        font-weight: 700;
+    }
+
+    .photo-upload-label small {
+        margin-top: 4px;
+        color: #9ca3af;
+        font-size: 8px;
+    }
+
+    .selected-photo-info {
+        margin-top: 8px;
+        color: #6b7280;
+        font-size: 10px;
+    }
+
+    .visibility-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 18px;
+    }
+
+    .visibility-option {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 14px;
+        border: 1px solid #e5e7eb;
+        border-radius: 13px;
+        background: #ffffff;
+        cursor: pointer;
+    }
+
+    .visibility-text {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .visibility-icon {
+        width: 35px;
+        height: 35px;
+        flex: 0 0 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        font-size: 15px;
+    }
+
+    .active-visibility-icon {
+        color: #16a34a;
+        background: #ecfdf5;
+    }
+
+    .featured-visibility-icon {
+        color: #d97706;
+        background: #fffbeb;
+    }
+
+    .visibility-text strong {
+        display: block;
+        color: #111827;
+        font-size: 11px;
+    }
+
+    .visibility-text span {
+        display: block;
+        margin-top: 2px;
+        color: #9ca3af;
+        font-size: 8px;
+    }
+
+    .switch-control {
+        position: relative;
+        width: 40px;
+        height: 22px;
+        flex: 0 0 40px;
+    }
+
+        .switch-control input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+        }
+
+    .switch-slider {
+        position: absolute;
+        inset: 0;
+        border-radius: 999px;
+        background: #d1d5db;
+        transition: .2s ease;
+    }
+
+        .switch-slider::before {
+            content: "";
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 3px;
+            left: 3px;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,.16);
+            transition: .2s ease;
+        }
+
+    .switch-control input:checked + .switch-slider {
+        background: #7c3aed;
+    }
+
+        .switch-control input:checked + .switch-slider::before {
+            transform: translateX(18px);
+        }
+
+    .activity-form-sidebar {
+        position: sticky;
+        top: 22px;
+    }
+
+    .activity-preview-card,
+    .activity-tips-card,
+    .activity-form-actions {
+        background: #ffffff;
+        border: 1px solid #ececf5;
+        border-radius: 20px;
+        box-shadow: 0 7px 25px rgba(15, 23, 42, .045);
+    }
+
+    .activity-preview-card {
+        padding: 16px;
+    }
+
+    .preview-heading {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 13px;
+    }
+
+    .preview-heading-icon {
+        width: 37px;
+        height: 37px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        background: #f5f3ff;
+        color: #7c3aed;
+        font-size: 15px;
+    }
+
+    .preview-heading h3 {
+        margin: 0;
+        color: #1f2937;
+        font-size: 13px;
+        font-weight: 850;
+    }
+
+    .preview-heading span {
+        display: block;
+        margin-top: 2px;
+        color: #9ca3af;
+        font-size: 8px;
+    }
+
+    .preview-image-area {
+        position: relative;
+        width: 100%;
+        height: 210px;
+        overflow: hidden;
+        border-radius: 14px;
+        background: #f6f7fb;
+    }
+
+    .preview-image {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+    }
+
+    .preview-image-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #9ca3af;
+    }
+
+        .preview-image-placeholder i {
+            margin-bottom: 5px;
+            color: #c4b5fd;
+            font-size: 28px;
+        }
+
+        .preview-image-placeholder strong {
+            font-size: 10px;
+        }
+
+        .preview-image-placeholder span {
+            margin-top: 3px;
+            font-size: 8px;
+        }
+
+    .preview-activity-name {
+        margin: 14px 0 4px;
+        color: #1f2937;
+        font-size: 16px;
+        font-weight: 900;
+    }
+
+    .preview-location {
+        display: flex;
+        align-items: flex-start;
+        gap: 4px;
+        color: #9ca3af;
+        font-size: 8px;
+    }
+
+        .preview-location i {
+            color: #ef4444;
+        }
+
+    .preview-stat-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px;
+        margin-top: 14px;
+    }
+
+    .preview-stat {
+        min-height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        padding: 5px;
+        border-radius: 8px;
+        background: #f8fafc;
+        color: #4b5563;
+        font-size: 8px;
+    }
+
+        .preview-stat i {
+            color: #8b5cf6;
+        }
+
+    .preview-price {
+        margin-top: 16px;
+        color: #1f2937;
+        font-size: 20px;
+        line-height: 1;
+        font-weight: 900;
+    }
+
+    .preview-price-caption {
+        display: block;
+        margin-top: 4px;
+        color: #9ca3af;
+        font-size: 7px;
+    }
+
+    .preview-description {
+        margin: 12px 0 0;
+        color: #6b7280;
+        font-size: 8px;
+        line-height: 1.55;
+    }
+
+    .activity-tips-card {
+        margin-top: 14px;
+        padding: 16px;
+    }
+
+    .tips-heading {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .tips-icon {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 11px;
+        background: #faf5ff;
+        color: #7c3aed;
+    }
+
+    .tips-heading h3 {
+        margin: 0;
+        color: #1f2937;
+        font-size: 12px;
+        font-weight: 850;
+    }
+
+    .activity-tips-card ul {
+        display: grid;
+        gap: 9px;
+        margin: 14px 0 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .activity-tips-card li {
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+        color: #6b7280;
+        font-size: 8px;
+    }
+
+        .activity-tips-card li i {
+            margin-top: 1px;
+            color: #8b5cf6;
+        }
+
+    .activity-form-actions {
+        display: grid;
+        grid-template-columns: 120px 1fr;
+        gap: 8px;
+        margin-top: 14px;
+        padding: 10px;
+        border-radius: 14px;
+    }
+
+    .cancel-activity-button,
+    .save-activity-button {
+        height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        border-radius: 9px;
+        font-family: inherit;
+        font-size: 10px;
+        font-weight: 800;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .cancel-activity-button {
+        border: 1px solid #e5e7eb;
+        background: #ffffff;
+        color: #6b7280;
+    }
+
+        .cancel-activity-button:hover {
+            color: #111827;
+            background: #f9fafb;
+        }
+
+    .save-activity-button {
+        border: none;
+        background: linear-gradient( 135deg, #8b5cf6, #7c3aed);
+        color: #ffffff;
+        box-shadow: 0 7px 18px rgba(124, 58, 237, .22);
+    }
+
+        .save-activity-button:hover {
+            background: linear-gradient( 135deg, #7c3aed, #6d28d9);
+        }
+
+    .validation-summary:empty {
+        display: none;
+    }
+
+    @@media(max-width:1200px) {
+
+        .activity-form-layout {
+            grid-template-columns: minmax(0, 1fr) 320px;
+        }
+
+        .pricing-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    @@media(max-width:950px) {
+
+        .activity-form-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .activity-form-sidebar {
+            position: static;
+        }
+
+        .activity-preview-card {
+            max-width: none;
+        }
+    }
+
+    @@media(max-width:700px) {
+
+        .activity-form-card {
+            padding: 18px;
+        }
+
+        .form-grid-two,
+        .visibility-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .pricing-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @@media(max-width:480px) {
+
+        .pricing-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .activity-form-actions {
+            grid-template-columns: 1fr;
+        }
+    }
+
+</style>
+
+
+<script>
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            const activityName =
+                document.getElementById(
+                    "ActivityName");
+
+            const destination =
+                document.getElementById(
+                    "Destination");
+
+            const locationInput =
+                document.getElementById(
+                    "Location");
+
+            const description =
+                document.getElementById(
+                    "Description");
+
+            const priceInput =
+                document.getElementById(
+                    "PricePerPerson");
+
+            const duration =
+                document.getElementById(
+                    "DurationHours");
+
+            const minimumParticipants =
+                document.getElementById(
+                    "MinimumParticipants");
+
+            const maximumParticipants =
+                document.getElementById(
+                    "MaximumParticipants");
+
+            const minimumAge =
+                document.getElementById(
+                    "MinimumAge");
+
+            const photoInput =
+                document.getElementById(
+                    "activityPhotos");
+
+            const previewName =
+                document.getElementById(
+                    "previewActivityName");
+
+            const previewLocation =
+                document.getElementById(
+                    "previewLocation");
+
+            const previewDescription =
+                document.getElementById(
+                    "previewDescription");
+
+            const previewPrice =
+                document.getElementById(
+                    "previewPrice");
+
+            const previewDuration =
+                document.getElementById(
+                    "previewDuration");
+
+            const previewParticipants =
+                document.getElementById(
+                    "previewParticipants");
+
+            const previewAge =
+                document.getElementById(
+                    "previewAge");
+
+            const previewImage =
+                document.getElementById(
+                    "activityPreviewImage");
+
+            const previewImagePlaceholder =
+                document.getElementById(
+                    "previewImagePlaceholder");
+
+            const selectedPhotoInfo =
+                document.getElementById(
+                    "selectedPhotoInfo");
+
+            const descriptionCounter =
+                document.getElementById(
+                    "descriptionCounter");
+
+            const durationExample =
+                document.getElementById(
+                    "durationExample");
+
+            const photoUploadBox =
+                document.getElementById(
+                    "photoUploadBox");
+
+
+            function updateName() {
+
+                if (!previewName) {
+                    return;
+                }
+
+                const value =
+                    activityName?.value.trim();
+
+                previewName.textContent =
+                    value ||
+                    "Activity Name";
+
+            }
+
+
+            function updateLocation() {
+
+                if (!previewLocation) {
+                    return;
+                }
+
+                const destinationValue =
+                    destination?.value.trim() ||
+                    "Destination";
+
+                const locationValue =
+                    locationInput?.value.trim() ||
+                    "Location";
+
+                previewLocation.textContent =
+                    destinationValue +
+                    ", " +
+                    locationValue;
+
+            }
+
+
+            function updateDescription() {
+
+                if (previewDescription) {
+
+                    const value =
+                        description?.value.trim();
+
+                    previewDescription.textContent =
+                        value ||
+                        "Add a description to give travellers an overview of this activity.";
+
+                }
+
+                if (
+                    description &&
+                    descriptionCounter
+                ) {
+
+                    descriptionCounter.textContent =
+                        description.value.length +
+                        " / 2000";
+
+                }
+
+            }
+
+
+            function cleanPriceInput() {
+
+                if (!priceInput) {
+                    return;
+                }
+
+                let value =
+                    priceInput.value;
+
+                value =
+                    value.replace(
+                        /[^0-9.]/g,
+                        "");
+
+                const firstDot =
+                    value.indexOf(".");
+
+                if (firstDot !== -1) {
+
+                    const integerPart =
+                        value.substring(
+                            0,
+                            firstDot);
+
+                    let decimalPart =
+                        value.substring(
+                            firstDot + 1);
+
+                    decimalPart =
+                        decimalPart.replace(
+                            /\./g,
+                            "");
+
+                    decimalPart =
+                        decimalPart.substring(
+                            0,
+                            2);
+
+                    value =
+                        integerPart +
+                        "." +
+                        decimalPart;
+
+                }
+
+                if (
+                    value.startsWith(".")
+                ) {
+
+                    value =
+                        "0" + value;
+
+                }
+
+                priceInput.value =
+                    value;
+
+            }
+
+
+            function updatePricePreview() {
+
+                if (
+                    !priceInput ||
+                    !previewPrice
+                ) {
+                    return;
+                }
+
+                const raw =
+                    priceInput.value.trim();
+
+                if (
+                    raw === "" ||
+                    raw === "." ||
+                    raw === "0."
+                ) {
+
+                    previewPrice.textContent =
+                        raw === "0."
+                            ? "0.00"
+                            : "0.00";
+
+                    return;
+                }
+
+                const price =
+                    Number.parseFloat(
+                        raw);
+
+                if (
+                    Number.isNaN(price)
+                ) {
+
+                    previewPrice.textContent =
+                        "0.00";
+
+                    return;
+                }
+
+                previewPrice.textContent =
+                    price.toLocaleString(
+                        "en-MY",
+                        {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        });
+
+            }
+
+
+            function formatPriceOnBlur() {
+
+                if (!priceInput) {
+                    return;
+                }
+
+                const raw =
+                    priceInput.value.trim();
+
+                if (
+                    raw === "" ||
+                    raw === "."
+                ) {
+                    return;
+                }
+
+                const price =
+                    Number.parseFloat(
+                        raw);
+
+                if (
+                    Number.isNaN(price)
+                ) {
+                    return;
+                }
+
+                priceInput.value =
+                    price.toFixed(2);
+
+                updatePricePreview();
+
+            }
+
+
+            function updateDuration() {
+
+                if (previewDuration) {
+
+                    const value =
+                        Number.parseFloat(
+                            duration?.value);
+
+                    previewDuration.textContent =
+                        !Number.isNaN(value) &&
+                        value > 0
+                            ? value +
+                              (value === 1
+                                  ? " hr"
+                                  : " hrs")
+                            : "0 hrs";
+
+                }
+
+                if (!durationExample) {
+                    return;
+                }
+
+                const value =
+                    Number.parseFloat(
+                        duration?.value);
+
+                if (
+                    Number.isNaN(value) ||
+                    value <= 0
+                ) {
+
+                    durationExample.textContent =
+                        "The session end time will be calculated automatically.";
+
+                    return;
+                }
+
+                const startMinutes =
+                    9 * 60;
+
+                const totalMinutes =
+                    startMinutes +
+                    Math.round(
+                        value * 60);
+
+                const hours24 =
+                    Math.floor(
+                        totalMinutes / 60) %
+                    24;
+
+                const minutes =
+                    totalMinutes % 60;
+
+                const period =
+                    hours24 >= 12
+                        ? "PM"
+                        : "AM";
+
+                const hours12 =
+                    hours24 % 12 === 0
+                        ? 12
+                        : hours24 % 12;
+
+                const endTime =
+                    hours12 +
+                    ":" +
+                    minutes
+                        .toString()
+                        .padStart(2, "0") +
+                    " " +
+                    period;
+
+                durationExample.textContent =
+                    "Example: If duration is " +
+                    value +
+                    " hour" +
+                    (value === 1
+                        ? ""
+                        : "s") +
+                    " and the session starts at 9:00 AM, the end time will be " +
+                    endTime +
+                    ".";
+
+            }
+
+
+            function updateParticipants() {
+
+                if (!previewParticipants) {
+                    return;
+                }
+
+                const min =
+                    minimumParticipants?.value ||
+                    "1";
+
+                const max =
+                    maximumParticipants?.value ||
+                    "20";
+
+                previewParticipants.textContent =
+                    min +
+                    " - " +
+                    max;
+
+            }
+
+
+            function updateAge() {
+
+                if (!previewAge) {
+                    return;
+                }
+
+                const age =
+                    minimumAge?.value ||
+                    "0";
+
+                previewAge.textContent =
+                    "Age " +
+                    age +
+                    "+";
+
+            }
+
+
+            function showSelectedPhotos(
+                files
+            ) {
+
+                if (
+                    !files ||
+                    files.length === 0
+                ) {
+                    return;
+                }
+
+                if (selectedPhotoInfo) {
+
+                    selectedPhotoInfo.textContent =
+                        files.length === 1
+                            ? files[0].name
+                            : files.length +
+                              " photos selected";
+
+                }
+
+                const firstFile =
+                    files[0];
+
+                if (
+                    !firstFile.type.startsWith(
+                        "image/")
+                ) {
+                    return;
+                }
+
+                const reader =
+                    new FileReader();
+
+                reader.onload =
+                    function (event) {
+
+                        if (!previewImage) {
+                            return;
+                        }
+
+                        previewImage.src =
+                            event.target.result;
+
+                        previewImage.style.display =
+                            "block";
+
+                        if (
+                            previewImagePlaceholder
+                        ) {
+
+                            previewImagePlaceholder.style.display =
+                                "none";
+
+                        }
+
+                    };
+
+                reader.readAsDataURL(
+                    firstFile);
+
+            }
+
+
+            activityName?.addEventListener(
+                "input",
+                updateName);
+
+            destination?.addEventListener(
+                "input",
+                updateLocation);
+
+            locationInput?.addEventListener(
+                "input",
+                updateLocation);
+
+            description?.addEventListener(
+                "input",
+                updateDescription);
+
+
+            priceInput?.addEventListener(
+                "input",
+                function () {
+
+                    cleanPriceInput();
+                    updatePricePreview();
+
+                });
+
+
+            priceInput?.addEventListener(
+                "blur",
+                formatPriceOnBlur);
+
+
+            priceInput?.addEventListener(
+                "keydown",
+                function (event) {
+
+                    if (
+                        event.key === "," &&
+                        !this.value.includes(".")
+                    ) {
+
+                        event.preventDefault();
+
+                        const start =
+                            this.selectionStart;
+
+                        const end =
+                            this.selectionEnd;
+
+                        this.value =
+                            this.value.substring(
+                                0,
+                                start) +
+                            "." +
+                            this.value.substring(
+                                end);
+
+                        this.selectionStart =
+                            this.selectionEnd =
+                                start + 1;
+
+                        this.dispatchEvent(
+                            new Event(
+                                "input",
+                                {
+                                    bubbles: true
+                                }));
+
+                    }
+
+                });
+
+
+            duration?.addEventListener(
+                "input",
+                updateDuration);
+
+            minimumParticipants
+                ?.addEventListener(
+                    "input",
+                    updateParticipants);
+
+            maximumParticipants
+                ?.addEventListener(
+                    "input",
+                    updateParticipants);
+
+            minimumAge?.addEventListener(
+                "input",
+                updateAge);
+
+
+            photoInput?.addEventListener(
+                "change",
+                function () {
+
+                    showSelectedPhotos(
+                        this.files);
+
+                });
+
+
+            if (photoUploadBox) {
+
+                photoUploadBox.addEventListener(
+                    "dragover",
+                    function (event) {
+
+                        event.preventDefault();
+
+                        photoUploadBox
+                            .classList
+                            .add(
+                                "dragging");
+
+                    });
+
+
+                photoUploadBox.addEventListener(
+                    "dragleave",
+                    function () {
+
+                        photoUploadBox
+                            .classList
+                            .remove(
+                                "dragging");
+
+                    });
+
+
+                photoUploadBox.addEventListener(
+                    "drop",
+                    function (event) {
+
+                        event.preventDefault();
+
+                        photoUploadBox
+                            .classList
+                            .remove(
+                                "dragging");
+
+                        if (
+                            !photoInput ||
+                            !event.dataTransfer.files.length
+                        ) {
+                            return;
+                        }
+
+                        photoInput.files =
+                            event.dataTransfer.files;
+
+                        showSelectedPhotos(
+                            photoInput.files);
+
+                    });
+
+            }
+
+
+            updateName();
+            updateLocation();
+            updateDescription();
+            updatePricePreview();
+            updateDuration();
+            updateParticipants();
+            updateAge();
+
+        });
+
+</script>

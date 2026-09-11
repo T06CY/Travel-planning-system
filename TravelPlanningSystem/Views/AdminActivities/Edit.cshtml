@@ -4,29 +4,88 @@
     ViewData["Title"] = "Edit Activity";
 }
 
-<link rel="stylesheet" href="~/css/activities.css" />
+<div class="edit-activity-page">
 
-<div class="admin-page">
-    <div class="container narrow-container">
+    <div class="edit-page-header">
 
-        <div class="form-page-header">
+        <a asp-action="Details"
+           asp-route-id="@Model.ActivityId"
+           class="edit-back-link">
 
-            <a asp-action="Details"
-               asp-route-id="@Model.ActivityId">
-                <i class="bi bi-arrow-left"></i>
-                Activity Details
-            </a>
+            <i class="bi bi-arrow-left"></i>
+            Activity Details
 
-            <h1>Edit Activity</h1>
+        </a>
 
-            <p>
-                Update activity information, pricing and availability status.
-            </p>
+        <h1>
+            Edit Activity
+        </h1>
 
-        </div>
-
-        <partial name="_ActivityForm"
-                 model="Model" />
+        <p>
+            Update activity information, pricing,
+            photos and availability status.
+        </p>
 
     </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            @TempData["Error"]
+
+        </div>
+    }
+
+    <partial name="_ActivityForm"
+             model="Model" />
+
 </div>
+
+<style>
+    .edit-activity-page {
+        max-width: 1560px;
+        margin: 0 auto;
+        padding: 30px 30px 60px;
+    }
+
+    .edit-page-header {
+        margin-bottom: 24px;
+    }
+
+    .edit-back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        margin-bottom: 11px;
+        color: #7c3aed;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 750;
+    }
+
+        .edit-back-link:hover {
+            color: #5b21b6;
+        }
+
+    .edit-page-header h1 {
+        margin: 0;
+        color: #111827;
+        font-size: 31px;
+        font-weight: 850;
+        letter-spacing: -.4px;
+    }
+
+    .edit-page-header p {
+        margin: 7px 0 0;
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+    @@media(max-width:850px) {
+        .edit-activity-page {
+            padding: 20px 15px 40px;
+        }
+    }
+</style>

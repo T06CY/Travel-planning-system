@@ -1,145 +1,1654 @@
 ﻿@model TravelPlanningSystem.Models.Activity
 
 @{
-    ViewData["Title"] = "Activity Photos";
+    ViewData["Title"] = "Photo Gallery";
+
+    var photos =
+        Model.Photos
+            .OrderByDescending(p => p.IsPrimary)
+            .ThenBy(p => p.DisplayOrder)
+            .ToList();
+
+    var primaryPhoto =
+        photos.FirstOrDefault(p =>
+            p.IsPrimary);
+
+    var totalPhotos =
+        photos.Count;
 }
 
-<link rel="stylesheet" href="~/css/activities.css" />
+<style>
 
-<div class="admin-page">
-    <div class="container">
+    .photo-page {
+        max-width: 1580px;
+        margin: 0 auto;
+        padding: 30px 32px 60px;
+    }
 
-        <div class="admin-header">
+    .photo-header {
+        margin-bottom: 25px;
+    }
+
+    .photo-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        color: #7c3aed;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 750;
+        margin-bottom: 12px;
+    }
+
+        .photo-back:hover {
+            color: #5b21b6;
+        }
+
+    .photo-title {
+        margin: 0;
+        color: #111827;
+        font-size: 32px;
+        font-weight: 850;
+        letter-spacing: -.5px;
+    }
+
+    .photo-subtitle {
+        margin: 7px 0 0;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+
+    /* =====================================================
+           STATISTICS
+           ===================================================== */
+
+    .photo-stat-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        margin-bottom: 22px;
+    }
+
+    .photo-stat {
+        min-height: 90px;
+        padding: 19px 21px;
+        background: #fff;
+        border: 1px solid #e7e9ef;
+        border-radius: 17px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        box-shadow: 0 5px 20px rgba(15, 23, 42, .03);
+    }
+
+    .photo-stat-icon {
+        width: 47px;
+        height: 47px;
+        border-radius: 14px;
+        flex: 0 0 47px;
+        background: #f5f3ff;
+        color: #7c3aed;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+
+    .photo-stat-label {
+        color: #6b7280;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+    }
+
+    .photo-stat-value {
+        margin-top: 4px;
+        color: #111827;
+        font-size: 20px;
+        font-weight: 850;
+    }
+
+
+    /* =====================================================
+           REPLACE CARD
+           ===================================================== */
+
+    .replace-card {
+        overflow: hidden;
+        margin-bottom: 28px;
+        background: #fff;
+        border: 1px solid #e7e9ef;
+        border-radius: 20px;
+        box-shadow: 0 7px 26px rgba(15, 23, 42, .035);
+    }
+
+    .replace-header {
+        padding: 20px 23px;
+        border-bottom: 1px solid #eef0f4;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+    }
+
+    .replace-heading {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .replace-heading-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f5f3ff;
+        color: #7c3aed;
+        font-size: 18px;
+    }
+
+    .replace-heading h2 {
+        margin: 0;
+        color: #111827;
+        font-size: 16px;
+        font-weight: 850;
+    }
+
+    .replace-heading p {
+        margin: 2px 0 0;
+        color: #9ca3af;
+        font-size: 11px;
+    }
+
+    .replacement-warning {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 11px;
+        border-radius: 999px;
+        background: #fff7ed;
+        color: #c2410c;
+        font-size: 10px;
+        font-weight: 800;
+    }
+
+    .replace-body {
+        padding: 23px;
+    }
+
+
+    /* =====================================================
+           DROP ZONE
+           ===================================================== */
+
+    .drop-zone {
+        min-height: 225px;
+        border: 2px dashed #d9dce5;
+        border-radius: 17px;
+        background: #fbfbfd;
+        padding: 30px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        text-align: center;
+        transition: border-color .18s ease, background .18s ease, transform .18s ease;
+    }
+
+        .drop-zone:hover,
+        .drop-zone.dragging {
+            border-color: #8b5cf6;
+            background: #faf7ff;
+        }
+
+    .drop-zone-icon {
+        width: 64px;
+        height: 64px;
+        margin-bottom: 14px;
+        border-radius: 18px;
+        background: #f5f3ff;
+        color: #7c3aed;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 29px;
+    }
+
+    .drop-zone strong {
+        color: #111827;
+        font-size: 15px;
+        font-weight: 850;
+    }
+
+    .drop-zone .browse {
+        margin-top: 5px;
+        color: #7c3aed;
+        font-size: 12px;
+        font-weight: 750;
+    }
+
+    .drop-zone small {
+        margin-top: 9px;
+        color: #9ca3af;
+        font-size: 11px;
+    }
+
+    #photos {
+        display: none;
+    }
+
+
+    /* =====================================================
+           SELECTED PHOTOS
+           ===================================================== */
+
+    .selected-summary {
+        display: none;
+        margin-top: 15px;
+        padding: 12px 15px;
+        border: 1px solid #e7e9ef;
+        border-radius: 11px;
+        background: #f8fafc;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+    }
+
+        .selected-summary.show {
+            display: flex;
+        }
+
+    .selected-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #374151;
+        font-size: 12px;
+        font-weight: 750;
+    }
+
+        .selected-info i {
+            color: #16a34a;
+        }
+
+    .clear-btn {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: #ef4444;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+
+    /* =====================================================
+           PREVIEW
+           ===================================================== */
+
+    .preview-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+    }
+
+    .preview-card {
+        position: relative;
+        height: 145px;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        border-radius: 13px;
+        background: #f3f4f6;
+    }
+
+        .preview-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .preview-number {
+        position: absolute;
+        right: 8px;
+        top: 8px;
+        width: 27px;
+        height: 27px;
+        border-radius: 8px;
+        background: rgba(17, 24, 39, .75);
+        color: #fff;
+        font-size: 9px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .preview-primary {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 5px 8px;
+        border-radius: 999px;
+        background: linear-gradient( 135deg, #8b5cf6, #6d28d9);
+        color: white;
+        font-size: 9px;
+        font-weight: 850;
+    }
+
+
+    /* =====================================================
+           REPLACE FOOTER
+           ===================================================== */
+
+    .replace-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 25px;
+        margin-top: 19px;
+    }
+
+    .replace-description {
+        max-width: 720px;
+        color: #6b7280;
+        font-size: 11px;
+        line-height: 1.6;
+    }
+
+        .replace-description strong {
+            color: #374151;
+        }
+
+    .replace-btn {
+        height: 43px;
+        padding: 0 21px;
+        border: 0;
+        border-radius: 10px;
+        background: linear-gradient( 135deg, #8b5cf6, #6d28d9);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        white-space: nowrap;
+        opacity: .45;
+        pointer-events: none;
+        box-shadow: 0 8px 18px rgba(124, 58, 237, .20);
+    }
+
+        .replace-btn.ready {
+            opacity: 1;
+            pointer-events: auto;
+            cursor: pointer;
+        }
+
+            .replace-btn.ready:hover {
+                transform: translateY(-1px);
+            }
+
+
+    /* =====================================================
+           CURRENT GALLERY
+           ===================================================== */
+
+    .gallery-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 16px;
+    }
+
+        .gallery-header h2 {
+            margin: 0;
+            color: #111827;
+            font-size: 20px;
+            font-weight: 850;
+        }
+
+        .gallery-header p {
+            margin: 4px 0 0;
+            color: #9ca3af;
+            font-size: 11px;
+        }
+
+    .gallery-count {
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #f3f4f6;
+        color: #6b7280;
+        font-size: 10px;
+        font-weight: 800;
+    }
+
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .photo-card {
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid #e7e9ef;
+        border-radius: 18px;
+        transition: transform .18s ease, box-shadow .18s ease;
+    }
+
+        .photo-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(15, 23, 42, .075);
+        }
+
+        .photo-card.primary-card {
+            border: 2px solid #8b5cf6;
+        }
+
+    .photo-image {
+        position: relative;
+        height: 245px;
+        background: #f3f4f6;
+    }
+
+        .photo-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .primary-badge {
+        position: absolute;
+        left: 12px;
+        top: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: linear-gradient( 135deg, #8b5cf6, #6d28d9);
+        color: #fff;
+        font-size: 10px;
+        font-weight: 850;
+        box-shadow: 0 6px 15px rgba(124, 58, 237, .25);
+    }
+
+    .photo-number {
+        position: absolute;
+        right: 12px;
+        top: 12px;
+        width: 31px;
+        height: 31px;
+        border-radius: 9px;
+        background: rgba(17,24,39,.72);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 800;
+    }
+
+    .photo-body {
+        padding: 16px;
+    }
+
+    .photo-caption {
+        margin-bottom: 13px;
+        color: #111827;
+        font-size: 13px;
+        font-weight: 750;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+        .photo-caption.empty {
+            color: #9ca3af;
+            font-weight: 500;
+        }
+
+    .photo-actions {
+        min-height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .photo-btn {
+        min-height: 34px;
+        padding: 0 11px;
+        border: 1px solid #e0e3e9;
+        border-radius: 8px;
+        background: #fff;
+        font-size: 10px;
+        font-weight: 750;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .primary-btn {
+        color: #7c3aed;
+    }
+
+        .primary-btn:hover {
+            background: #f5f3ff;
+        }
+
+    .delete-btn {
+        color: #ef4444;
+    }
+
+        .delete-btn:hover {
+            background: #fff1f2;
+        }
+
+    .main-photo-label {
+        color: #15803d;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 10px;
+        font-weight: 800;
+    }
+
+
+    /* =====================================================
+           EMPTY
+           ===================================================== */
+
+    .empty-gallery {
+        padding: 60px 20px;
+        border: 2px dashed #dfe3ea;
+        border-radius: 18px;
+        background: #fafbfc;
+        text-align: center;
+    }
+
+    .empty-gallery-icon {
+        width: 62px;
+        height: 62px;
+        margin: 0 auto 14px;
+        border-radius: 18px;
+        background: #f5f3ff;
+        color: #7c3aed;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 27px;
+    }
+
+    .empty-gallery strong {
+        display: block;
+        color: #111827;
+        font-size: 15px;
+    }
+
+    .empty-gallery p {
+        margin: 5px 0 0;
+        color: #9ca3af;
+        font-size: 12px;
+    }
+
+
+    /* =====================================================
+           RESPONSIVE
+           ===================================================== */
+
+    @@media(max-width: 1100px) {
+
+        .gallery-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .preview-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @@media(max-width: 760px) {
+
+        .photo-page {
+            padding: 20px 15px 40px;
+        }
+
+        .photo-stat-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .gallery-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .preview-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .replace-header,
+        .replace-footer {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .replace-btn {
+            width: 100%;
+        }
+    }
+
+</style>
+
+
+<div class="photo-page">
+
+
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
+
+    <div class="photo-header">
+
+        <a asp-action="Details"
+           asp-route-id="@Model.ActivityId"
+           class="photo-back">
+
+            <i class="bi bi-arrow-left"></i>
+
+            Back to @Model.ActivityName
+
+        </a>
+
+
+        <h1 class="photo-title">
+
+            Photo Gallery
+
+        </h1>
+
+
+        <p class="photo-subtitle">
+
+            Manage and replace the photos displayed
+            to customers for this activity.
+
+        </p>
+
+    </div>
+
+
+    <!-- =====================================================
+         ALERTS
+         ===================================================== -->
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success rounded-3">
+
+            <i class="bi bi-check-circle-fill me-2"></i>
+
+            @TempData["Message"]
+
+        </div>
+    }
+
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger rounded-3">
+
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+            @TempData["Error"]
+
+        </div>
+    }
+
+
+
+    <div class="photo-stat-grid">
+
+
+        <div class="photo-stat">
+
+            <div class="photo-stat-icon">
+
+                <i class="bi bi-images"></i>
+
+            </div>
 
             <div>
 
-                <a asp-action="Details"
-                   asp-route-id="@Model.ActivityId"
-                   class="back-link">
-                    <i class="bi bi-arrow-left"></i>
-                    @Model.ActivityName
-                </a>
+                <div class="photo-stat-label">
 
-                <h1>Photo Gallery</h1>
+                    Total Photos
 
-                <p>
-                    Upload multiple activity images and choose the main
-                    catalogue photo.
-                </p>
+                </div>
+
+                <div class="photo-stat-value">
+
+                    @totalPhotos
+
+                </div>
 
             </div>
 
         </div>
 
-        <form asp-action="UploadPhotos"
-              method="post"
-              enctype="multipart/form-data"
-              class="photo-upload-card">
 
-            <input type="hidden"
-                   name="activityId"
-                   value="@Model.ActivityId" />
+        <div class="photo-stat">
+
+            <div class="photo-stat-icon">
+
+                <i class="bi bi-star"></i>
+
+            </div>
 
             <div>
 
-                <label class="form-label">
-                    Choose Photos
-                </label>
+                <div class="photo-stat-label">
 
-                <input type="file"
-                       name="photos"
-                       accept="image/jpeg,image/png,image/webp"
-                       multiple
-                       class="form-control"
-                       required />
+                    Primary Photo
 
-                <small>
-                    Maximum 5 MB per image.
-                </small>
+                </div>
+
+                <div class="photo-stat-value">
+
+                    @(primaryPhoto != null
+                        ? "Selected"
+                        : "Not Set")
+
+                </div>
 
             </div>
 
-            <button type="submit"
-                    class="btn btn-view-activity">
-                <i class="bi bi-cloud-arrow-up"></i>
-                Upload Photos
-            </button>
+        </div>
 
-        </form>
 
-        @if (!Model.Photos.Any())
-        {
-            <div class="empty-state">
+        <div class="photo-stat">
+
+            <div class="photo-stat-icon">
+
+                <i class="bi bi-file-earmark-image"></i>
+
+            </div>
+
+            <div>
+
+                <div class="photo-stat-label">
+
+                    Upload Limit
+
+                </div>
+
+                <div class="photo-stat-value">
+
+                    5 MB / photo
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- =====================================================
+         REPLACE PHOTO CARD
+         ===================================================== -->
+
+    <div class="replace-card">
+
+
+        <div class="replace-header">
+
+
+            <div class="replace-heading">
+
+
+                <div class="replace-heading-icon">
+
+                    <i class="bi bi-arrow-repeat"></i>
+
+                </div>
+
+
+                <div>
+
+                    <h2>
+
+                        Replace Activity Photos
+
+                    </h2>
+
+
+                    <p>
+
+                        Choose one or more new photos
+                        to replace the current gallery.
+
+                    </p>
+
+                </div>
+
+
+            </div>
+
+
+            @if (totalPhotos > 0)
+            {
+                <span class="replacement-warning">
+
+                    <i class="bi bi-exclamation-triangle"></i>
+
+                    Current gallery will be replaced
+
+                </span>
+            }
+
+
+        </div>
+
+
+        <div class="replace-body">
+
+
+            <form asp-action="UploadPhotos"
+                  method="post"
+                  enctype="multipart/form-data"
+                  id="photoReplaceForm">
+
+
+                @Html.AntiForgeryToken()
+
+
+                <input type="hidden"
+                       name="activityId"
+                       value="@Model.ActivityId" />
+
+
+                <!-- DROP AREA -->
+
+                <label for="photos"
+                       class="drop-zone"
+                       id="dropZone">
+
+
+                    <div class="drop-zone-icon">
+
+                        <i class="bi bi-cloud-arrow-up"></i>
+
+                    </div>
+
+
+                    <strong>
+
+                        Drag & drop new photos here
+
+                    </strong>
+
+
+                    <span class="browse">
+
+                        or click to browse
+
+                    </span>
+
+
+                    <small>
+
+                        JPG, JPEG, PNG or WEBP · Maximum 5 MB each
+
+                    </small>
+
+
+                </label>
+
+
+                <input id="photos"
+                       name="photos"
+                       type="file"
+                       accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+                       multiple />
+
+
+                <!-- SELECTION SUMMARY -->
+
+                <div id="selectedSummary"
+                     class="selected-summary">
+
+
+                    <div class="selected-info">
+
+                        <i class="bi bi-check-circle-fill"></i>
+
+                        <span id="selectedText">
+                        </span>
+
+                    </div>
+
+
+                    <button id="clearFiles"
+                            type="button"
+                            class="clear-btn">
+
+                        Clear selection
+
+                    </button>
+
+
+                </div>
+
+
+                <!-- NEW IMAGE PREVIEWS -->
+
+                <div id="previewGrid"
+                     class="preview-grid">
+                </div>
+
+
+                <!-- FOOTER -->
+
+                <div class="replace-footer">
+
+
+                    <div class="replace-description">
+
+                        <strong>
+                            How replacement works:
+                        </strong>
+
+                        Selecting new photos will replace
+                        all photos currently stored for this
+                        activity. The first selected image
+                        automatically becomes the primary
+                        customer-facing image.
+
+                    </div>
+
+
+                    <button id="replaceButton"
+                            type="submit"
+                            class="replace-btn">
+
+                        <i class="bi bi-arrow-repeat"></i>
+
+                        Replace Photos
+
+                    </button>
+
+
+                </div>
+
+
+            </form>
+
+
+        </div>
+
+
+    </div>
+
+
+    <!-- =====================================================
+         CURRENT GALLERY HEADER
+         ===================================================== -->
+
+    <div class="gallery-header">
+
+
+        <div>
+
+            <h2>
+
+                Current Gallery
+
+            </h2>
+
+            <p>
+
+                Photos currently shown for
+                @Model.ActivityName.
+
+            </p>
+
+        </div>
+
+
+        <span class="gallery-count">
+
+            @totalPhotos photo@(totalPhotos == 1 ? "" : "s")
+
+        </span>
+
+
+    </div>
+
+
+    <!-- =====================================================
+         GALLERY
+         ===================================================== -->
+    @if (!photos.Any())
+    {
+        <div class="empty-gallery">
+
+
+            <div class="empty-gallery-icon">
 
                 <i class="bi bi-images"></i>
 
-                <h3>No Photos Uploaded</h3>
+            </div>
 
-                <p>
-                    Add high-quality images to improve the activity page.
-                </p>
+
+            <strong>
+
+                No activity photos yet
+
+            </strong>
+
+
+            <p>
+
+                Select a photo above to create
+                the activity gallery.
+
+            </p>
+
+
+        </div>
+    }
+    else
+    {
+        <div class="gallery-grid">
+
+
+            @for (var index = 0;
+                  index < photos.Count;
+                  index++)
+            {
+                var photo =
+                    photos[index];
+
+
+                <article class="photo-card @(photo.IsPrimary ? "primary-card" : "")">
+
+
+                    <div class="photo-image">
+
+
+                        <img src="@photo.PhotoUrl"
+                             alt="@(string.IsNullOrWhiteSpace(photo.Caption)
+                                                              ? Model.ActivityName
+                                                              : photo.Caption)" />
+
+
+            @if (photo.IsPrimary)
+            {
+                <span class="primary-badge">
+
+                    <i class="bi bi-star-fill"></i>
+
+                    Primary
+
+                </span>
+            }
+
+
+            <span class="photo-number">
+
+                #@(index + 1)
+
+            </span>
+
+
+        </div>
+
+
+        <div class="photo-body">
+
+
+            @if (!string.IsNullOrWhiteSpace(
+                photo.Caption))
+            {
+                <div class="photo-caption">
+
+                    @photo.Caption
+
+                </div>
+            }
+            else
+            {
+                <div class="photo-caption empty">
+
+                    No caption
+
+                </div>
+            }
+
+
+            <div class="photo-actions">
+
+
+                <div>
+
+
+                    @if (photo.IsPrimary)
+                    {
+                        <span class="main-photo-label">
+
+                            <i class="bi bi-check-circle-fill"></i>
+
+                            Main image
+
+                        </span>
+                    }
+                    else
+                    {
+                        <form asp-action="SetPrimaryPhoto"
+                              asp-route-id="@photo.ActivityPhotoId"
+                              method="post"
+                              class="d-inline">
+
+
+                            @Html.AntiForgeryToken()
+
+
+                            <button type="submit"
+                                    class="photo-btn primary-btn">
+
+                                <i class="bi bi-star"></i>
+
+                                Set Primary
+
+                            </button>
+
+
+                        </form>
+                    }
+
+
+                </div>
+
+
+                <form asp-action="DeletePhoto"
+                      asp-route-id="@photo.ActivityPhotoId"
+                      method="post"
+                      class="d-inline"
+                      onsubmit="return confirm('Delete this photo?');">
+
+
+                    @Html.AntiForgeryToken()
+
+
+                    <button type="submit"
+                            class="photo-btn delete-btn">
+
+                        <i class="bi bi-trash"></i>
+
+                        Delete
+
+                    </button>
+
+
+                </form>
+
 
             </div>
-        }
-        else
-        {
-            <div class="photo-admin-grid">
 
-                @foreach (var p in Model.Photos)
-                {
-                    <article class="photo-admin-card">
 
-                        <img src="@p.PhotoUrl"
-                             alt="@p.Caption" />
+        </div>
 
-                        @if (p.IsPrimary)
-                        {
-                            <span class="featured-badge">
-                                Primary
-                            </span>
-                        }
 
-                        <div>
+    </article>
+}
 
-                            <span>@p.Caption</span>
 
-                            <div class="photo-actions">
+</div>
+    }
 
-                                @if (!p.IsPrimary)
-                                {
-                                    <form asp-action="SetPrimaryPhoto"
-                                          asp-route-id="@p.ActivityPhotoId"
-                                          method="post">
 
-                                        <button type="submit"
-                                                title="Set Primary">
-                                            <i class="bi bi-star"></i>
-                                        </button>
+</div>
 
-                                    </form>
-                                }
 
-                                <form asp-action="DeletePhoto"
-                                      asp-route-id="@p.ActivityPhotoId"
-                                      method="post">
+@section Scripts
+{
 
-                                    <button type="submit"
-                                            class="danger"
-                                            title="Delete">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
+    <script>
 
-                                </form>
+        const photoInput =
+            document.getElementById(
+                "photos");
 
-                            </div>
+        const dropZone =
+            document.getElementById(
+                "dropZone");
 
-                        </div>
+        const previewGrid =
+            document.getElementById(
+                "previewGrid");
 
-                    </article>
+        const selectedSummary =
+            document.getElementById(
+                "selectedSummary");
+
+        const selectedText =
+            document.getElementById(
+                "selectedText");
+
+        const clearFiles =
+            document.getElementById(
+                "clearFiles");
+
+        const replaceButton =
+            document.getElementById(
+                "replaceButton");
+
+        const replaceForm =
+            document.getElementById(
+                "photoReplaceForm");
+
+
+
+
+        function validateFiles(files) {
+
+            const allowed =
+            [
+                "image/jpeg",
+                "image/png",
+                "image/webp"
+            ];
+
+            const maxFileSize =
+                5 * 1024 * 1024;
+
+
+            for (const file of files) {
+
+                if (!allowed.includes(
+                    file.type)) {
+
+                    alert(
+                        file.name +
+                        " is not a supported image. " +
+                        "Please use JPG, PNG or WEBP."
+                    );
+
+                    return false;
                 }
 
-            </div>
+
+                if (file.size >
+                    maxFileSize) {
+
+                    alert(
+                        file.name +
+                        " is larger than 5 MB."
+                    );
+
+                    return false;
+                }
+
+            }
+
+
+            return true;
         }
 
-    </div>
-</div>
+
+        function resetSelection() {
+
+            photoInput.value =
+                "";
+
+            previewGrid.innerHTML =
+                "";
+
+            selectedSummary
+                .classList
+                .remove("show");
+
+            replaceButton
+                .classList
+                .remove("ready");
+
+        }
+
+
+        // =========================================================
+        // SHOW PREVIEW
+        // =========================================================
+
+        function showPreview(files) {
+
+            previewGrid.innerHTML =
+                "";
+
+
+            if (!files ||
+                files.length === 0) {
+
+                resetSelection();
+
+                return;
+            }
+
+
+            if (!validateFiles(files)) {
+
+                resetSelection();
+
+                return;
+            }
+
+
+            selectedText.textContent =
+                files.length === 1
+                    ? "1 new photo selected"
+                    : files.length +
+                      " new photos selected";
+
+
+            selectedSummary
+                .classList
+                .add("show");
+
+
+            replaceButton
+                .classList
+                .add("ready");
+
+
+            Array
+                .from(files)
+                .forEach(
+                    (file, index) => {
+
+
+                        const reader =
+                            new FileReader();
+
+
+                        reader.onload =
+                            function(event) {
+
+
+                                const card =
+                                    document
+                                        .createElement(
+                                            "div");
+
+
+                                card.className =
+                                    "preview-card";
+
+
+                                const image =
+                                    document
+                                        .createElement(
+                                            "img");
+
+
+                                image.src =
+                                    event.target.result;
+
+
+                                image.alt =
+                                    file.name;
+
+
+                                card.appendChild(
+                                    image);
+
+
+                                const number =
+                                    document
+                                        .createElement(
+                                            "span");
+
+
+                                number.className =
+                                    "preview-number";
+
+
+                                number.textContent =
+                                    "#" + (index + 1);
+
+
+                                card.appendChild(
+                                    number);
+
+
+                                if (index === 0) {
+
+                                    const primary =
+                                        document
+                                            .createElement(
+                                                "span");
+
+
+                                    primary.className =
+                                        "preview-primary";
+
+
+                                    primary.innerHTML =
+                                        '<i class="bi bi-star-fill"></i> Primary';
+
+
+                                    card.appendChild(
+                                        primary);
+
+                                }
+
+
+                                previewGrid
+                                    .appendChild(
+                                        card);
+
+                            };
+
+
+                        reader.readAsDataURL(
+                            file);
+
+                    });
+
+        }
+
+
+        photoInput
+            .addEventListener(
+                "change",
+                function() {
+
+                    showPreview(
+                        this.files);
+
+                });
+
+
+        clearFiles
+            .addEventListener(
+                "click",
+                function() {
+
+                    resetSelection();
+
+                });
+
+
+        [
+            "dragenter",
+            "dragover"
+        ]
+        .forEach(
+            eventName => {
+
+                dropZone
+                    .addEventListener(
+                        eventName,
+                        function(event) {
+
+                            event
+                                .preventDefault();
+
+                            event
+                                .stopPropagation();
+
+                            dropZone
+                                .classList
+                                .add(
+                                    "dragging");
+
+                        });
+
+            });
+
+
+        [
+            "dragleave",
+            "drop"
+        ]
+        .forEach(
+            eventName => {
+
+                dropZone
+                    .addEventListener(
+                        eventName,
+                        function(event) {
+
+                            event
+                                .preventDefault();
+
+                            event
+                                .stopPropagation();
+
+                            dropZone
+                                .classList
+                                .remove(
+                                    "dragging");
+
+                        });
+
+            });
+
+
+
+
+        dropZone
+            .addEventListener(
+                "drop",
+                function(event) {
+
+
+                    const files =
+                        event.dataTransfer
+                            .files;
+
+
+                    if (!files ||
+                        files.length === 0) {
+
+                        return;
+                    }
+
+
+                    if (!validateFiles(
+                            files)) {
+
+                        return;
+                    }
+
+
+                    const transfer =
+                        new DataTransfer();
+
+
+                    Array
+                        .from(files)
+                        .forEach(file => {
+
+                            transfer.items
+                                .add(file);
+
+                        });
+
+
+                    photoInput.files =
+                        transfer.files;
+
+
+                    showPreview(
+                        transfer.files);
+
+                });
+
+
+
+        replaceForm
+            .addEventListener(
+                "submit",
+                function(event) {
+
+
+                    if (!photoInput.files ||
+                        photoInput.files.length === 0) {
+
+                        event.preventDefault();
+
+                        alert(
+                            "Please select at least one new photo."
+                        );
+
+                        return;
+                    }
+
+
+                    const existingPhotos =
+                        @totalPhotos;
+
+
+                    if (existingPhotos > 0) {
+
+                        const confirmed =
+                            confirm(
+                                "The new photo selection will replace the current activity gallery.\n\nDo you want to continue?"
+                            );
+
+
+                        if (!confirmed) {
+
+                            event.preventDefault();
+
+                            return;
+
+                        }
+
+                    }
+
+
+                    // Prevent double-click submission.
+                    replaceButton
+                        .classList
+                        .remove("ready");
+
+
+                    replaceButton.innerHTML =
+                        '<span class="spinner-border spinner-border-sm"></span> Replacing...';
+
+                });
+
+    </script>
+
+}

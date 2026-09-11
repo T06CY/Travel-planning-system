@@ -3,119 +3,950 @@
 @{
     ViewData["Title"] = "Activity Details";
 
-    var photo = Model.Photos
-        .FirstOrDefault(p => p.IsPrimary)?.PhotoUrl
+    var primaryPhoto =
+        Model.Photos
+            .FirstOrDefault(p => p.IsPrimary)?.PhotoUrl
         ?? Model.Photos.FirstOrDefault()?.PhotoUrl
         ?? "/images/hero-beach.jpg";
+
+    var bookings =
+        Model.Sessions
+            .SelectMany(s => s.Bookings)
+            .ToList();
+
+    var validBookings =
+        bookings
+            .Where(b =>
+                b.BookingStatus !=
+                TravelPlanningSystem.Models.ActivityBookingStatus.Cancelled)
+            .ToList();
+
+    var totalBookings =
+        validBookings.Count;
+
+    var totalParticipants =
+        validBookings.Sum(b => b.ParticipantCount);
+
+    var totalRevenue =
+        validBookings.Sum(b => b.TotalAmount);
+
+    var upcomingSessions =
+        Model.Sessions
+            .Where(s =>
+                s.IsActive &&
+                s.SessionDate.Date >= DateTime.Today)
+            .OrderBy(s => s.SessionDate)
+            .ThenBy(s => s.StartTime)
+            .ToList();
+
+    var averageRating =
+        Model.Reviews.Any()
+            ? Model.Reviews.Average(r => r.Rating)
+            : 0;
+
+    var photos =
+        Model.Photos
+            .OrderByDescending(p => p.IsPrimary)
+            .ThenBy(p => p.DisplayOrder)
+            .ToList();
 }
 
-<link rel="stylesheet" href="~/css/activities.css" />
+<style>
 
-<div class="admin-page">
-    <div class="container">
+    .activity-detail-page {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 30px;
+    }
 
-        <div class="admin-detail-hero">
+    .activity-hero-card {
+        display: grid;
+        grid-template-columns: 330px 1fr;
+        gap: 28px;
+        background: #fff;
+        border: 1px solid #e8eaf0;
+        border-radius: 20px;
+        padding: 22px;
+        box-shadow: 0 8px 30px rgba(15,23,42,.04);
+        margin-bottom: 20px;
+    }
 
-            <img src="@photo"
+    .activity-main-image {
+        position: relative;
+        min-height: 260px;
+        border-radius: 16px;
+        overflow: hidden;
+        background: #f3f4f6;
+    }
+
+        .activity-main-image img {
+            width: 100%;
+            height: 100%;
+            min-height: 260px;
+            object-fit: cover;
+        }
+
+    .activity-image-badge {
+        position: absolute;
+        top: 14px;
+        left: 14px;
+        padding: 6px 11px;
+        border-radius: 999px;
+        background: rgba(17,24,39,.82);
+        color: white;
+        font-size: 11px;
+        font-weight: 750;
+    }
+
+    .activity-header-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .activity-top-badges {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+    }
+
+    .activity-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+        .activity-badge.category {
+            background: #f5f3ff;
+            color: #7c3aed;
+        }
+
+        .activity-badge.active {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .activity-badge.inactive {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .activity-badge.featured {
+            background: #fff7ed;
+            color: #c2410c;
+        }
+
+    .activity-header-content h1 {
+        margin: 0;
+        color: #111827;
+        font-size: 36px;
+        font-weight: 850;
+        letter-spacing: -.6px;
+    }
+
+    .activity-location {
+        margin-top: 10px;
+        color: #6b7280;
+        font-size: 15px;
+    }
+
+        .activity-location i {
+            color: #ef4444;
+            margin-right: 5px;
+        }
+
+    .activity-actions {
+        margin-top: 22px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .activity-action-btn {
+        min-height: 40px;
+        border-radius: 10px;
+        padding: 0 16px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 13px;
+        border: 1px solid #dfe3ea;
+        background: #fff;
+        color: #374151;
+    }
+
+        .activity-action-btn.primary {
+            border: none;
+            color: white;
+            background: linear-gradient(135deg,#8b5cf6,#6d28d9);
+            box-shadow: 0 8px 18px rgba(124,58,237,.2);
+        }
+
+        .activity-action-btn:hover {
+            transform: translateY(-1px);
+        }
+
+    .activity-stat-grid {
+        display: grid;
+        grid-template-columns: repeat(6,minmax(0,1fr));
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+
+    .activity-stat-card {
+        background: white;
+        border: 1px solid #e8eaf0;
+        border-radius: 16px;
+        padding: 18px;
+    }
+
+    .activity-stat-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: #f4f5f7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 11px;
+        color: #6d28d9;
+    }
+
+    .activity-stat-label {
+        font-size: 11px;
+        color: #6b7280;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .activity-stat-value {
+        color: #111827;
+        font-size: 20px;
+        font-weight: 850;
+    }
+
+    .activity-content-grid {
+        display: grid;
+        grid-template-columns: 1.6fr .8fr;
+        gap: 20px;
+    }
+
+    .activity-panel {
+        background: #fff;
+        border: 1px solid #e8eaf0;
+        border-radius: 18px;
+        padding: 23px;
+        margin-bottom: 20px;
+    }
+
+    .panel-title {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 18px;
+        color: #111827;
+        font-size: 17px;
+        font-weight: 850;
+    }
+
+    .panel-title-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f5f3ff;
+        color: #7c3aed;
+    }
+
+    .activity-description {
+        color: #606978;
+        line-height: 1.8;
+        font-size: 14px;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        margin-top: 22px;
+    }
+
+    .info-box {
+        border-radius: 13px;
+        background: #f9fafb;
+        padding: 16px;
+    }
+
+        .info-box strong {
+            display: block;
+            color: #111827;
+            font-size: 13px;
+            margin-bottom: 7px;
+        }
+
+        .info-box p {
+            color: #6b7280;
+            font-size: 13px;
+            margin: 0;
+        }
+
+    .settings-list {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .settings-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 12px 0;
+        border-bottom: 1px solid #eef0f4;
+        font-size: 13px;
+    }
+
+        .settings-row:last-child {
+            border-bottom: 0;
+        }
+
+        .settings-row span {
+            color: #6b7280;
+        }
+
+        .settings-row strong {
+            color: #111827;
+        }
+
+    .session-mini-card {
+        display: grid;
+        grid-template-columns: 70px 1fr auto;
+        align-items: center;
+        gap: 13px;
+        padding: 13px 0;
+        border-bottom: 1px solid #eef0f4;
+    }
+
+        .session-mini-card:last-child {
+            border-bottom: none;
+        }
+
+    .session-date-box {
+        width: 58px;
+        text-align: center;
+        padding: 7px;
+        border-radius: 11px;
+        background: #f5f3ff;
+    }
+
+        .session-date-box strong {
+            display: block;
+            color: #7c3aed;
+            font-size: 17px;
+        }
+
+        .session-date-box small {
+            color: #7c3aed;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+    .session-mini-info strong {
+        display: block;
+        font-size: 13px;
+        color: #111827;
+    }
+
+    .session-mini-info small {
+        color: #6b7280;
+    }
+
+    .session-slot {
+        border-radius: 999px;
+        background: #dcfce7;
+        color: #15803d;
+        padding: 5px 9px;
+        font-size: 10px;
+        font-weight: 750;
+    }
+
+    .photo-strip {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+        .photo-strip img {
+            width: 330px;
+            height: 260px;
+            object-fit: cover;
+            border-radius: 16px;
+            display: block;
+        }
+
+    .empty-small {
+        color: #9ca3af;
+        font-size: 13px;
+        text-align: center;
+        padding: 20px 0;
+    }
+
+    @@media(max-width:1200px) {
+        .activity-stat-grid {
+            grid-template-columns: repeat(3,1fr);
+        }
+
+        .activity-content-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media(max-width:800px) {
+        .activity-detail-page {
+            padding: 20px 15px;
+        }
+
+        .activity-hero-card {
+            grid-template-columns: 1fr;
+        }
+
+        .activity-stat-grid {
+            grid-template-columns: repeat(2,1fr);
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+</style>
+
+
+<div class="activity-detail-page">
+
+    <div class="activity-hero-card">
+
+        <div class="activity-main-image">
+
+            <img src="@primaryPhoto"
                  alt="@Model.ActivityName" />
 
-            <div>
+            <span class="activity-image-badge">
+                <i class="bi bi-images"></i>
+                @Model.Photos.Count photo@(Model.Photos.Count == 1 ? "" : "s")
+            </span>
 
-                <span class="eyebrow">
+        </div>
+
+
+        <div class="activity-header-content">
+
+            <div class="activity-top-badges">
+
+                <span class="activity-badge category">
+                    <i class="bi bi-tag"></i>
                     @Model.ActivityCategory?.Name
                 </span>
 
-                <h1>@Model.ActivityName</h1>
+                @if (Model.IsActive)
+                {
+                    <span class="activity-badge active">
+                        <i class="bi bi-check-circle"></i>
+                        Active
+                    </span>
+                }
+                else
+                {
+                    <span class="activity-badge inactive">
+                        <i class="bi bi-x-circle"></i>
+                        Inactive
+                    </span>
+                }
 
-                <p>
-                    <i class="bi bi-geo-alt-fill"></i>
-                    @Model.Location
-                </p>
+                @if (Model.IsFeatured)
+                {
+                    <span class="activity-badge featured">
+                        <i class="bi bi-star-fill"></i>
+                        Featured
+                    </span>
+                }
 
-                <div class="admin-detail-actions">
+            </div>
 
-                    <a asp-action="Edit"
-                       asp-route-id="@Model.ActivityId"
-                       class="btn btn-view-activity">
-                        <i class="bi bi-pencil"></i>
-                        Edit
-                    </a>
 
-                    <a asp-action="Sessions"
-                       asp-route-id="@Model.ActivityId"
-                       class="btn btn-outline-dark">
-                        <i class="bi bi-calendar3"></i>
-                        Sessions
-                    </a>
+            <h1>
+                @Model.ActivityName
+            </h1>
 
-                    <a asp-action="Photos"
-                       asp-route-id="@Model.ActivityId"
-                       class="btn btn-outline-dark">
+
+            <div class="activity-location">
+
+                <i class="bi bi-geo-alt-fill"></i>
+
+                @Model.Location, @Model.Destination
+
+            </div>
+
+
+            <div class="activity-actions">
+
+                <a asp-action="Edit"
+                   asp-route-id="@Model.ActivityId"
+                   class="activity-action-btn primary">
+
+                    <i class="bi bi-pencil"></i>
+                    Edit Activity
+
+                </a>
+
+                <a asp-action="Sessions"
+                   asp-route-id="@Model.ActivityId"
+                   class="activity-action-btn">
+
+                    <i class="bi bi-calendar3"></i>
+                    Manage Sessions
+
+                </a>
+
+                <a asp-action="Photos"
+                   asp-route-id="@Model.ActivityId"
+                   class="activity-action-btn">
+
+                    <i class="bi bi-images"></i>
+                    Manage Photos
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- STATISTICS -->
+
+    <div class="activity-stat-grid">
+
+
+        <div class="activity-stat-card">
+
+            <div class="activity-stat-icon">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+
+            <div class="activity-stat-label">
+                PRICE
+            </div>
+
+            <div class="activity-stat-value">
+                RM @Model.PricePerPerson.ToString("N2")
+            </div>
+
+        </div>
+
+
+        <div class="activity-stat-card">
+
+            <div class="activity-stat-icon">
+                <i class="bi bi-clock"></i>
+            </div>
+
+            <div class="activity-stat-label">
+                DURATION
+            </div>
+
+            <div class="activity-stat-value">
+                @Model.DurationHours.ToString("0.#") hrs
+            </div>
+
+        </div>
+
+
+        <div class="activity-stat-card">
+
+            <div class="activity-stat-icon">
+                <i class="bi bi-calendar-event"></i>
+            </div>
+
+            <div class="activity-stat-label">
+                UPCOMING SESSIONS
+            </div>
+
+            <div class="activity-stat-value">
+                @upcomingSessions.Count
+            </div>
+
+        </div>
+
+
+        <div class="activity-stat-card">
+
+            <div class="activity-stat-icon">
+                <i class="bi bi-journal-check"></i>
+            </div>
+
+            <div class="activity-stat-label">
+                BOOKINGS
+            </div>
+
+            <div class="activity-stat-value">
+                @totalBookings
+            </div>
+
+        </div>
+
+
+        <div class="activity-stat-card">
+
+            <div class="activity-stat-icon">
+                <i class="bi bi-people"></i>
+            </div>
+
+            <div class="activity-stat-label">
+                PARTICIPANTS
+            </div>
+
+            <div class="activity-stat-value">
+                @totalParticipants
+            </div>
+
+        </div>
+
+
+        <div class="activity-stat-card">
+
+            <div class="activity-stat-icon">
+                <i class="bi bi-graph-up-arrow"></i>
+            </div>
+
+            <div class="activity-stat-label">
+                REVENUE
+            </div>
+
+            <div class="activity-stat-value">
+                RM @totalRevenue.ToString("N2")
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="activity-content-grid">
+
+
+        <!-- LEFT -->
+
+        <div>
+
+
+            <div class="activity-panel">
+
+                <div class="panel-title">
+
+                    <span class="panel-title-icon">
+                        <i class="bi bi-card-text"></i>
+                    </span>
+
+                    Activity Information
+
+                </div>
+
+
+                <div class="activity-description">
+
+                    @Model.Description
+
+                </div>
+
+
+                <div class="info-grid">
+
+                    <div class="info-box">
+
+                        <strong>
+                            <i class="bi bi-check2-circle me-1"></i>
+                            What's Included
+                        </strong>
+
+                        <p>
+                            @(string.IsNullOrWhiteSpace(Model.IncludedItems)
+                                ? "No information provided."
+                                : Model.IncludedItems)
+                        </p>
+
+                    </div>
+
+
+                    <div class="info-box">
+
+                        <strong>
+                            <i class="bi bi-backpack me-1"></i>
+                            What to Bring
+                        </strong>
+
+                        <p>
+                            @(string.IsNullOrWhiteSpace(Model.WhatToBring)
+                                ? "No information provided."
+                                : Model.WhatToBring)
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- UPCOMING SESSIONS -->
+
+            <div class="activity-panel">
+
+                <div class="panel-title">
+
+                    <span class="panel-title-icon">
+                        <i class="bi bi-calendar-week"></i>
+                    </span>
+
+                    Upcoming Sessions
+
+                </div>
+
+
+                @if (!upcomingSessions.Any())
+                {
+                    <div class="empty-small">
+                        No upcoming sessions available.
+                    </div>
+                }
+                else
+                {
+                    @foreach (var session in upcomingSessions.Take(5))
+                    {
+                        var booked =
+                            session.Capacity -
+                            session.AvailableSlots;
+
+                        <div class="session-mini-card">
+
+                            <div class="session-date-box">
+
+                                <strong>
+                                    @(session.SessionDate.ToString("dd"))
+                                </strong>
+
+                                <small>
+                                    @(session.SessionDate.ToString("MMM").ToUpper())
+                                </small>
+
+                            </div>
+
+
+                            <div class="session-mini-info">
+
+                                <strong>
+
+                                    @(DateTime.Today
+                                        .Add(session.StartTime)
+                                        .ToString("h:mm tt"))
+
+                                    -
+
+                                    @(DateTime.Today
+                                        .Add(session.EndTime)
+                                        .ToString("h:mm tt"))
+
+                                </strong>
+
+                                <small>
+                                    @booked booked ·
+                                    @session.Capacity capacity
+                                </small>
+
+                            </div>
+
+
+                            <span class="session-slot">
+
+                                @session.AvailableSlots slots left
+
+                            </span>
+
+                        </div>
+                    }
+                }
+
+            </div>
+
+
+            <!-- PHOTOS -->
+
+            <div class="activity-panel">
+
+                <div class="panel-title">
+
+                    <span class="panel-title-icon">
                         <i class="bi bi-images"></i>
-                        Photos
-                    </a>
+                    </span>
+
+                    Photo Preview
 
                 </div>
+
+
+                @if (!photos.Any())
+                {
+                    <div class="empty-small">
+                        No photos uploaded.
+                    </div>
+                }
+                else
+                {
+                    <div class="photo-strip">
+
+                        @foreach (var p in photos.Take(4))
+                        {
+                            <img src="@p.PhotoUrl"
+                                 alt="@p.Caption" />
+                        }
+
+                    </div>
+                }
 
             </div>
 
         </div>
 
-        <div class="admin-stats">
 
-            <div>
-                <span>Price</span>
-                <strong>
-                    RM @Model.PricePerPerson.ToString("N2")
-                </strong>
-            </div>
+        <!-- RIGHT -->
 
-            <div>
-                <span>Duration</span>
-                <strong>
-                    @Model.DurationHours.ToString("0.#") hours
-                </strong>
-            </div>
+        <div>
 
-            <div>
-                <span>Sessions</span>
-                <strong>@Model.Sessions.Count</strong>
-            </div>
 
-            <div>
-                <span>Reviews</span>
-                <strong>@Model.Reviews.Count</strong>
-            </div>
+            <div class="activity-panel">
 
-        </div>
+                <div class="panel-title">
 
-        <div class="detail-card">
+                    <span class="panel-title-icon">
+                        <i class="bi bi-sliders"></i>
+                    </span>
 
-            <h3>Description</h3>
-
-            <p>
-                @Model.Description
-            </p>
-
-            <div class="two-column-info">
-
-                <div>
-
-                    <h3>Included</h3>
-
-                    <p>
-                        @Model.IncludedItems
-                    </p>
+                    Activity Settings
 
                 </div>
 
-                <div>
 
-                    <h3>What to Bring</h3>
+                <div class="settings-list">
 
-                    <p>
-                        @Model.WhatToBring
-                    </p>
+                    <div class="settings-row">
+
+                        <span>
+                            Minimum Participants
+                        </span>
+
+                        <strong>
+                            @Model.MinimumParticipants
+                        </strong>
+
+                    </div>
+
+
+                    <div class="settings-row">
+
+                        <span>
+                            Maximum Participants
+                        </span>
+
+                        <strong>
+                            @Model.MaximumParticipants
+                        </strong>
+
+                    </div>
+
+
+                    <div class="settings-row">
+
+                        <span>
+                            Minimum Age
+                        </span>
+
+                        <strong>
+                            @Model.MinimumAge
+                        </strong>
+
+                    </div>
+
+
+                    <div class="settings-row">
+
+                        <span>
+                            Total Sessions
+                        </span>
+
+                        <strong>
+                            @Model.Sessions.Count
+                        </strong>
+
+                    </div>
+
+
+                    <div class="settings-row">
+
+                        <span>
+                            Reviews
+                        </span>
+
+                        <strong>
+                            @Model.Reviews.Count
+                        </strong>
+
+                    </div>
+
+
+                    <div class="settings-row">
+
+                        <span>
+                            Average Rating
+                        </span>
+
+                        <strong>
+
+                            @if (Model.Reviews.Any())
+                            {
+                                <text>
+                                    @averageRating.ToString("0.0") / 5
+                                </text>
+                            }
+                            else
+                            {
+                                <text>No ratings</text>
+                            }
+
+                        </strong>
+
+                    </div>
+
+
+                    <div class="settings-row">
+
+                        <span>
+                            Created
+                        </span>
+
+                        <strong>
+                            @Model.CreatedAt.ToString("dd MMM yyyy")
+                        </strong>
+
+                    </div>
 
                 </div>
 
@@ -124,4 +955,5 @@
         </div>
 
     </div>
+
 </div>

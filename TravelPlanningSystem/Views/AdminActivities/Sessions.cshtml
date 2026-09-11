@@ -1,188 +1,1600 @@
 ﻿@model TravelPlanningSystem.Models.Activity
 
 @{
-    ViewData["Title"] = "Activity Sessions";
+    ViewData["Title"] = "Session Management";
+
+    var currentFilter =
+        ViewBag.Filter?.ToString() ?? "upcoming";
+
+    var totalSessions =
+        Model.Sessions.Count;
+
+    var totalCapacity =
+        Model.Sessions.Sum(s => s.Capacity);
+
+    var totalBooked =
+        Model.Sessions.Sum(s =>
+            s.Bookings
+                .Where(b =>
+                    b.BookingStatus !=
+                    TravelPlanningSystem.Models.ActivityBookingStatus.Cancelled)
+                .Sum(b =>
+                    b.ParticipantCount));
+
+    var totalAvailable =
+        Model.Sessions.Sum(s =>
+            s.AvailableSlots);
+
+    var averageOccupancy =
+        totalCapacity <= 0
+            ? 0
+            : (int)Math.Round(
+                totalBooked *
+                100.0 /
+                totalCapacity);
 }
 
-<link rel="stylesheet" href="~/css/activities.css" />
+<style>
 
-<div class="admin-page">
-    <div class="container">
+    .schedule-page {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 30px;
+    }
 
-        <div class="admin-header">
+    .schedule-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        text-decoration: none;
+        color: #2563eb;
+        font-size: 13px;
+        font-weight: 750;
+        margin-bottom: 10px;
+    }
+
+    .schedule-title {
+        margin: 0;
+        color: #111827;
+        font-size: 31px;
+        font-weight: 850;
+        letter-spacing: -.4px;
+    }
+
+    .schedule-subtitle {
+        margin: 7px 0 0;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .duration-notice {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 8px 12px;
+        margin-top: 14px;
+        border-radius: 999px;
+        background: #f5f3ff;
+        color: #7c3aed;
+        font-size: 12px;
+        font-weight: 750;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 25px;
+        margin-bottom: 22px;
+    }
+
+    .stat-card {
+        background: white;
+        border: 1px solid #e7e9ef;
+        border-radius: 17px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        box-shadow: 0 5px 20px rgba(15,23,42,.03);
+    }
+
+    .stat-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f5f3ff;
+        color: #7c3aed;
+        font-size: 19px;
+    }
+
+    .stat-label {
+        color: #6b7280;
+        font-size: 11px;
+        font-weight: 700;
+        margin-bottom: 3px;
+    }
+
+    .stat-value {
+        color: #111827;
+        font-size: 24px;
+        font-weight: 850;
+    }
+
+    .create-card {
+        background: white;
+        border: 1px solid #e7e9ef;
+        border-radius: 18px;
+        padding: 22px;
+        margin-bottom: 21px;
+    }
+
+    .create-title {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        color: #111827;
+        font-size: 16px;
+        font-weight: 850;
+        margin-bottom: 18px;
+    }
+
+    .create-title-icon {
+        width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        background: #fff1f2;
+        color: #ef4444;
+    }
+
+    .create-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr 1fr .8fr auto;
+        gap: 12px;
+        align-items: end;
+    }
+
+    .field label {
+        display: block;
+        color: #374151;
+        font-size: 12px;
+        font-weight: 750;
+        margin-bottom: 6px;
+    }
+
+    .field .form-control {
+        height: 42px;
+        border: 1px solid #dfe3ea;
+        border-radius: 10px;
+        font-size: 13px;
+    }
+
+        .field .form-control:focus {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139,92,246,.10);
+        }
+
+    .auto-time-box {
+        background: #f8fafc !important;
+        color: #7c3aed !important;
+        font-weight: 750;
+        cursor: not-allowed;
+    }
+
+    .auto-time-hint {
+        display: block;
+        color: #9ca3af;
+        font-size: 10px;
+        margin-top: 5px;
+    }
+
+    .add-btn {
+        height: 42px;
+        padding: 0 19px;
+        border: none;
+        border-radius: 10px;
+        background: linear-gradient( 135deg, #f43f5e, #ef4444);
+        color: white;
+        font-size: 13px;
+        font-weight: 750;
+        white-space: nowrap;
+    }
+
+    .filter-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 17px;
+    }
+
+    .filter-btn {
+        padding: 8px 15px;
+        border-radius: 999px;
+        border: 1px solid #dfe3ea;
+        background: white;
+        color: #4b5563;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 750;
+    }
+
+        .filter-btn.active {
+            background: linear-gradient( 135deg, #f43f5e, #ef4444);
+            color: white;
+            border-color: transparent;
+        }
+
+    .schedule-card {
+        background: white;
+        border: 1px solid #e7e9ef;
+        border-radius: 18px;
+        overflow: hidden;
+    }
+
+    .schedule-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .schedule-table th {
+            padding: 14px 15px;
+            background: #f9fafb;
+            border-bottom: 1px solid #e7e9ef;
+            color: #6b7280;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .schedule-table td {
+            padding: 16px 15px;
+            border-bottom: 1px solid #eef0f4;
+            vertical-align: middle;
+            color: #374151;
+            font-size: 12px;
+        }
+
+    .session-date {
+        font-size: 13px;
+        font-weight: 800;
+        color: #111827;
+    }
+
+    .session-day {
+        display: block;
+        margin-top: 3px;
+        color: #9ca3af;
+        font-size: 10px;
+        font-weight: 500;
+    }
+
+    .session-time {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #111827;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+        .session-time i {
+            color: #8b5cf6;
+        }
+
+    .number-box {
+        display: inline-flex;
+        min-width: 34px;
+        height: 29px;
+        padding: 0 7px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        background: #f3f4f6;
+        color: #111827;
+        font-weight: 800;
+    }
+
+    .occupancy {
+        min-width: 130px;
+    }
+
+    .occupancy-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 6px;
+        color: #6b7280;
+        font-size: 10px;
+    }
+
+        .occupancy-top strong {
+            color: #111827;
+        }
+
+    .occupancy-track {
+        height: 6px;
+        border-radius: 999px;
+        background: #e5e7eb;
+        overflow: hidden;
+    }
+
+    .occupancy-value {
+        height: 100%;
+        border-radius: inherit;
+        background: #22c55e;
+    }
+
+        .occupancy-value.medium {
+            background: #f59e0b;
+        }
+
+        .occupancy-value.high {
+            background: #ef4444;
+        }
+
+    .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+        .status.available {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .status.almost {
+            background: #fef3c7;
+            color: #a16207;
+        }
+
+        .status.full {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .status.inactive {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+    .actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        height: 32px;
+        padding: 0 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        border: 1px solid #dfe3ea;
+        border-radius: 8px;
+        background: white;
+        color: #4b5563;
+        font-size: 10px;
+        font-weight: 750;
+        cursor: pointer;
+    }
+
+        .action-btn:hover {
+            background: #f8fafc;
+        }
+
+        .action-btn.blue {
+            color: #2563eb;
+        }
+
+        .action-btn.red {
+            color: #ef4444;
+        }
+
+    .expand-row {
+        display: none;
+    }
+
+        .expand-row td {
+            padding: 0 !important;
+        }
+
+    .expand-content {
+        padding: 20px;
+        background: #f8fafc;
+    }
+
+    .expand-heading {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 15px;
+        color: #111827;
+        font-size: 14px;
+        font-weight: 850;
+    }
+
+    .edit-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr 1fr .8fr auto;
+        gap: 12px;
+        align-items: end;
+    }
+
+    .save-btn {
+        height: 42px;
+        border: none;
+        border-radius: 9px;
+        padding: 0 15px;
+        background: #111827;
+        color: white;
+        font-size: 12px;
+        font-weight: 750;
+    }
+
+    .duplicate-layout {
+        display: flex;
+        align-items: end;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .duplicate-date {
+        width: 230px;
+    }
+
+    .empty-row {
+        text-align: center;
+        padding: 50px 20px !important;
+        color: #9ca3af;
+    }
+
+    @@media(max-width:1200px) {
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .create-grid,
+        .edit-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media(max-width:700px) {
+
+        .schedule-page {
+            padding: 20px 15px;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .create-grid,
+        .edit-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+</style>
+
+
+<div class="schedule-page">
+
+
+    <!-- HEADER -->
+
+    <a asp-action="Details"
+       asp-route-id="@Model.ActivityId"
+       class="schedule-back">
+
+        <i class="bi bi-arrow-left"></i>
+
+        Back to @Model.ActivityName
+
+    </a>
+
+
+    <h1 class="schedule-title">
+        Session Management
+    </h1>
+
+
+    <p class="schedule-subtitle">
+        Manage session dates, start times, capacity,
+        occupancy and availability.
+    </p>
+
+
+    <div class="duration-notice">
+
+        <i class="bi bi-clock-history"></i>
+
+        Activity Duration:
+        @Model.DurationHours.ToString("0.#") hours
+
+        · End time is calculated automatically
+
+    </div>
+
+
+    <!-- ALERTS -->
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success mt-3">
+
+            <i class="bi bi-check-circle me-1"></i>
+
+            @TempData["Message"]
+
+        </div>
+    }
+
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger mt-3">
+
+            <i class="bi bi-exclamation-triangle me-1"></i>
+
+            @TempData["Error"]
+
+        </div>
+    }
+
+
+    <!-- STATISTICS -->
+
+    <div class="stats-grid">
+
+
+        <div class="stat-card">
+
+            <div class="stat-icon">
+                <i class="bi bi-calendar-event"></i>
+            </div>
 
             <div>
 
-                <a asp-action="Details"
-                   asp-route-id="@Model.ActivityId"
-                   class="back-link">
-                    <i class="bi bi-arrow-left"></i>
-                    @Model.ActivityName
-                </a>
+                <div class="stat-label">
+                    SESSIONS
+                </div>
 
-                <h1>Session Management</h1>
-
-                <p>
-                    Create dated time slots and control activity capacity.
-                </p>
+                <div class="stat-value">
+                    @totalSessions
+                </div>
 
             </div>
 
         </div>
 
-        @if (TempData["Error"] != null)
-        {
-            <div class="alert alert-danger">
-                @TempData["Error"]
+
+        <div class="stat-card">
+
+            <div class="stat-icon">
+                <i class="bi bi-people"></i>
             </div>
-        }
+
+            <div>
+
+                <div class="stat-label">
+                    TOTAL CAPACITY
+                </div>
+
+                <div class="stat-value">
+                    @totalCapacity
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <div class="stat-icon">
+                <i class="bi bi-person-check"></i>
+            </div>
+
+            <div>
+
+                <div class="stat-label">
+                    BOOKED PARTICIPANTS
+                </div>
+
+                <div class="stat-value">
+                    @totalBooked
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <div class="stat-icon">
+                <i class="bi bi-speedometer2"></i>
+            </div>
+
+            <div>
+
+                <div class="stat-label">
+                    AVERAGE OCCUPANCY
+                </div>
+
+                <div class="stat-value">
+                    @averageOccupancy%
+                </div>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- CREATE SESSION -->
+
+    <div class="create-card">
+
+
+        <div class="create-title">
+
+            <span class="create-title-icon">
+
+                <i class="bi bi-plus-lg"></i>
+
+            </span>
+
+            Create New Session
+
+        </div>
+
 
         <form asp-action="AddSession"
-              method="post"
-              class="session-create-card">
+              method="post">
+
+            @Html.AntiForgeryToken()
+
 
             <input type="hidden"
                    name="activityId"
                    value="@Model.ActivityId" />
 
-            <div>
 
-                <label>Session Date</label>
+            <div class="create-grid">
 
-                <input type="date"
-                       name="sessionDate"
-                       min="@DateTime.Today.ToString("yyyy-MM-dd")"
-                       class="form-control"
-                       required />
+
+                <!-- DATE -->
+
+                <div class="field">
+
+                    <label>
+                        Session Date
+                    </label>
+
+                    <input type="date"
+                           name="sessionDate"
+                           min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                           class="form-control"
+                           required />
+
+                </div>
+
+
+                <!-- START -->
+
+                <div class="field">
+
+                    <label>
+                        Start Time
+                    </label>
+
+                    <input type="time"
+                           id="createStartTime"
+                           name="startTime"
+                           class="form-control"
+                           required />
+
+                </div>
+
+
+                <!-- AUTO END -->
+
+                <div class="field">
+
+                    <label>
+                        End Time
+                    </label>
+
+                    <input type="text"
+                           id="createEndTime"
+                           class="form-control auto-time-box"
+                           value="Auto calculated"
+                           readonly />
+
+                    <span class="auto-time-hint">
+
+                        Based on
+                        @Model.DurationHours.ToString("0.#")
+                        hour duration
+
+                    </span>
+
+                </div>
+
+
+                <!-- CAPACITY -->
+
+                <div class="field">
+
+                    <label>
+                        Capacity
+                    </label>
+
+                    <input type="number"
+                           name="capacity"
+                           min="@Model.MinimumParticipants"
+                           max="@Model.MaximumParticipants"
+                           value="@Model.MaximumParticipants"
+                           class="form-control"
+                           required />
+
+                </div>
+
+
+                <button type="submit"
+                        class="add-btn">
+
+                    <i class="bi bi-plus-lg me-1"></i>
+
+                    Add Session
+
+                </button>
+
 
             </div>
-
-            <div>
-
-                <label>Start Time</label>
-
-                <input type="time"
-                       name="startTime"
-                       class="form-control"
-                       required />
-
-            </div>
-
-            <div>
-
-                <label>End Time</label>
-
-                <input type="time"
-                       name="endTime"
-                       class="form-control"
-                       required />
-
-            </div>
-
-            <div>
-
-                <label>Capacity</label>
-
-                <input type="number"
-                       name="capacity"
-                       min="1"
-                       max="500"
-                       value="20"
-                       class="form-control"
-                       required />
-
-            </div>
-
-            <button type="submit"
-                    class="btn btn-view-activity">
-                <i class="bi bi-plus-lg"></i>
-                Add Session
-            </button>
 
         </form>
 
-        <div class="admin-table-card">
+    </div>
 
-            <table class="table align-middle">
+
+    <!-- FILTERS -->
+
+    <div class="filter-row">
+
+
+        <a asp-action="Sessions"
+           asp-route-id="@Model.ActivityId"
+           asp-route-filter="upcoming"
+           class="filter-btn @(currentFilter == "upcoming" ? "active" : "")">
+
+            Upcoming
+
+        </a>
+
+
+        <a asp-action="Sessions"
+           asp-route-id="@Model.ActivityId"
+           asp-route-filter="today"
+           class="filter-btn @(currentFilter == "today" ? "active" : "")">
+
+            Today
+
+        </a>
+
+
+        <a asp-action="Sessions"
+           asp-route-id="@Model.ActivityId"
+           asp-route-filter="past"
+           class="filter-btn @(currentFilter == "past" ? "active" : "")">
+
+            Past
+
+        </a>
+
+
+        <a asp-action="Sessions"
+           asp-route-id="@Model.ActivityId"
+           asp-route-filter="all"
+           class="filter-btn @(currentFilter == "all" ? "active" : "")">
+
+            All Sessions
+
+        </a>
+
+
+    </div>
+
+
+    <!-- TABLE -->
+
+    <div class="schedule-card">
+
+        <div class="table-responsive">
+
+
+            <table class="schedule-table">
+
 
                 <thead>
+
                     <tr>
+
                         <th>Date</th>
+
                         <th>Time</th>
+
                         <th>Capacity</th>
+
+                        <th>Booked</th>
+
                         <th>Available</th>
+
+                        <th>Occupancy</th>
+
                         <th>Status</th>
-                        <th></th>
+
+                        <th class="text-end">
+                            Actions
+                        </th>
+
                     </tr>
+
                 </thead>
+
 
                 <tbody>
 
-                    @foreach (var s in Model.Sessions)
+
+                    @if (!Model.Sessions.Any())
                     {
                         <tr>
 
-                            <td>
+                            <td colspan="8"
+                                class="empty-row">
 
-                                <strong>
-                                    @s.SessionDate.ToString("dd MMM yyyy")
-                                </strong>
+                                <i class="bi bi-calendar-x fs-3 d-block mb-2"></i>
 
-                                <br />
-
-                                <small>
-                                    @s.SessionDate.ToString("dddd")
-                                </small>
-
-                            </td>
-
-                            <td>
-                                @DateTime.Today.Add(s.StartTime).ToString("h:mm tt")
-                                –
-                                @DateTime.Today.Add(s.EndTime).ToString("h:mm tt")
-                            </td>
-
-                            <td>
-                                @s.Capacity
-                            </td>
-
-                            <td>
-                                <strong>
-                                    @s.AvailableSlots
-                                </strong>
-                            </td>
-
-                            <td>
-
-                                <span class="status-pill @(s.IsActive ? "status-confirmed" : "status-cancelled")">
-                                    @(s.IsActive ? "Active" : "Inactive")
-                                </span>
-
-                            </td>
-
-                            <td class="text-end">
-
-                                <form asp-action="ToggleSession"
-                                      asp-route-id="@s.ActivitySessionId"
-                                      method="post">
-
-                                    <button type="submit"
-                                            class="btn btn-sm btn-outline-secondary">
-                                        @(s.IsActive ? "Deactivate" : "Activate")
-                                    </button>
-
-                                </form>
+                                No sessions found.
 
                             </td>
 
                         </tr>
                     }
 
+
+                    @foreach (var session in Model.Sessions)
+                    {
+                        var bookedParticipants =
+                            session.Bookings
+                                .Where(b =>
+                                    b.BookingStatus !=
+                                    TravelPlanningSystem.Models.ActivityBookingStatus.Cancelled)
+                                .Sum(b =>
+                                    b.ParticipantCount);
+
+
+                        var occupancy =
+                            session.Capacity <= 0
+                                ? 0
+                                : (int)Math.Round(
+                                    bookedParticipants *
+                                    100.0 /
+                                    session.Capacity);
+
+
+                        var occupancyClass =
+                            occupancy >= 90
+                                ? "high"
+                                : occupancy >= 70
+                                    ? "medium"
+                                    : "";
+
+
+                        string statusClass;
+                        string statusText;
+
+
+                        if (!session.IsActive)
+                        {
+                            statusClass = "inactive";
+                            statusText = "Inactive";
+                        }
+                        else if (session.AvailableSlots <= 0)
+                        {
+                            statusClass = "full";
+                            statusText = "Full";
+                        }
+                        else if (session.AvailableSlots <= 5)
+                        {
+                            statusClass = "almost";
+                            statusText = "Almost Full";
+                        }
+                        else
+                        {
+                            statusClass = "available";
+                            statusText = "Available";
+                        }
+
+
+                        <tr>
+
+
+                            <!-- DATE -->
+
+                            <td>
+
+                                <div class="session-date">
+
+                                    @(session.SessionDate
+                                        .ToString("dd MMM yyyy"))
+
+                                </div>
+
+                                <span class="session-day">
+
+                                    @(session.SessionDate
+                                        .ToString("dddd"))
+
+                                </span>
+
+                            </td>
+
+
+                            <!-- TIME -->
+
+                            <td>
+
+                                <div class="session-time">
+
+                                    <i class="bi bi-clock"></i>
+
+                                    @(DateTime.Today
+                                        .Add(session.StartTime)
+                                        .ToString("h:mm tt"))
+
+                                    -
+
+                                    @(DateTime.Today
+                                        .Add(session.EndTime)
+                                        .ToString("h:mm tt"))
+
+                                </div>
+
+                            </td>
+
+
+                            <!-- CAPACITY -->
+
+                            <td>
+
+                                <span class="number-box">
+
+                                    @session.Capacity
+
+                                </span>
+
+                            </td>
+
+
+                            <!-- BOOKED -->
+
+                            <td>
+
+                                <span class="number-box">
+
+                                    @bookedParticipants
+
+                                </span>
+
+                            </td>
+
+
+                            <!-- AVAILABLE -->
+
+                            <td>
+
+                                <span class="number-box">
+
+                                    @session.AvailableSlots
+
+                                </span>
+
+                            </td>
+
+
+                            <!-- OCCUPANCY -->
+
+                            <td>
+
+                                <div class="occupancy">
+
+                                    <div class="occupancy-top">
+
+                                        <span>
+                                            @bookedParticipants /
+                                            @session.Capacity
+                                        </span>
+
+                                        <strong>
+                                            @occupancy%
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div class="occupancy-track">
+
+                                        <div class="occupancy-value @occupancyClass"
+                                             style="width:@Math.Min(occupancy, 100)%">
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+
+                            <!-- STATUS -->
+
+                            <td>
+
+                                <span class="status @statusClass">
+
+                                    @if (statusClass == "available")
+                                    {
+                                        <i class="bi bi-check-circle-fill"></i>
+                                    }
+                                    else if (statusClass == "almost")
+                                    {
+                                        <i class="bi bi-exclamation-circle-fill"></i>
+                                    }
+                                    else if (statusClass == "full")
+                                    {
+                                        <i class="bi bi-x-circle-fill"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-pause-circle-fill"></i>
+                                    }
+
+                                    @statusText
+
+                                </span>
+
+                            </td>
+
+
+                            <!-- ACTIONS -->
+
+                            <td>
+
+                                <div class="actions">
+
+
+                                    <button type="button"
+                                            class="action-btn"
+                                            onclick="togglePanel('edit-@session.ActivitySessionId')">
+
+                                        <i class="bi bi-pencil"></i>
+
+                                        Edit
+
+                                    </button>
+
+
+                                    <button type="button"
+                                            class="action-btn"
+                                            onclick="togglePanel('duplicate-@session.ActivitySessionId')">
+
+                                        <i class="bi bi-copy"></i>
+
+                                        Duplicate
+
+                                    </button>
+
+
+                                    <form asp-action="ToggleSession"
+                                          asp-route-id="@session.ActivitySessionId"
+                                          method="post"
+                                          class="d-inline">
+
+                                        @Html.AntiForgeryToken()
+
+
+                                        <button type="submit"
+                                                class="action-btn blue">
+
+                                            <i class="bi @(session.IsActive ? "bi-pause-circle" : "bi-play-circle")"></i>
+
+                                            @(session.IsActive
+                                                ? "Deactivate"
+                                                : "Activate")
+
+                                        </button>
+
+                                    </form>
+
+
+                                    <form asp-action="DeleteSession"
+                                          asp-route-id="@session.ActivitySessionId"
+                                          method="post"
+                                          class="d-inline"
+                                          onsubmit="return confirm('Delete this session? If booking history exists, it will be deactivated instead.');">
+
+                                        @Html.AntiForgeryToken()
+
+
+                                        <button type="submit"
+                                                class="action-btn red">
+
+                                            <i class="bi bi-trash"></i>
+
+                                        </button>
+
+                                    </form>
+
+
+                                </div>
+
+                            </td>
+
+
+                        </tr>
+
+
+                        <!-- EDIT SESSION -->
+
+                        <tr id="edit-@session.ActivitySessionId"
+                            class="expand-row">
+
+
+                            <td colspan="8">
+
+
+                                <div class="expand-content">
+
+
+                                    <div class="expand-heading">
+
+                                        <i class="bi bi-pencil-square"></i>
+
+                                        Edit Session
+
+                                    </div>
+
+
+                                    <form asp-action="EditSession"
+                                          method="post">
+
+                                        @Html.AntiForgeryToken()
+
+
+                                        <input type="hidden"
+                                               name="sessionId"
+                                               value="@session.ActivitySessionId" />
+
+
+                                        <div class="edit-grid">
+
+
+                                            <!-- DATE -->
+
+                                            <div class="field">
+
+                                                <label>
+                                                    Date
+                                                </label>
+
+                                                <input type="date"
+                                                       name="sessionDate"
+                                                       value="@session.SessionDate.ToString("yyyy-MM-dd")"
+                                                       min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                                                       class="form-control"
+                                                       required />
+
+                                            </div>
+
+
+                                            <!-- START -->
+
+                                            <div class="field">
+
+                                                <label>
+                                                    Start Time
+                                                </label>
+
+                                                <input type="time"
+                                                       id="editStart-@session.ActivitySessionId"
+                                                       name="startTime"
+                                                       value="@session.StartTime.ToString(@"hh\:mm")"
+                                                       class="form-control edit-start-time"
+                                                       data-session-id="@session.ActivitySessionId"
+                                                       required />
+
+                                            </div>
+
+
+                                            <!-- AUTO END -->
+
+                                            <div class="field">
+
+                                                <label>
+                                                    End Time
+                                                </label>
+
+                                                <input type="text"
+                                                       id="editEnd-@session.ActivitySessionId"
+                                                       class="form-control auto-time-box"
+                                                       value="@DateTime.Today.Add(session.EndTime).ToString("h:mm tt")"
+                                                       readonly />
+
+                                                <span class="auto-time-hint">
+
+                                                    Auto calculated from
+                                                    @Model.DurationHours.ToString("0.#")
+                                                    hours
+
+                                                </span>
+
+                                            </div>
+
+
+                                            <!-- CAPACITY -->
+
+                                            <div class="field">
+
+                                                <label>
+                                                    Capacity
+                                                </label>
+
+                                                <input type="number"
+                                                       name="capacity"
+                                                       value="@session.Capacity"
+                                                       min="@Math.Max(bookedParticipants, Model.MinimumParticipants)"
+                                                       max="@Model.MaximumParticipants"
+                                                       class="form-control"
+                                                       required />
+
+                                            </div>
+
+
+                                            <button type="submit"
+                                                    class="save-btn">
+
+                                                <i class="bi bi-check2 me-1"></i>
+
+                                                Save
+
+                                            </button>
+
+
+                                        </div>
+
+                                    </form>
+
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+
+                        <!-- DUPLICATE -->
+
+                        <tr id="duplicate-@session.ActivitySessionId"
+                            class="expand-row">
+
+
+                            <td colspan="8">
+
+
+                                <div class="expand-content">
+
+
+                                    <div class="expand-heading">
+
+                                        <i class="bi bi-copy"></i>
+
+                                        Duplicate Session
+
+                                    </div>
+
+
+                                    <p class="text-muted small">
+
+                                        Duplicate the
+
+                                        <strong>
+
+                                            @(DateTime.Today
+                                                .Add(session.StartTime)
+                                                .ToString("h:mm tt"))
+
+                                            -
+
+                                            @(DateTime.Today
+                                                .Add(session.EndTime)
+                                                .ToString("h:mm tt"))
+
+                                        </strong>
+
+                                        session to another date.
+
+                                    </p>
+
+
+                                    <form asp-action="DuplicateSession"
+                                          method="post">
+
+                                        @Html.AntiForgeryToken()
+
+
+                                        <input type="hidden"
+                                               name="sessionId"
+                                               value="@session.ActivitySessionId" />
+
+
+                                        <div class="duplicate-layout">
+
+
+                                            <div class="field duplicate-date">
+
+                                                <label>
+                                                    New Date
+                                                </label>
+
+                                                <input type="date"
+                                                       name="newDate"
+                                                       min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                                                       class="form-control"
+                                                       required />
+
+                                            </div>
+
+
+                                            <button type="submit"
+                                                    class="save-btn">
+
+                                                <i class="bi bi-copy me-1"></i>
+
+                                                Duplicate Session
+
+                                            </button>
+
+
+                                        </div>
+
+                                    </form>
+
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    }
+
+
                 </tbody>
 
+
             </table>
+
 
         </div>
 
     </div>
+
 </div>
+
+
+@section Scripts
+{
+    <script>
+
+        // =========================================================
+        // ACTIVITY DURATION FROM C#
+        // =========================================================
+
+        const activityDuration =
+            @Convert.ToDouble(Model.DurationHours);
+
+
+        // =========================================================
+        // CALCULATE END TIME
+        // =========================================================
+
+        function calculateEndTime(startValue) {
+
+            if (!startValue) {
+                return "Auto calculated";
+            }
+
+            const parts =
+                startValue.split(":");
+
+            const hour =
+                parseInt(parts[0]);
+
+            const minute =
+                parseInt(parts[1]);
+
+            let totalMinutes =
+                (hour * 60) +
+                minute +
+                Math.round(
+                    activityDuration * 60);
+
+
+            totalMinutes =
+                totalMinutes %
+                (24 * 60);
+
+
+            const endHour =
+                Math.floor(
+                    totalMinutes / 60);
+
+            const endMinute =
+                totalMinutes % 60;
+
+
+            const period =
+                endHour >= 12
+                    ? "PM"
+                    : "AM";
+
+
+            let displayHour =
+                endHour % 12;
+
+
+            if (displayHour === 0) {
+                displayHour = 12;
+            }
+
+
+            return (
+                displayHour +
+                ":" +
+                endMinute
+                    .toString()
+                    .padStart(2, "0") +
+                " " +
+                period
+            );
+        }
+
+
+        // =========================================================
+        // CREATE SESSION
+        // =========================================================
+
+        const createStart =
+            document.getElementById(
+                "createStartTime");
+
+        const createEnd =
+            document.getElementById(
+                "createEndTime");
+
+
+        if (createStart &&
+            createEnd) {
+
+            createStart.addEventListener(
+                "input",
+                function () {
+
+                    createEnd.value =
+                        calculateEndTime(
+                            this.value);
+
+                });
+
+        }
+
+
+        // =========================================================
+        // EDIT SESSIONS
+        // =========================================================
+
+        document
+            .querySelectorAll(
+                ".edit-start-time")
+            .forEach(input => {
+
+                input.addEventListener(
+                    "input",
+                    function () {
+
+                        const id =
+                            this.dataset.sessionId;
+
+                        const endInput =
+                            document.getElementById(
+                                "editEnd-" + id);
+
+                        if (endInput) {
+
+                            endInput.value =
+                                calculateEndTime(
+                                    this.value);
+
+                        }
+
+                    });
+
+            });
+
+
+        // =========================================================
+        // EXPAND EDIT / DUPLICATE
+        // =========================================================
+
+        function togglePanel(id) {
+
+            const panel =
+                document.getElementById(id);
+
+            if (!panel) {
+                return;
+            }
+
+
+            const alreadyOpen =
+                panel.style.display ===
+                "table-row";
+
+
+            document
+                .querySelectorAll(
+                    ".expand-row")
+                .forEach(row => {
+
+                    row.style.display =
+                        "none";
+
+                });
+
+
+            if (!alreadyOpen) {
+
+                panel.style.display =
+                    "table-row";
+
+                panel.scrollIntoView({
+                    behavior: "smooth",
+                    block: "nearest"
+                });
+
+            }
+
+        }
+
+    </script>
+}

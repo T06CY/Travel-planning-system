@@ -4,29 +4,145 @@
     ViewData["Title"] = "Create Activity";
 }
 
-<link rel="stylesheet" href="~/css/activities.css" />
+<div class="create-activity-page">
 
-<div class="admin-page">
-    <div class="container narrow-container">
+    <div class="create-page-header">
 
-        <div class="form-page-header">
+        <div>
+            <a asp-action="Index"
+               class="back-link">
 
-            <a asp-action="Index">
                 <i class="bi bi-arrow-left"></i>
-                Activity Management
+                Back to Activity Management
+
             </a>
 
             <h1>Create a New Activity</h1>
 
             <p>
-                Add the essential information first.
+                Add the activity information first.
                 Sessions and photos can also be managed after saving.
             </p>
+        </div>
+
+        <div class="travel-header-box">
+
+            <div class="travel-header-icon">
+                <i class="bi bi-map-fill"></i>
+            </div>
+
+            <div>
+                <strong>
+                    Create Amazing<br />
+                    Travel Experiences
+                </strong>
+
+                <span>
+                    Let travellers discover new destinations
+                </span>
+            </div>
 
         </div>
 
-        <partial name="_ActivityForm"
-                 model="Model" />
-
     </div>
+
+    <partial name="_ActivityForm"
+             model="Model" />
+
 </div>
+
+<style>
+    .create-activity-page {
+        max-width: 1560px;
+        margin: 0 auto;
+        padding: 30px 30px 60px;
+    }
+
+    .create-page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 30px;
+        margin-bottom: 24px;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        margin-bottom: 11px;
+        color: #7c3aed;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 750;
+    }
+
+        .back-link:hover {
+            color: #5b21b6;
+        }
+
+    .create-page-header h1 {
+        margin: 0;
+        color: #111827;
+        font-size: 31px;
+        font-weight: 850;
+        letter-spacing: -.45px;
+    }
+
+    .create-page-header p {
+        margin: 7px 0 0;
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+    .travel-header-box {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        min-width: 285px;
+    }
+
+    .travel-header-icon {
+        width: 58px;
+        height: 58px;
+        flex: 0 0 58px;
+        border-radius: 18px;
+        background: linear-gradient( 135deg, #8b5cf6, #6d28d9);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        box-shadow: 0 10px 25px rgba(124,58,237,.20);
+    }
+
+    .travel-header-box strong {
+        display: block;
+        color: #4c1d95;
+        font-size: 15px;
+        line-height: 1.25;
+        font-weight: 850;
+    }
+
+    .travel-header-box span {
+        display: block;
+        margin-top: 4px;
+        color: #9ca3af;
+        font-size: 9px;
+    }
+
+    @@media(max-width:850px) {
+        .create-activity-page {
+            padding: 20px 15px 40px;
+        }
+
+        .create-page-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .travel-header-box {
+            display: none;
+        }
+    }
+</style>

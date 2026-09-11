@@ -1,59 +1,39 @@
 ﻿@model TravelPlanningSystem.Models.ActivityBooking
 
-@using QRCoder
-
 @{
     ViewData["Title"] = "Activity E-Ticket";
 
     var activityName =
-        Model.ActivitySession?.Activity?.ActivityName ?? "Activity";
+        Model.ActivitySession?.Activity?.ActivityName
+        ?? "Activity";
 
     var activityLocation =
-        Model.ActivitySession?.Activity?.Location ?? "-";
+        Model.ActivitySession?.Activity?.Location
+        ?? "-";
 
     var sessionDate =
         Model.ActivitySession?.SessionDate;
 
-    var sessionTime =
-        DateTime.Today
-            .Add(Model.ActivitySession!.StartTime)
-            .ToString("h:mm tt");
+    var sessionStartTime =
+        Model.ActivitySession != null
+            ? DateTime.Today
+                .Add(Model.ActivitySession.StartTime)
+                .ToString("h:mm tt")
+            : "-";
 
-
-    var qrPayload =
-        $"Booking Reference: {Model.BookingReference}\n" +
-        $"Activity: {activityName}\n" +
-        $"Date: {sessionDate:dd MMM yyyy}\n" +
-        $"Time: {sessionTime}\n" +
-        $"Traveller: {Model.ContactName}\n" +
-        $"Participants: {Model.ParticipantCount}\n" +
-        $"Status: {Model.BookingStatus}";
-
-
-    var qrBytes =
-        PngByteQRCodeHelper.GetQRCode(
-            qrPayload,
-            QRCodeGenerator.ECCLevel.Q,
-            10
-        );
-
-
-    var qrBase64 =
-        Convert.ToBase64String(qrBytes);
-
-
-    var qrImage =
-        $"data:image/png;base64,{qrBase64}";
+    var sessionEndTime =
+        Model.ActivitySession != null
+            ? DateTime.Today
+                .Add(Model.ActivitySession.EndTime)
+                .ToString("h:mm tt")
+            : "-";
 }
-
 
 <link rel="stylesheet"
       href="~/css/activities.css"
       asp-append-version="true" />
 
-
 <div class="ticket-page">
-
 
     <div class="ticket-toolbar no-print">
 
@@ -65,7 +45,6 @@
             Booking Details
 
         </a>
-
 
         <button type="button"
                 onclick="window.print()"
@@ -80,10 +59,7 @@
     </div>
 
 
-
     <div class="ticket">
-
-
 
         <div class="ticket-brand">
 
@@ -92,7 +68,6 @@
                 <i class="bi bi-airplane-fill"></i>
 
             </div>
-
 
             <div>
 
@@ -106,7 +81,6 @@
 
             </div>
 
-
             <span class="status-pill status-@Model.BookingStatus.ToString().ToLower()">
 
                 @Model.BookingStatus
@@ -116,23 +90,19 @@
         </div>
 
 
-
         <div class="ticket-hero">
 
             <span>
                 Booking Reference
             </span>
 
-
             <strong>
                 @Model.BookingReference
             </strong>
 
-
             <h1>
                 @activityName
             </h1>
-
 
             <p>
 
@@ -144,10 +114,8 @@
 
         </div>
 
+
         <div class="ticket-grid">
-
-
-            <!-- DATE -->
 
             <div>
 
@@ -161,10 +129,6 @@
 
             </div>
 
-
-
-            <!-- TIME -->
-
             <div>
 
                 <span>
@@ -172,14 +136,12 @@
                 </span>
 
                 <strong>
-                    @sessionTime
+                    @sessionStartTime
+                    -
+                    @sessionEndTime
                 </strong>
 
             </div>
-
-
-
-            <!-- LEAD TRAVELLER -->
 
             <div>
 
@@ -193,10 +155,6 @@
 
             </div>
 
-
-
-            <!-- PARTICIPANTS -->
-
             <div>
 
                 <span>
@@ -209,9 +167,17 @@
 
             </div>
 
+            <div>
 
+                <span>
+                    Price per Person
+                </span>
 
-            <!-- TOTAL AMOUNT -->
+                <strong>
+                    RM @Model.PricePerPerson.ToString("N2")
+                </strong>
+
+            </div>
 
             <div>
 
@@ -225,10 +191,6 @@
 
             </div>
 
-
-
-            <!-- CONTACT -->
-
             <div>
 
                 <span>
@@ -241,6 +203,30 @@
 
             </div>
 
+            <div>
+
+                <span>
+                    Payment
+                </span>
+
+                <strong>
+                    @Model.PaymentStatus
+                </strong>
+
+            </div>
+
+            <div>
+
+                <span>
+                    Payment Method
+                </span>
+
+                <strong>
+                    @Model.PaymentMethod
+                </strong>
+
+            </div>
+
         </div>
 
 
@@ -248,24 +234,51 @@
 
             <div class="real-qr">
 
-                <img src="@qrImage"
-                     alt="QR Code for booking @Model.BookingReference" />
+                @if (ViewBag.QrCode != null)
+                {
+                    <img src="@ViewBag.QrCode"
+                         alt="QR Code for booking @Model.BookingReference"
+                         class="ticket-qr-code" />
+                }
+                else
+                {
+                    <div class="qr-unavailable">
+
+                        <i class="bi bi-qr-code"></i>
+
+                        <span>
+                            QR code unavailable
+                        </span>
+
+                    </div>
+                }
 
             </div>
 
 
-            <div>
+            <div class="ticket-checkin-info">
 
                 <strong>
                     Present this QR code at check-in
                 </strong>
 
-
                 <p>
                     Arrive at least 15 minutes before the activity starts.
-                    The QR code or booking reference will be verified by
-                    the operator.
+                    Scan the QR code to view the booking information or
+                    provide the booking reference to the operator.
                 </p>
+
+                <div class="ticket-checkin-reference">
+
+                    <span>
+                        Booking Reference
+                    </span>
+
+                    <strong>
+                        @Model.BookingReference
+                    </strong>
+
+                </div>
 
             </div>
 

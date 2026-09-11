@@ -4,332 +4,650 @@
     ViewData["Title"] = "Write Review";
 }
 
-<style>
+<link rel="stylesheet"
+      href="~/css/activities.css"
+      asp-append-version="true" />
 
-    .review-page {
-        min-height: 100vh;
-        background: #f7f8fb;
-        padding: 40px 20px;
-    }
+<div class="activity-review-page">
 
-    .review-card {
-        max-width: 1100px;
-        margin: 0 auto;
-        background: #ffffff;
-        border: 1px solid #e5e7eb;
-        border-radius: 24px;
-        padding: 40px 45px;
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.05);
-    }
+    <div class="review-container">
 
+        <div class="review-back-row">
 
-    .review-eyebrow {
-        color: #ff5a5f;
-        font-size: 13px;
-        font-weight: 800;
-        letter-spacing: 1.5px;
-        text-transform: uppercase;
-        margin-bottom: 8px;
-    }
+            <a asp-controller="ActivityBookings"
+               asp-action="Details"
+               asp-route-id="@Model.ActivityBookingId"
+               class="review-back-link">
 
-    .review-title {
-        font-size: 42px;
-        font-weight: 800;
-        color: #253047;
-        margin: 0 0 5px 0;
-    }
+                <i class="bi bi-arrow-left"></i>
+                Booking Details
 
-    .review-subtitle {
-        color: #4b5563;
-        font-size: 16px;
-        margin: 0 0 28px 0;
-    }
+            </a>
 
-
-    .rating-section {
-        margin: 20px 0 30px 0;
-    }
-
-    .rating-picker {
-        display: inline-flex;
-        flex-direction: row-reverse;
-        justify-content: flex-end;
-        gap: 4px;
-    }
-
-        .rating-picker input[type="radio"] {
-            position: absolute;
-            opacity: 0;
-            width: 1px;
-            height: 1px;
-        }
-
-
-        .rating-picker label {
-            color: #d9dde5;
-            font-size: 38px;
-            line-height: 1;
-            cursor: pointer;
-            user-select: none;
-            transition: color 0.15s ease, transform 0.15s ease;
-        }
-
-        .rating-picker input[type="radio"]:checked ~ label {
-            color: #ffab18;
-        }
-
-
-        .rating-picker label:hover,
-        .rating-picker label:hover ~ label {
-            color: #ffab18;
-        }
-
-        .rating-picker label:hover {
-            transform: scale(1.08);
-        }
-
-    .review-label {
-        display: block;
-        font-weight: 700;
-        color: #253047;
-        margin-bottom: 8px;
-    }
-
-    .review-comment {
-        display: block;
-        width: 100%;
-        min-height: 180px;
-        resize: vertical;
-        border: 1px solid #dfe3ea;
-        border-radius: 12px;
-        padding: 14px;
-        font-size: 16px;
-        color: #253047;
-        background: #ffffff;
-        outline: none;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-
-        .review-comment:focus {
-            border-color: #ff5a5f;
-            box-shadow: 0 0 0 3px rgba(255, 90, 95, 0.1);
-        }
-
-
-
-    .text-danger {
-        display: block;
-        color: #dc3545;
-        font-size: 14px;
-        margin-top: 6px;
-    }
-
-
-
-    .save-review-btn {
-        width: 100%;
-        margin-top: 25px;
-        padding: 15px;
-        border: none;
-        border-radius: 12px;
-        background: #ff5a5f;
-        color: #ffffff;
-        font-size: 16px;
-        font-weight: 700;
-        cursor: pointer;
-        transition: opacity 0.2s ease, transform 0.2s ease;
-    }
-
-        .save-review-btn:hover {
-            opacity: 0.92;
-        }
-
-        .save-review-btn:active {
-            transform: scale(0.995);
-        }
-
-
-
-
-    @@media (max-width: 768px) {
-
-        .review-page {
-            padding: 25px 15px;
-        }
-
-        .review-card {
-            padding: 28px 22px;
-            border-radius: 18px;
-        }
-
-        .review-title {
-            font-size: 30px;
-        }
-
-        .review-subtitle {
-            font-size: 15px;
-        }
-
-        .rating-picker label {
-            font-size: 34px;
-        }
-
-        .review-comment {
-            min-height: 160px;
-        }
-    }
-</style>
-
-
-<div class="review-page">
-
-    <div class="review-card">
-
-
-        <div class="review-eyebrow">
-            Share Your Experience
         </div>
 
-        <h1 class="review-title">
-            @Model.ActivityName
-        </h1>
+        <div class="review-card">
 
-        <p class="review-subtitle">
-            Your review helps other travellers make better choices.
-        </p>
+            <div class="review-heading">
 
+                <span class="review-eyebrow">
+                    SHARE YOUR EXPERIENCE
+                </span>
 
+                <h1>
+                    @Model.ActivityName
+                </h1>
 
-        <form asp-controller="ActivityBookings"
-              asp-action="Review"
-              method="post">
+                <p>
+                    Your review helps other travellers make better choices.
+                </p>
 
-            @Html.AntiForgeryToken()
+            </div>
 
+            <form asp-controller="ActivityBookings"
+                  asp-action="Review"
+                  method="post"
+                  id="reviewForm">
 
-            <!-- Booking ID -->
-            <input asp-for="ActivityBookingId"
-                   type="hidden" />
+                @Html.AntiForgeryToken()
 
+                <input asp-for="ActivityBookingId"
+                       type="hidden" />
 
-            <!-- Review ID -->
-            <input asp-for="ActivityReviewId"
-                   type="hidden" />
+                <input asp-for="ActivityName"
+                       type="hidden" />
 
+                <div asp-validation-summary="ModelOnly"
+                     class="review-validation-summary">
+                </div>
 
+                <div class="rating-section">
 
-            <div class="rating-section">
-
-                <div class="rating-picker">
-
-                    <!-- 5 STAR -->
-                    <input type="radio"
-                           name="Rating"
-                           id="rating5"
-                           value="5"
-                           checked="@(Model.Rating == 5)" />
-
-                    <label for="rating5"
-                           title="5 stars">
-                        ★
+                    <label>
+                        Your Rating
                     </label>
 
+                    <div class="star-rating"
+                         id="starRating">
 
-                    <!-- 4 STAR -->
-                    <input type="radio"
-                           name="Rating"
-                           id="rating4"
-                           value="4"
-                           checked="@(Model.Rating == 4)" />
+                        @for (
+                            var ratingValue = 1;
+                            ratingValue <= 5;
+                            ratingValue++
+                        )
+                        {
+                            <button type="button"
+                                    class="star-button @(Model.Rating >= ratingValue ? "selected" : "")"
+                                    data-rating="@ratingValue"
+                                    aria-label="@ratingValue star">
 
-                    <label for="rating4"
-                           title="4 stars">
-                        ★
-                    </label>
+                                <i class="bi bi-star-fill"></i>
 
+                            </button>
+                        }
 
-                    <!-- 3 STAR -->
-                    <input type="radio"
-                           name="Rating"
-                           id="rating3"
-                           value="3"
-                           checked="@(Model.Rating == 3)" />
+                    </div>
 
-                    <label for="rating3"
-                           title="3 stars">
-                        ★
-                    </label>
+                    <input asp-for="Rating"
+                           type="hidden"
+                           id="Rating" />
 
+                    <div class="rating-text"
+                         id="ratingText">
 
-                    <!-- 2 STAR -->
-                    <input type="radio"
-                           name="Rating"
-                           id="rating2"
-                           value="2"
-                           checked="@(Model.Rating == 2)" />
+                        @if (Model.Rating == 1)
+                        {
+                            <text>Poor</text>
+                        }
+                        else if (Model.Rating == 2)
+                        {
+                            <text>Fair</text>
+                        }
+                        else if (Model.Rating == 3)
+                        {
+                            <text>Good</text>
+                        }
+                        else if (Model.Rating == 4)
+                        {
+                            <text>Very Good</text>
+                        }
+                        else if (Model.Rating == 5)
+                        {
+                            <text>Excellent</text>
+                        }
+                        else
+                        {
+                            <text>Select your rating</text>
+                        }
 
-                    <label for="rating2"
-                           title="2 stars">
-                        ★
-                    </label>
+                    </div>
 
-
-                    <!-- 1 STAR -->
-                    <input type="radio"
-                           name="Rating"
-                           id="rating1"
-                           value="1"
-                           checked="@(Model.Rating == 1)" />
-
-                    <label for="rating1"
-                           title="1 star">
-                        ★
-                    </label>
+                    <span asp-validation-for="Rating"
+                          class="review-validation">
+                    </span>
 
                 </div>
 
-                <span asp-validation-for="Rating"
-                      class="text-danger">
-                </span>
+                <div class="review-comment-section">
 
-            </div>
+                    <div class="review-label-row">
 
+                        <label asp-for="Comment">
+                            Comment
+                        </label>
 
+                        <span id="commentCounter">
+                            0 / 800
+                        </span>
 
-            <div>
+                    </div>
 
-                <label asp-for="Comment"
-                       class="review-label">
-                    Comment
-                </label>
+                    <textarea asp-for="Comment"
+                              id="reviewComment"
+                              class="review-comment-input"
+                              maxlength="800"
+                              placeholder="What did you enjoy? What should future travellers know?"></textarea>
 
-                <textarea asp-for="Comment"
-                          class="review-comment"
-                          placeholder="What did you enjoy? What should future travellers know?"></textarea>
+                    <span asp-validation-for="Comment"
+                          class="review-validation">
+                    </span>
 
-                <span asp-validation-for="Comment"
-                      class="text-danger">
-                </span>
+                </div>
 
-            </div>
+                <div class="review-notice">
 
+                    <i class="bi bi-info-circle"></i>
 
-            <button type="submit"
-                    class="save-review-btn">
+                    <div>
+                        <strong>
+                            One review per booking
+                        </strong>
 
-                Save Review
+                        <span>
+                            Your review can only be submitted once.
+                            Please check your rating and comment before submitting.
+                        </span>
+                    </div>
 
-            </button>
+                </div>
 
-        </form>
+                <div class="review-actions">
+
+                    <a asp-controller="ActivityBookings"
+                       asp-action="Details"
+                       asp-route-id="@Model.ActivityBookingId"
+                       class="review-cancel-button">
+
+                        <i class="bi bi-x-lg"></i>
+                        Cancel
+
+                    </a>
+
+                    <button type="submit"
+                            class="review-submit-button">
+
+                        <i class="bi bi-star-fill"></i>
+
+                        <span>
+                            Save Review
+                        </span>
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
 
     </div>
 
 </div>
 
+<style>
 
-@section Scripts {
+    .activity-review-page {
+        min-height: calc(100vh - 80px);
+        padding: 38px 20px 70px;
+        background: #f7f8fc;
+    }
 
-    <partial name="_ValidationScriptsPartial" />
+    .review-container {
+        width: min(1050px, 100%);
+        margin: 0 auto;
+    }
 
-}
+    .review-back-row {
+        margin-bottom: 14px;
+    }
+
+    .review-back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #ff5b61;
+        font-size: 11px;
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+        .review-back-link:hover {
+            color: #e34850;
+        }
+
+    .review-card {
+        padding: 42px;
+        border: 1px solid #e8eaf0;
+        border-radius: 20px;
+        background: #ffffff;
+        box-shadow: 0 12px 35px rgba(20, 31, 55, .06);
+    }
+
+    .review-heading {
+        margin-bottom: 28px;
+    }
+
+    .review-eyebrow {
+        display: block;
+        margin-bottom: 12px;
+        color: #ff5b61;
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 1.2px;
+    }
+
+    .review-heading h1 {
+        margin: 0;
+        color: #1d2941;
+        font-size: 32px;
+        font-weight: 950;
+        letter-spacing: -.6px;
+    }
+
+    .review-heading p {
+        margin: 8px 0 0;
+        color: #778195;
+        font-size: 12px;
+    }
+
+    .rating-section {
+        margin-bottom: 26px;
+    }
+
+        .rating-section > label {
+            display: block;
+            margin-bottom: 9px;
+            color: #273146;
+            font-size: 11px;
+            font-weight: 850;
+        }
+
+    .star-rating {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .star-button {
+        width: 38px;
+        height: 42px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: #d9dde5;
+        font-size: 29px;
+        cursor: pointer;
+        transition: color .15s ease, transform .15s ease;
+    }
+
+        .star-button:hover,
+        .star-button.hovered,
+        .star-button.selected {
+            color: #ffa313;
+        }
+
+        .star-button:hover {
+            transform: scale(1.08);
+        }
+
+    .rating-text {
+        min-height: 17px;
+        margin-top: 4px;
+        color: #8a94a5;
+        font-size: 9px;
+        font-weight: 700;
+    }
+
+    .review-comment-section {
+        margin-top: 5px;
+    }
+
+    .review-label-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 8px;
+    }
+
+        .review-label-row label {
+            color: #273146;
+            font-size: 11px;
+            font-weight: 850;
+        }
+
+        .review-label-row span {
+            color: #9ba3b2;
+            font-size: 8px;
+        }
+
+    .review-comment-input {
+        width: 100%;
+        min-height: 165px;
+        padding: 14px;
+        border: 1px solid #dfe3ea;
+        border-radius: 11px;
+        outline: none;
+        resize: vertical;
+        background: #ffffff;
+        color: #273146;
+        font-family: inherit;
+        font-size: 11px;
+        line-height: 1.6;
+        box-sizing: border-box;
+        transition: border-color .18s ease, box-shadow .18s ease;
+    }
+
+        .review-comment-input:focus {
+            border-color: #ff8a8e;
+            box-shadow: 0 0 0 3px rgba(255, 91, 97, .08);
+        }
+
+        .review-comment-input::placeholder {
+            color: #a2a9b5;
+        }
+
+    .review-validation {
+        display: block;
+        min-height: 15px;
+        margin-top: 5px;
+        color: #ef4444;
+        font-size: 9px;
+        font-weight: 700;
+    }
+
+    .review-validation-summary {
+        margin-bottom: 15px;
+        color: #dc2626;
+        font-size: 10px;
+    }
+
+        .review-validation-summary:empty {
+            display: none;
+        }
+
+    .review-notice {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        margin-top: 18px;
+        padding: 12px 14px;
+        border: 1px solid #dbeafe;
+        border-radius: 10px;
+        background: #eff6ff;
+    }
+
+        .review-notice > i {
+            color: #2563eb;
+            font-size: 15px;
+        }
+
+        .review-notice strong {
+            display: block;
+            color: #2563eb;
+            font-size: 9px;
+            font-weight: 850;
+        }
+
+        .review-notice span {
+            display: block;
+            margin-top: 2px;
+            color: #64748b;
+            font-size: 8px;
+        }
+
+    .review-actions {
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        gap: 10px;
+        margin-top: 22px;
+    }
+
+    .review-cancel-button,
+    .review-submit-button {
+        height: 47px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        border-radius: 10px;
+        font-family: inherit;
+        font-size: 10px;
+        font-weight: 850;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .review-cancel-button {
+        border: 1px solid #dfe3e9;
+        background: #ffffff;
+        color: #687386;
+    }
+
+        .review-cancel-button:hover {
+            background: #f8fafc;
+            color: #273146;
+        }
+
+    .review-submit-button {
+        border: 0;
+        background: #ff5b61;
+        color: #ffffff;
+        box-shadow: 0 8px 20px rgba(255, 91, 97, .18);
+    }
+
+        .review-submit-button:hover {
+            background: #ea4c54;
+        }
+
+    @@media(max-width:700px) {
+
+        .activity-review-page {
+            padding: 25px 14px 50px;
+        }
+
+        .review-card {
+            padding: 24px;
+        }
+
+        .review-heading h1 {
+            font-size: 25px;
+        }
+
+        .review-actions {
+            grid-template-columns: 1fr;
+        }
+
+        .review-cancel-button {
+            order: 2;
+        }
+
+        .review-submit-button {
+            order: 1;
+        }
+    }
+
+</style>
+
+<script>
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            const ratingInput =
+                document.getElementById(
+                    "Rating");
+
+            const starButtons =
+                document.querySelectorAll(
+                    ".star-button");
+
+            const ratingText =
+                document.getElementById(
+                    "ratingText");
+
+            const commentInput =
+                document.getElementById(
+                    "reviewComment");
+
+            const commentCounter =
+                document.getElementById(
+                    "commentCounter");
+
+
+            const ratingNames = {
+                1: "Poor",
+                2: "Fair",
+                3: "Good",
+                4: "Very Good",
+                5: "Excellent"
+            };
+
+
+            function updateStars(
+                rating)
+            {
+                starButtons.forEach(
+                    function (button) {
+
+                        const value =
+                            parseInt(
+                                button.dataset.rating);
+
+                        button.classList.toggle(
+                            "selected",
+                            value <= rating);
+
+                    });
+
+
+                if (ratingText) {
+
+                    ratingText.textContent =
+                        ratingNames[rating]
+                        ?? "Select your rating";
+
+                }
+            }
+
+
+            starButtons.forEach(
+                function (button) {
+
+                    button.addEventListener(
+                        "click",
+                        function () {
+
+                            const rating =
+                                parseInt(
+                                    this.dataset.rating);
+
+                            if (ratingInput) {
+
+                                ratingInput.value =
+                                    rating;
+
+                            }
+
+                            updateStars(
+                                rating);
+
+                        });
+
+
+                    button.addEventListener(
+                        "mouseenter",
+                        function () {
+
+                            const rating =
+                                parseInt(
+                                    this.dataset.rating);
+
+                            starButtons.forEach(
+                                function (star) {
+
+                                    const value =
+                                        parseInt(
+                                            star.dataset.rating);
+
+                                    star.classList.toggle(
+                                        "hovered",
+                                        value <= rating);
+
+                                });
+
+                        });
+
+
+                    button.addEventListener(
+                        "mouseleave",
+                        function () {
+
+                            starButtons.forEach(
+                                function (star) {
+
+                                    star.classList.remove(
+                                        "hovered");
+
+                                });
+
+                        });
+
+                });
+
+
+            function updateCommentCounter()
+            {
+                if (
+                    !commentInput ||
+                    !commentCounter
+                ) {
+                    return;
+                }
+
+                commentCounter.textContent =
+                    commentInput.value.length +
+                    " / 800";
+            }
+
+
+            commentInput?.addEventListener(
+                "input",
+                updateCommentCounter);
+
+
+            const initialRating =
+                parseInt(
+                    ratingInput?.value || "0");
+
+
+            updateStars(
+                initialRating);
+
+
+            updateCommentCounter();
+
+        });
+
+</script>

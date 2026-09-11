@@ -2,33 +2,899 @@
 
 @{
     ViewData["Title"] = "Admin Booking Details";
+
+    var session = Model.ActivitySession;
+    var activity = session?.Activity;
+
+    var statusClass = Model.BookingStatus switch
+    {
+        ActivityBookingStatus.Pending => "status-pending",
+        ActivityBookingStatus.Confirmed => "status-confirmed",
+        ActivityBookingStatus.Completed => "status-completed",
+        ActivityBookingStatus.Cancelled => "status-cancelled",
+        _ => "status-default"
+    };
+
+    var paymentClass =
+        string.Equals(
+            Model.PaymentStatus,
+            "Paid",
+            StringComparison.OrdinalIgnoreCase)
+            ? "payment-paid"
+            : "payment-unpaid";
+
+    var subtotal =
+        Model.PricePerPerson *
+        Model.ParticipantCount;
 }
 
-<link rel="stylesheet" href="~/css/activities.css" />
+<div class="admin-booking-details-page">
 
-<div class="admin-page">
-    <div class="container narrow-container">
+    <div class="booking-page-header">
 
-        <div class="form-page-header">
+        <div>
 
-            <a asp-action="Index">
+            <a asp-action="Index"
+               class="booking-back-link">
+
                 <i class="bi bi-arrow-left"></i>
                 Activity Bookings
+
             </a>
 
-            <div class="booking-detail-title">
+            <div class="booking-header-status">
+                <span class="booking-status-badge @statusClass">
+                    @Model.BookingStatus
+                </span>
+            </div>
 
-                <div>
+            <h1>
+                @Model.BookingReference
+            </h1>
 
-                    <span class="status-pill status-@Model.BookingStatus.ToString().ToLower()">
+            <p>
+                @(activity?.ActivityName ?? "Activity Booking")
+            </p>
+
+        </div>
+
+        <div class="booking-header-actions">
+
+            @if (activity != null)
+            {
+                <a asp-controller="AdminActivities"
+                   asp-action="Details"
+                   asp-route-id="@activity.ActivityId"
+                   class="header-secondary-button">
+
+                    <i class="bi bi-eye"></i>
+                    View Activity
+
+                </a>
+            }
+
+            <a asp-action="Index"
+               class="header-secondary-button">
+
+                <i class="bi bi-list-ul"></i>
+                All Bookings
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="booking-alert booking-alert-success">
+
+            <i class="bi bi-check-circle-fill"></i>
+
+            <span>
+                @TempData["Message"]
+            </span>
+
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="booking-alert booking-alert-danger">
+
+            <i class="bi bi-exclamation-triangle-fill"></i>
+
+            <span>
+                @TempData["Error"]
+            </span>
+
+        </div>
+    }
+
+
+    <div class="booking-summary-grid">
+
+        <div class="summary-card">
+
+            <div class="summary-card-icon summary-purple">
+                <i class="bi bi-ticket-perforated"></i>
+            </div>
+
+            <div>
+
+                <span>
+                    Booking Status
+                </span>
+
+                <strong>
+                    @Model.BookingStatus
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <div class="summary-card-icon summary-blue">
+                <i class="bi bi-people"></i>
+            </div>
+
+            <div>
+
+                <span>
+                    Participants
+                </span>
+
+                <strong>
+                    @Model.ParticipantCount
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <div class="summary-card-icon summary-green">
+                <i class="bi bi-credit-card"></i>
+            </div>
+
+            <div>
+
+                <span>
+                    Payment
+                </span>
+
+                <strong>
+                    @Model.PaymentStatus
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <div class="summary-card-icon summary-orange">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+
+            <div>
+
+                <span>
+                    Total Amount
+                </span>
+
+                <strong>
+                    RM @Model.TotalAmount.ToString("N2")
+                </strong>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="booking-content-grid">
+
+        <div class="booking-content-left">
+
+            <div class="booking-card">
+
+                <div class="booking-card-heading">
+
+                    <div class="booking-card-title">
+
+                        <div class="card-heading-icon icon-purple">
+                            <i class="bi bi-person"></i>
+                        </div>
+
+                        <div>
+                            <h2>
+                                Customer Information
+                            </h2>
+
+                            <p>
+                                Traveller contact details for this booking.
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="detail-list">
+
+                    <div class="detail-row">
+
+                        <span class="detail-label">
+                            <i class="bi bi-person"></i>
+                            Name
+                        </span>
+
+                        <strong>
+                            @Model.ContactName
+                        </strong>
+
+                    </div>
+
+
+                    <div class="detail-row">
+
+                        <span class="detail-label">
+                            <i class="bi bi-envelope"></i>
+                            Email
+                        </span>
+
+                        <strong>
+                            @Model.ContactEmail
+                        </strong>
+
+                    </div>
+
+
+                    <div class="detail-row">
+
+                        <span class="detail-label">
+                            <i class="bi bi-telephone"></i>
+                            Phone
+                        </span>
+
+                        <strong>
+                            @Model.ContactPhone
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="booking-card">
+
+                <div class="booking-card-heading">
+
+                    <div class="booking-card-title">
+
+                        <div class="card-heading-icon icon-blue">
+                            <i class="bi bi-calendar-event"></i>
+                        </div>
+
+                        <div>
+
+                            <h2>
+                                Activity Details
+                            </h2>
+
+                            <p>
+                                Activity and scheduled session information.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="activity-highlight">
+
+                    <div class="activity-highlight-icon">
+
+                        <i class="bi bi-geo-alt"></i>
+
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            @(activity?.ActivityName ?? "Activity")
+                        </strong>
+
+                        <span>
+                            @(activity?.Destination ?? "Destination unavailable")
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="detail-list">
+
+                    <div class="detail-row">
+
+                        <span class="detail-label">
+                            <i class="bi bi-calendar3"></i>
+                            Session Date
+                        </span>
+
+                        <strong>
+                            @(session != null
+                                ? session.SessionDate.ToString("dd MMM yyyy")
+                                : "-")
+                        </strong>
+
+                    </div>
+
+
+                    <div class="detail-row">
+
+                        <span class="detail-label">
+                            <i class="bi bi-clock"></i>
+                            Session Time
+                        </span>
+
+                        <strong>
+
+                            @if (session != null)
+                            {
+                                @($"{DateTime.Today.Add(session.StartTime):h:mm tt} - {DateTime.Today.Add(session.EndTime):h:mm tt}")
+                            }
+                            else
+                            {
+                                <text>-</text>
+                            }
+
+                        </strong>
+
+                    </div>
+
+
+                    <div class="detail-row">
+
+                        <span class="detail-label">
+                            <i class="bi bi-hourglass-split"></i>
+                            Duration
+                        </span>
+
+                        <strong>
+                            @(activity != null
+                                ? $"{activity.DurationHours:g} hours"
+                                : "-")
+                        </strong>
+
+                    </div>
+
+
+                    <div class="detail-row">
+
+                        <span class="detail-label">
+                            <i class="bi bi-people"></i>
+                            Participants
+                        </span>
+
+                        <strong>
+                            @Model.ParticipantCount
+                            @(Model.ParticipantCount == 1 ? "guest" : "guests")
+                        </strong>
+
+                    </div>
+
+
+                    <div class="detail-row">
+
+                        <span class="detail-label">
+                            <i class="bi bi-currency-dollar"></i>
+                            Price per Person
+                        </span>
+
+                        <strong>
+                            RM @Model.PricePerPerson.ToString("N2")
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="booking-card">
+
+                <div class="booking-card-heading">
+
+                    <div class="booking-card-title">
+
+                        <div class="card-heading-icon icon-orange">
+                            <i class="bi bi-receipt"></i>
+                        </div>
+
+                        <div>
+
+                            <h2>
+                                Booking Information
+                            </h2>
+
+                            <p>
+                                Reference, booking time and current status.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="detail-list">
+
+                    <div class="detail-row">
+
+                        <span class="detail-label">
+                            Booking Reference
+                        </span>
+
+                        <strong class="reference-value">
+                            @Model.BookingReference
+                        </strong>
+
+                    </div>
+
+
+                    <div class="detail-row">
+
+                        <span class="detail-label">
+                            Booking Date
+                        </span>
+
+                        <strong>
+                            @Model.BookingDate.ToString("dd MMM yyyy, h:mm tt")
+                        </strong>
+
+                    </div>
+
+
+                    <div class="detail-row">
+
+                        <span class="detail-label">
+                            Booking Status
+                        </span>
+
+                        <span class="booking-status-badge @statusClass">
+                            @Model.BookingStatus
+                        </span>
+
+                    </div>
+
+
+                    <div class="detail-row">
+
+                        <span class="detail-label">
+                            Payment Status
+                        </span>
+
+                        <span class="payment-badge @paymentClass">
+                            @Model.PaymentStatus
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            @if (Model.BookingStatus == ActivityBookingStatus.Cancelled)
+            {
+                <div class="booking-card cancellation-card">
+
+                    <div class="booking-card-heading">
+
+                        <div class="booking-card-title">
+
+                            <div class="card-heading-icon icon-red">
+                                <i class="bi bi-x-circle"></i>
+                            </div>
+
+                            <div>
+
+                                <h2>
+                                    Cancellation Details
+                                </h2>
+
+                                <p>
+                                    Information recorded when this booking was cancelled.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="detail-list">
+
+                        <div class="detail-row">
+
+                            <span class="detail-label">
+                                Cancellation Reason
+                            </span>
+
+                            <strong>
+                                @(string.IsNullOrWhiteSpace(Model.CancellationReason)
+                                    ? "No reason provided"
+                                    : Model.CancellationReason)
+                            </strong>
+
+                        </div>
+
+
+                        <div class="detail-row">
+
+                            <span class="detail-label">
+                                Cancelled At
+                            </span>
+
+                            <strong>
+                                @(Model.CancelledAt.HasValue
+                                    ? Model.CancelledAt.Value.ToString("dd MMM yyyy, h:mm tt")
+                                    : "-")
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+
+
+        <div class="booking-content-right">
+
+            <div class="booking-card payment-card">
+
+                <div class="booking-card-heading">
+
+                    <div class="booking-card-title">
+
+                        <div class="card-heading-icon icon-green">
+                            <i class="bi bi-credit-card-2-front"></i>
+                        </div>
+
+                        <div>
+
+                            <h2>
+                                Payment Details
+                            </h2>
+
+                            <p>
+                                Payment method and complete price breakdown.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="payment-method-box">
+
+                    <div class="payment-method-icon">
+                        <i class="bi bi-bank"></i>
+                    </div>
+
+                    <div>
+
+                        <span>
+                            Payment Method
+                        </span>
+
+                        <strong>
+                            @(string.IsNullOrWhiteSpace(Model.PaymentMethod)
+                                ? "Not specified"
+                                : Model.PaymentMethod)
+                        </strong>
+
+                    </div>
+
+                    <span class="payment-badge @paymentClass">
+                        @Model.PaymentStatus
+                    </span>
+
+                </div>
+
+
+                <div class="payment-breakdown">
+
+                    <div class="payment-row">
+
+                        <span>
+                            RM @Model.PricePerPerson.ToString("N2")
+                            ×
+                            @Model.ParticipantCount
+                        </span>
+
+                        <strong>
+                            RM @subtotal.ToString("N2")
+                        </strong>
+
+                    </div>
+
+
+                    <div class="payment-row">
+
+                        <span>
+                            Subtotal
+                        </span>
+
+                        <strong>
+                            RM @subtotal.ToString("N2")
+                        </strong>
+
+                    </div>
+
+
+                    @if (!string.IsNullOrWhiteSpace(Model.PromoCode))
+                    {
+                        <div class="promo-code-display">
+
+                            <i class="bi bi-ticket-perforated"></i>
+
+                            <span>
+                                Promo Code
+                            </span>
+
+                            <strong>
+                                @Model.PromoCode
+                            </strong>
+
+                        </div>
+                    }
+
+
+                    <div class="payment-row discount-row">
+
+                        <span>
+                            Discount
+                        </span>
+
+                        <strong>
+                            - RM @Model.DiscountAmount.ToString("N2")
+                        </strong>
+
+                    </div>
+
+
+                    <div class="payment-row">
+
+                        <span>
+                            Add-on Fee
+                        </span>
+
+                        <strong>
+                            + RM @Model.AddonFee.ToString("N2")
+                        </strong>
+
+                    </div>
+
+
+                    <div class="payment-divider"></div>
+
+
+                    <div class="payment-row payment-total-row">
+
+                        <span>
+                            Final Total
+                        </span>
+
+                        <strong>
+                            RM @Model.TotalAmount.ToString("N2")
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="booking-card status-update-card">
+
+                <div class="booking-card-heading">
+
+                    <div class="booking-card-title">
+
+                        <div class="card-heading-icon icon-purple">
+                            <i class="bi bi-arrow-repeat"></i>
+                        </div>
+
+                        <div>
+
+                            <h2>
+                                Update Booking Status
+                            </h2>
+
+                            <p>
+                                Change the current booking progress.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="current-status-box">
+
+                    <span>
+                        Current Status
+                    </span>
+
+                    <span class="booking-status-badge @statusClass">
                         @Model.BookingStatus
                     </span>
 
-                    <h1>@Model.BookingReference</h1>
+                </div>
 
-                    <p>
-                        @Model.ActivitySession?.Activity?.ActivityName
-                    </p>
+
+                <form asp-action="UpdateStatus"
+                      method="post">
+
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden"
+                           name="id"
+                           value="@Model.ActivityBookingId" />
+
+
+                    <div class="status-field">
+
+                        <label for="bookingStatus">
+                            New Status
+                        </label>
+
+                        <select id="bookingStatus"
+                                name="status"
+                                class="status-select">
+
+                            @foreach (ActivityBookingStatus status in
+                                      Enum.GetValues(typeof(ActivityBookingStatus)))
+                            {
+                                if (status == Model.BookingStatus)
+                                {
+                                    <option value="@status"
+                                            selected>
+                                        @status
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@status">
+                                        @status
+                                    </option>
+                                }
+                            }
+
+                        </select>
+
+                    </div>
+
+
+                    <div id="cancelReasonContainer"
+                         class="cancel-reason-container">
+
+                        <label for="cancellationReason">
+                            Cancellation Reason
+                        </label>
+
+                        <textarea id="cancellationReason"
+                                  name="cancellationReason"
+                                  class="cancel-reason-input"
+                                  placeholder="Enter the reason for cancelling this booking..."></textarea>
+
+                    </div>
+
+
+                    <button type="submit"
+                            class="save-status-button">
+
+                        <i class="bi bi-check-lg"></i>
+                        Save Status
+
+                    </button>
+
+                </form>
+
+            </div>
+
+
+            <div class="booking-card quick-info-card">
+
+                <div class="quick-info-heading">
+
+                    <i class="bi bi-info-circle"></i>
+
+                    <span>
+                        Booking Summary
+                    </span>
+
+                </div>
+
+
+                <div class="quick-info-row">
+
+                    <span>
+                        Session
+                    </span>
+
+                    <strong>
+                        @(session != null
+                            ? session.SessionDate.ToString("dd MMM yyyy")
+                            : "-")
+                    </strong>
+
+                </div>
+
+
+                <div class="quick-info-row">
+
+                    <span>
+                        Guests
+                    </span>
+
+                    <strong>
+                        @Model.ParticipantCount
+                    </strong>
+
+                </div>
+
+
+                <div class="quick-info-row">
+
+                    <span>
+                        Remaining Slots
+                    </span>
+
+                    <strong>
+                        @(session?.AvailableSlots.ToString() ?? "-")
+                    </strong>
+
+                </div>
+
+
+                <div class="quick-info-row">
+
+                    <span>
+                        Total Paid
+                    </span>
+
+                    <strong>
+                        RM @Model.TotalAmount.ToString("N2")
+                    </strong>
 
                 </div>
 
@@ -36,93 +902,705 @@
 
         </div>
 
-        <div class="booking-detail-grid">
-
-            <div class="detail-card">
-
-                <h3>Customer</h3>
-
-                <dl>
-
-                    <div>
-                        <dt>Name</dt>
-                        <dd>@Model.ContactName</dd>
-                    </div>
-
-                    <div>
-                        <dt>Email</dt>
-                        <dd>@Model.ContactEmail</dd>
-                    </div>
-
-                    <div>
-                        <dt>Phone</dt>
-                        <dd>@Model.ContactPhone</dd>
-                    </div>
-
-                </dl>
-
-            </div>
-
-            <div class="detail-card">
-
-                <h3>Activity</h3>
-
-                <dl>
-
-                    <div>
-                        <dt>Date</dt>
-                        <dd>
-                            @Model.ActivitySession?.SessionDate.ToString("dd MMM yyyy")
-                        </dd>
-                    </div>
-
-                    <div>
-                        <dt>Participants</dt>
-                        <dd>@Model.ParticipantCount</dd>
-                    </div>
-
-                    <div>
-                        <dt>Total</dt>
-                        <dd>
-                            RM @Model.TotalAmount.ToString("N2")
-                        </dd>
-                    </div>
-
-                </dl>
-
-            </div>
-
-            <div class="detail-card">
-
-                <h3>Update Status</h3>
-
-                <form asp-action="UpdateStatus"
-                      asp-route-id="@Model.ActivityBookingId"
-                      method="post">
-
-                    <select name="status"
-                            class="form-select mb-3">
-
-                        @foreach (var s in Enum.GetValues<TravelPlanningSystem.Models.ActivityBookingStatus>())
-                        {
-                            <option value="@s"
-                                    selected="@(s == Model.BookingStatus ? "selected" : null)">
-                                @s
-                            </option>
-                        }
-
-                    </select>
-
-                    <button type="submit"
-                            class="btn btn-view-activity">
-                        Save Status
-                    </button>
-
-                </form>
-
-            </div>
-
-        </div>
-
     </div>
+
 </div>
+
+
+<style>
+
+    .admin-booking-details-page {
+        max-width: 1500px;
+        margin: 0 auto;
+        padding: 32px 28px 60px;
+    }
+
+    .booking-page-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 26px;
+    }
+
+    .booking-back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 8px;
+        color: #7c3aed;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 800;
+    }
+
+        .booking-back-link:hover {
+            color: #5b21b6;
+        }
+
+    .booking-header-status {
+        margin-bottom: 9px;
+    }
+
+    .booking-page-header h1 {
+        margin: 0;
+        color: #111827;
+        font-size: 31px;
+        font-weight: 900;
+        letter-spacing: -.5px;
+    }
+
+    .booking-page-header p {
+        margin: 6px 0 0;
+        color: #64748b;
+        font-size: 14px;
+    }
+
+    .booking-header-actions {
+        display: flex;
+        gap: 9px;
+    }
+
+    .header-secondary-button {
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 0 14px;
+        border: 1px solid #dddfea;
+        border-radius: 10px;
+        background: #ffffff;
+        color: #4b5563;
+        text-decoration: none;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+        .header-secondary-button:hover {
+            background: #f8fafc;
+            color: #7c3aed;
+            border-color: #c4b5fd;
+        }
+
+    .booking-alert {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 18px;
+        padding: 13px 16px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .booking-alert-success {
+        border: 1px solid #bbf7d0;
+        background: #f0fdf4;
+        color: #15803d;
+    }
+
+    .booking-alert-danger {
+        border: 1px solid #fecaca;
+        background: #fef2f2;
+        color: #dc2626;
+    }
+
+    .booking-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+
+    .summary-card {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        min-height: 94px;
+        padding: 17px;
+        border: 1px solid #ececf4;
+        border-radius: 17px;
+        background: #ffffff;
+        box-shadow: 0 6px 20px rgba(15, 23, 42, .04);
+    }
+
+    .summary-card-icon {
+        width: 47px;
+        height: 47px;
+        flex: 0 0 47px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 14px;
+        font-size: 19px;
+    }
+
+    .summary-purple {
+        color: #7c3aed;
+        background: #f3e8ff;
+    }
+
+    .summary-blue {
+        color: #2563eb;
+        background: #dbeafe;
+    }
+
+    .summary-green {
+        color: #16a34a;
+        background: #dcfce7;
+    }
+
+    .summary-orange {
+        color: #d97706;
+        background: #fef3c7;
+    }
+
+    .summary-card span {
+        display: block;
+        margin-bottom: 4px;
+        color: #94a3b8;
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        font-weight: 800;
+    }
+
+    .summary-card strong {
+        color: #111827;
+        font-size: 16px;
+        font-weight: 900;
+    }
+
+    .booking-content-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.25fr) minmax(340px, .75fr);
+        gap: 18px;
+        align-items: start;
+    }
+
+    .booking-card {
+        margin-bottom: 18px;
+        padding: 21px;
+        border: 1px solid #ececf4;
+        border-radius: 18px;
+        background: #ffffff;
+        box-shadow: 0 7px 24px rgba(15, 23, 42, .04);
+    }
+
+    .booking-card-heading {
+        margin-bottom: 17px;
+    }
+
+    .booking-card-title {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+    }
+
+    .card-heading-icon {
+        width: 40px;
+        height: 40px;
+        flex: 0 0 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 16px;
+    }
+
+    .icon-purple {
+        color: #7c3aed;
+        background: #f5f3ff;
+    }
+
+    .icon-blue {
+        color: #2563eb;
+        background: #eff6ff;
+    }
+
+    .icon-green {
+        color: #16a34a;
+        background: #f0fdf4;
+    }
+
+    .icon-orange {
+        color: #d97706;
+        background: #fffbeb;
+    }
+
+    .icon-red {
+        color: #dc2626;
+        background: #fef2f2;
+    }
+
+    .booking-card-title h2 {
+        margin: 0;
+        color: #111827;
+        font-size: 18px;
+        font-weight: 900;
+    }
+
+    .booking-card-title p {
+        margin: 3px 0 0;
+        color: #94a3b8;
+        font-size: 10px;
+    }
+
+    .detail-list {
+        border-top: 1px solid #f1f2f6;
+    }
+
+    .detail-row {
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 11px 0;
+        border-bottom: 1px solid #f1f2f6;
+    }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+    .detail-label {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        color: #64748b;
+        font-size: 11px;
+        font-weight: 650;
+    }
+
+        .detail-label i {
+            color: #8b5cf6;
+        }
+
+    .detail-row strong {
+        color: #111827;
+        font-size: 11px;
+        font-weight: 850;
+        text-align: right;
+    }
+
+    .reference-value {
+        color: #7c3aed !important;
+        letter-spacing: .4px;
+    }
+
+    .activity-highlight {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 17px;
+        padding: 14px;
+        border: 1px solid #ede9fe;
+        border-radius: 13px;
+        background: #faf8ff;
+    }
+
+    .activity-highlight-icon {
+        width: 42px;
+        height: 42px;
+        flex: 0 0 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        background: #ede9fe;
+        color: #7c3aed;
+        font-size: 18px;
+    }
+
+    .activity-highlight strong {
+        display: block;
+        color: #111827;
+        font-size: 13px;
+        font-weight: 900;
+    }
+
+    .activity-highlight span {
+        display: block;
+        margin-top: 3px;
+        color: #64748b;
+        font-size: 10px;
+    }
+
+    .booking-status-badge,
+    .payment-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 24px;
+        padding: 0 10px;
+        border-radius: 999px;
+        font-size: 9px;
+        font-weight: 850;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #b45309;
+    }
+
+    .status-confirmed {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .status-completed {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .status-cancelled {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .status-default {
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .payment-paid {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .payment-unpaid {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .payment-method-box {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        margin-bottom: 18px;
+        padding: 13px;
+        border-radius: 13px;
+        background: #f8fafc;
+    }
+
+    .payment-method-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 40px;
+        border-radius: 11px;
+        background: #ede9fe;
+        color: #7c3aed;
+        font-size: 16px;
+    }
+
+    .payment-method-box > div:nth-child(2) {
+        flex: 1;
+    }
+
+    .payment-method-box span:not(.payment-badge) {
+        display: block;
+        color: #94a3b8;
+        font-size: 8px;
+    }
+
+    .payment-method-box strong {
+        display: block;
+        margin-top: 2px;
+        color: #111827;
+        font-size: 11px;
+    }
+
+    .payment-breakdown {
+        padding-top: 2px;
+    }
+
+    .payment-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 9px 0;
+        color: #64748b;
+        font-size: 10px;
+    }
+
+        .payment-row strong {
+            color: #111827;
+            font-size: 10px;
+        }
+
+    .discount-row strong {
+        color: #16a34a;
+    }
+
+    .payment-divider {
+        height: 1px;
+        margin: 8px 0;
+        background: #e5e7eb;
+    }
+
+    .payment-total-row {
+        padding-top: 11px;
+        color: #111827;
+        font-size: 13px;
+        font-weight: 850;
+    }
+
+        .payment-total-row strong {
+            color: #7c3aed;
+            font-size: 19px;
+            font-weight: 900;
+        }
+
+    .promo-code-display {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin: 7px 0;
+        padding: 9px 11px;
+        border: 1px dashed #c4b5fd;
+        border-radius: 9px;
+        background: #faf5ff;
+        color: #7c3aed;
+        font-size: 9px;
+    }
+
+        .promo-code-display strong {
+            margin-left: auto;
+        }
+
+    .current-status-box {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 15px;
+        padding: 11px 13px;
+        border-radius: 10px;
+        background: #f8fafc;
+    }
+
+        .current-status-box > span:first-child {
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+    .status-field label,
+    .cancel-reason-container label {
+        display: block;
+        margin-bottom: 6px;
+        color: #374151;
+        font-size: 10px;
+        font-weight: 800;
+    }
+
+    .status-select,
+    .cancel-reason-input {
+        width: 100%;
+        border: 1px solid #dfe3ec;
+        border-radius: 10px;
+        outline: none;
+        background: #ffffff;
+        color: #111827;
+        font-family: inherit;
+        font-size: 11px;
+        box-sizing: border-box;
+    }
+
+    .status-select {
+        height: 42px;
+        padding: 0 11px;
+    }
+
+    .cancel-reason-input {
+        min-height: 85px;
+        padding: 10px 11px;
+        resize: vertical;
+    }
+
+        .status-select:focus,
+        .cancel-reason-input:focus {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, .09);
+        }
+
+    .cancel-reason-container {
+        display: none;
+        margin-top: 13px;
+    }
+
+    .save-status-button {
+        width: 100%;
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        margin-top: 14px;
+        border: none;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        color: #ffffff;
+        font-family: inherit;
+        font-size: 11px;
+        font-weight: 850;
+        cursor: pointer;
+        box-shadow: 0 8px 18px rgba(124, 58, 237, .18);
+    }
+
+        .save-status-button:hover {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+        }
+
+    .quick-info-card {
+        background: linear-gradient( 145deg, #ffffff, #faf8ff);
+    }
+
+    .quick-info-heading {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin-bottom: 11px;
+        color: #7c3aed;
+        font-size: 11px;
+        font-weight: 850;
+    }
+
+    .quick-info-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        padding: 9px 0;
+        border-bottom: 1px solid #f0edf8;
+        color: #64748b;
+        font-size: 9px;
+    }
+
+        .quick-info-row:last-child {
+            border-bottom: none;
+        }
+
+        .quick-info-row strong {
+            color: #111827;
+            font-size: 10px;
+        }
+
+    .cancellation-card {
+        border-color: #fecaca;
+    }
+
+    @@media(max-width:1100px) {
+
+        .booking-summary-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .booking-content-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media(max-width:700px) {
+
+        .admin-booking-details-page {
+            padding: 22px 15px 45px;
+        }
+
+        .booking-page-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .booking-header-actions {
+            width: 100%;
+        }
+
+        .header-secondary-button {
+            flex: 1;
+        }
+
+        .booking-summary-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .booking-card {
+            padding: 17px;
+        }
+
+        .detail-row {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+            .detail-row strong {
+                text-align: left;
+            }
+    }
+
+</style>
+
+
+<script>
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            const statusSelect =
+                document.getElementById(
+                    "bookingStatus");
+
+            const cancelContainer =
+                document.getElementById(
+                    "cancelReasonContainer");
+
+            const cancellationReason =
+                document.getElementById(
+                    "cancellationReason");
+
+
+            function updateCancellationField() {
+
+                if (
+                    !statusSelect ||
+                    !cancelContainer
+                ) {
+                    return;
+                }
+
+                const isCancelled =
+                    statusSelect.value ===
+                    "Cancelled";
+
+                cancelContainer.style.display =
+                    isCancelled
+                        ? "block"
+                        : "none";
+
+                if (cancellationReason) {
+
+                    cancellationReason.required =
+                        isCancelled;
+
+                }
+
+            }
+
+
+            statusSelect?.addEventListener(
+                "change",
+                updateCancellationField);
+
+
+            updateCancellationField();
+
+        });
+
+</script>
