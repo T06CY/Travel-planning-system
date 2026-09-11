@@ -88,6 +88,18 @@ using (var scope = app.Services.CreateScope())
                         CONSTRAINT [DF_Flights_DiscountPercent] DEFAULT 0;
             END
 
+            IF OBJECT_ID(N'[dbo].[Flights]', N'U') IS NOT NULL
+               AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Flights]') AND name = 'EstimatedDepartureTime')
+            BEGIN
+                ALTER TABLE [dbo].[Flights] ADD [EstimatedDepartureTime] datetime2 NULL;
+            END
+
+            IF OBJECT_ID(N'[dbo].[Flights]', N'U') IS NOT NULL
+               AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Flights]') AND name = 'EstimatedArrivalTime')
+            BEGIN
+                ALTER TABLE [dbo].[Flights] ADD [EstimatedArrivalTime] datetime2 NULL;
+            END
+
             IF OBJECT_ID(N'[dbo].[FlightBookings]', N'U') IS NOT NULL
                AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[FlightBookings]') AND name = 'DisruptionMessage')
             BEGIN

@@ -306,7 +306,10 @@
                                     FlightStatus.Departed => "bi-airplane-engines-fill",
                                     FlightStatus.Arrived => "bi-check-circle-fill",
                                     FlightStatus.Delayed => "bi-clock-history",
+                                    FlightStatus.Rescheduled => "bi-calendar2-event-fill",
+                                    FlightStatus.Diverted => "bi-sign-turn-right-fill",
                                     FlightStatus.Cancelled => "bi-x-circle-fill",
+                                    FlightStatus.Completed => "bi-check2-all",
                                     _ => "bi-calendar-check-fill"
                                 };
                                 <label class="flight-result-card">
@@ -331,9 +334,9 @@
                                         <span><strong>@flight.Airline?.AirlineName</strong><small>@flight.FlightNumber · @flight.AircraftModel</small></span>
                                     </span>
 
-                                    <span class="time-block"><strong>@flight.DepartureTime.ToString("HH:mm")</strong><small>@flight.From</small></span>
+                                    <span class="time-block"><strong>@((flight.EstimatedDepartureTime ?? flight.DepartureTime).ToString("HH:mm"))</strong><small>@flight.From</small>@if(flight.EstimatedDepartureTime.HasValue){<em class="updated-schedule-label"><i class="bi bi-clock-history"></i> Updated</em>}</span>
                                     <span class="duration-block"><small>@hours h @minutes m</small><span></span><small>Direct</small></span>
-                                    <span class="time-block"><strong>@flight.ArrivalTime.ToString("HH:mm")</strong><small>@flight.To</small></span>
+                                    <span class="time-block"><strong>@((flight.EstimatedArrivalTime ?? flight.ArrivalTime).ToString("HH:mm"))</strong><small>@flight.To</small></span>
                                     <span class="flight-card-meta">
                                         <span class="flight-status @statusClass"
                                               role="status"

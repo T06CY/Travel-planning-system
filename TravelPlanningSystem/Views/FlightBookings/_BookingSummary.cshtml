@@ -35,8 +35,9 @@
                         </div>
                     </div>
                     <div class="detail-route">
-                        <div><strong>@flight.DepartureTime.ToString("HH:mm")</strong><span>@flight.From</span><small>@flight.DepartureTime.ToString("dd MMM yyyy")</small></div>
-                        <div class="duration-block"><small>@((int)flight.Duration.TotalHours) h @flight.Duration.Minutes m</small><span></span><small>@flight.Status</small></div>
+                        @{ var bookingDeparture = flight.EstimatedDepartureTime ?? flight.DepartureTime; var bookingArrival = flight.EstimatedArrivalTime ?? flight.ArrivalTime; var scheduleChanged = flight.EstimatedDepartureTime.HasValue || flight.EstimatedArrivalTime.HasValue; }
+                        <div><strong>@bookingDeparture.ToString("HH:mm")</strong><span>@flight.From</span><small>@bookingDeparture.ToString("dd MMM yyyy")</small></div>
+                        <div class="duration-block"><small>@((int)(bookingArrival - bookingDeparture).TotalHours) h @((bookingArrival - bookingDeparture).Minutes) m</small><span></span><small>@flight.Status</small>@if(scheduleChanged){<em class="updated-schedule-label"><i class="bi bi-clock-history"></i> Updated time</em>}</div>
                         <div><strong>@flight.ArrivalTime.ToString("HH:mm")</strong><span>@flight.To</span><small>@flight.ArrivalTime.ToString("dd MMM yyyy")</small></div>
                     </div>
                 </article>

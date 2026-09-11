@@ -10,7 +10,10 @@ public enum FlightStatus
     Departed,
     Arrived,
     Delayed,
-    Cancelled
+    Rescheduled,
+    Diverted,
+    Cancelled,
+    Completed
 }
 
 [Table("Flights")]
@@ -33,6 +36,11 @@ public class Flight
 
     public DateTime DepartureTime { get; set; }
     public DateTime ArrivalTime { get; set; }
+
+    // Optional operational times entered by an administrator after a disruption.
+    // The original schedule remains available for audit/history.
+    public DateTime? EstimatedDepartureTime { get; set; }
+    public DateTime? EstimatedArrivalTime { get; set; }
 
     [Column(TypeName = "decimal(10,2)")]
     [Range(0.01, 999999)]

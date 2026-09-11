@@ -1292,6 +1292,16 @@ body {
     background: #dff5eb;
 }
 
+.status-rescheduled {
+    color: #3159a8;
+    background: #e5edff;
+}
+
+.status-diverted {
+    color: #7348a8;
+    background: #f0e7ff;
+}
+
 .status-pending, .status-delayed {
     color: #8b5a0a;
     background: #fff0ca;
@@ -3011,19 +3021,141 @@ body {
     max-width: 760px;
 }
 
-    .disruption-card h2 {
-        margin-top: 0;
-        color: var(--flight-navy);
+.disruption-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+    .disruption-title-row h2 {
+        margin: 4px 0 0;
     }
 
-    .disruption-card p {
+.status-help {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 10px;
+    color: #2059cf;
+    border: 1px solid #cbdcff;
+    border-radius: 999px;
+    background: #f1f5ff;
+    font-size: 10px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.disruption-lead {
+    margin-bottom: 22px;
+}
+
+.field-hint {
+    display: block;
+    margin-top: 5px;
+    color: var(--flight-muted);
+    font-size: 10px;
+}
+
+.required-label {
+    color: #c14949;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.schedule-fields {
+    margin: 4px 0 18px;
+    padding: 14px;
+    border: 1px solid #d8e4fb;
+    border-radius: 14px;
+    background: linear-gradient(135deg,#f5f9ff,#fbfdff);
+}
+
+    .schedule-fields[hidden] {
+        display: none;
+    }
+
+.schedule-fields-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 11px;
+    color: #2458b8;
+    font-size: 12px;
+}
+
+    .schedule-fields-heading span {
         color: var(--flight-muted);
+        font-size: 10px;
     }
 
-    .disruption-card textarea {
-        width: 100%;
-        resize: vertical;
+.schedule-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+    .schedule-grid .flight-field {
+        margin: 0;
     }
+
+    .schedule-grid input {
+        width: 100%;
+    }
+
+.disruption-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+    .disruption-actions > span {
+        color: var(--flight-muted);
+        font-size: 10px;
+    }
+
+        .disruption-actions > span i {
+            color: #27956c;
+        }
+
+.schedule-change-badge {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+    padding: 3px 6px;
+    color: #2059cf;
+    border-radius: 999px;
+    background: #edf3ff;
+    font-size: 9px;
+    font-weight: 800;
+}
+
+.updated-schedule-label {
+    display: block;
+    margin-top: 3px;
+    color: #2059cf;
+    font-size: 9px;
+    font-style: normal;
+    font-weight: 800;
+}
+
+.disruption-card h2 {
+    margin-top: 0;
+    color: var(--flight-navy);
+}
+
+.disruption-card p {
+    color: var(--flight-muted);
+}
+
+.disruption-card textarea {
+    width: 100%;
+    resize: vertical;
+}
 
 .weather-page-intro {
     display: flex;
@@ -3329,6 +3461,16 @@ body {
 
     .weather-animation-panel {
         min-height: 270px;
+    }
+}
+
+@media (max-width: 600px) {
+    .disruption-title-row {
+        display: grid;
+    }
+
+    .schedule-grid {
+        grid-template-columns: 1fr;
     }
 }
 

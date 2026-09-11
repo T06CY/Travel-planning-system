@@ -49,7 +49,7 @@ public class AdminFlightBookingsController(AppDbContext context) : Controller
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Disrupt(int flightId, FlightStatus status, string? message, string? delayCategory)
+    public async Task<IActionResult> Disrupt(int flightId, FlightStatus status, string? message, string? delayCategory, DateTime? estimatedDepartureTime, DateTime? estimatedArrivalTime)
     {
         var flight = await context.Flights.FindAsync(flightId);
         if (flight is null) return NotFound();
@@ -59,6 +59,10 @@ public class AdminFlightBookingsController(AppDbContext context) : Controller
         if (message.Length > 500) message = message[..500];
         flight.Status = status;
         flight.IsActive = status != FlightStatus.Cancelled;
+        if (estimatedDepartureTime.HasValue)
+            flight.EstimatedDepartureTime = estimatedDepartureTime.Value;
+        if (estimatedArrivalTime.HasValue)
+            flight.EstimatedArrivalTime = estimatedArrivalTime.Value;
         var bookings = await context.FlightBookings.Include(b => b.Passengers).Include(b => b.Segments).Where(b => b.Segments.Any(s => s.FlightId == flightId)).ToListAsync();
         foreach (var booking in bookings)
         {
