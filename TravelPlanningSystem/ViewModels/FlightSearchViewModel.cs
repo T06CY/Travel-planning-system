@@ -31,6 +31,14 @@ public class FlightSearchViewModel
 
     public List<Airport> Airports { get; set; } = new();
     public List<FlightSearchSection> Sections { get; set; } = new();
+    public List<FlightDatePriceOption> DatePriceOptions { get; set; } = new();
+}
+
+public class FlightDatePriceOption
+{
+    public DateTime Date { get; set; }
+    public decimal? LowestPrice { get; set; }
+    public int FlightCount { get; set; }
 }
 
 public class FlightSearchSection

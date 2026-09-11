@@ -543,6 +543,139 @@ body {
     box-shadow: 0 18px 48px rgba(24,45,90,.09);
 }
 
+.flight-date-strip {
+    margin: 18px 0 22px;
+    padding: 17px;
+    border: 1px solid #d9e5fb;
+    border-radius: 18px;
+    background: linear-gradient(135deg,#f7faff 0%,#eef5ff 56%,#fbf7ff 100%);
+    box-shadow: 0 10px 30px rgba(49,95,244,.08);
+}
+
+.flight-date-strip-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 13px;
+}
+
+    .flight-date-strip-heading div {
+        display: grid;
+        gap: 3px;
+    }
+
+    .flight-date-strip-heading span {
+        color: #6c82ad;
+        font-size: 9px;
+        font-weight: 900;
+        letter-spacing: .13em;
+    }
+
+    .flight-date-strip-heading strong {
+        color: var(--flight-navy);
+        font-size: 16px;
+    }
+
+    .flight-date-strip-heading small {
+        padding: 7px 10px;
+        color: #526c99;
+        border-radius: 9px;
+        background: rgba(255,255,255,.72);
+        font-size: 10px;
+    }
+
+        .flight-date-strip-heading small i {
+            margin-right: 4px;
+            color: #e59b3d;
+        }
+
+.flight-date-options {
+    display: grid;
+    grid-template-columns: repeat(7,minmax(82px,1fr));
+    gap: 8px;
+    overflow-x: auto;
+    padding: 2px;
+}
+
+.flight-date-option {
+    position: relative;
+    display: flex;
+    min-height: 112px;
+    padding: 10px 8px;
+    align-items: center;
+    flex-direction: column;
+    color: #536582;
+    border: 1px solid #d6e1f5;
+    border-radius: 13px;
+    background: rgba(255,255,255,.82);
+    text-decoration: none;
+    transition: transform .18s, border-color .18s, box-shadow .18s, background .18s;
+}
+
+    .flight-date-option:hover {
+        transform: translateY(-3px);
+        border-color: #8eacf0;
+        box-shadow: 0 9px 18px rgba(49,95,244,.14);
+    }
+
+    .flight-date-option.selected {
+        color: #fff;
+        border-color: #315ff4;
+        background: linear-gradient(155deg,#315ff4,#6a63ed);
+        box-shadow: 0 9px 20px rgba(49,95,244,.24);
+    }
+
+    .flight-date-option.unavailable {
+        opacity: .6;
+    }
+
+.flight-date-weekday {
+    font-size: 10px;
+    font-weight: 850;
+    text-transform: uppercase;
+}
+
+.flight-date-option strong {
+    margin-top: 2px;
+    font-size: 25px;
+    line-height: 1;
+}
+
+.flight-date-month {
+    margin-top: 2px;
+    font-size: 10px;
+    font-weight: 750;
+}
+
+.flight-date-price {
+    margin-top: 9px;
+    color: #2059cf;
+    font-size: 10px;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.flight-date-option.selected .flight-date-price {
+    color: #fff;
+}
+
+.flight-date-price.no-fare {
+    color: #8995aa;
+}
+
+.flight-date-option small {
+    margin-top: 2px;
+    font-size: 9px;
+}
+
+.date-selected-icon {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    font-size: 11px;
+}
+
 .trip-type-tabs {
     display: flex;
     gap: 8px;
@@ -1147,6 +1280,233 @@ body {
     .card-heading p {
         margin: 3px 0 0;
         color: var(--flight-muted);
+    }
+
+.passenger-meal-picker {
+    position: relative;
+}
+
+    .passenger-meal-picker label {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+    }
+
+        .passenger-meal-picker label i {
+            color: #e39b3c;
+        }
+
+.cute-select-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+    .cute-select-wrap .cute-addon-select {
+        width: 100%;
+        padding: 12px 42px 12px 43px;
+        border: 1px solid #d8e2f2;
+        border-radius: 12px;
+        color: var(--flight-navy);
+        background: #fff;
+        font-size: 14px;
+        appearance: none;
+        transition: border-color .2s, box-shadow .2s, transform .2s;
+    }
+
+        .cute-select-wrap .cute-addon-select:focus {
+            border-color: #79a2ff;
+            box-shadow: 0 0 0 4px rgba(49,95,244,.12);
+            outline: 0;
+        }
+
+.cute-select-icon {
+    position: absolute;
+    z-index: 1;
+    left: 14px;
+    display: grid;
+    width: 23px;
+    height: 23px;
+    place-items: center;
+    color: #315ff4;
+    border-radius: 8px;
+    background: #edf3ff;
+    pointer-events: none;
+}
+
+.cute-select-chevron {
+    position: absolute;
+    right: 14px;
+    color: #54709e;
+    pointer-events: none;
+}
+
+.cute-helper-text {
+    display: block;
+    margin-top: 6px;
+    color: #8290a7;
+    font-size: 10px;
+}
+
+.addon-showcase-card {
+    overflow: hidden;
+    position: relative;
+}
+
+    .addon-showcase-card::before {
+        position: absolute;
+        top: -60px;
+        right: -35px;
+        width: 170px;
+        height: 170px;
+        border-radius: 50%;
+        background: #eef4ff;
+        content: "";
+        opacity: .7;
+        pointer-events: none;
+    }
+
+    .addon-showcase-card .card-heading {
+        position: relative;
+        z-index: 1;
+    }
+
+.addon-heading-badge {
+    display: inline-flex;
+    gap: 5px;
+    margin-left: auto;
+    padding: 7px 10px;
+    align-items: center;
+    color: #7048d9;
+    border: 1px solid #dfd4ff;
+    border-radius: 999px;
+    background: #f5f0ff;
+    font-size: 10px;
+    font-weight: 850;
+    white-space: nowrap;
+}
+
+.addon-option-panel {
+    position: relative;
+    z-index: 1;
+    margin: 4px 0 15px;
+    padding: 17px;
+    border: 1px solid #dbe6fa;
+    border-radius: 16px;
+    background: linear-gradient(135deg,#f7faff,#eef5ff);
+}
+
+.addon-panel-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.addon-kicker {
+    color: #6780ad;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: .12em;
+}
+
+.addon-panel-heading h3 {
+    margin: 3px 0 0;
+    color: var(--flight-navy);
+    font-size: 16px;
+}
+
+    .addon-panel-heading h3 i {
+        margin-right: 5px;
+        color: #315ff4;
+    }
+
+.addon-step {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    place-items: center;
+    color: #315ff4;
+    border: 1px solid #cbdcff;
+    border-radius: 10px;
+    background: #fff;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.addon-option-panel .form-label {
+    color: #52617a;
+    font-size: 12px;
+}
+
+.addon-benefit-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-top: 11px;
+    color: #587092;
+    font-size: 10px;
+}
+
+    .addon-benefit-row i {
+        margin-right: 3px;
+        color: #24a579;
+    }
+
+    .addon-benefit-row span:last-child i {
+        color: #ef729a;
+    }
+
+.insurance-addon-card {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 15px 16px;
+    border: 1px solid #e7defa;
+    border-radius: 16px;
+    background: linear-gradient(110deg,#fffaff,#f5f0ff);
+}
+
+.insurance-icon {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 auto;
+    place-items: center;
+    color: #7551db;
+    border-radius: 13px;
+    background: #e9e0ff;
+    font-size: 21px;
+}
+
+.insurance-addon-card .form-check {
+    flex: 1;
+}
+
+.insurance-addon-card .form-check-label {
+    color: var(--flight-navy);
+}
+
+.insurance-addon-card .form-check small {
+    line-height: 1.45;
+}
+
+.addon-price-pill {
+    padding: 7px 10px;
+    color: #6841c5;
+    border: 1px solid #dccbff;
+    border-radius: 10px;
+    background: #fff;
+    font-size: 12px;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+    .addon-price-pill small {
+        font-size: 9px;
+        font-weight: 700;
     }
 
 .form-grid {
@@ -3471,6 +3831,37 @@ body {
 
     .schedule-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .addon-showcase-card .card-heading {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .addon-heading-badge {
+        margin-left: 40px;
+    }
+
+    .insurance-addon-card {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .addon-price-pill {
+        margin-left: 52px;
+    }
+}
+
+@media (max-width: 760px) {
+    .flight-date-strip-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .flight-date-options {
+        grid-template-columns: repeat(7, 86px);
     }
 }
 

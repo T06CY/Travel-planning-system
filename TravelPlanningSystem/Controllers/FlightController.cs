@@ -46,9 +46,44 @@ public class FlightController(
         {
             await BuildNormalResultsAsync(model, cancellationToken);
             EnsureTwoMultiCityRows(model);
+            if (model.TripType != "Multi-city" && model.DepartureDate.HasValue)
+                model.DatePriceOptions = await BuildDatePriceOptionsAsync(model, cancellationToken);
         }
 
         return View(model);
+    }
+
+    private async Task<List<FlightDatePriceOption>> BuildDatePriceOptionsAsync(
+        FlightSearchViewModel model,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(model.From) || string.IsNullOrWhiteSpace(model.To))
+            return new List<FlightDatePriceOption>();
+
+        var selectedDate = model.DepartureDate!.Value.Date;
+        var firstDate = selectedDate.AddDays(-3) < DateTime.Today
+            ? DateTime.Today
+            : selectedDate.AddDays(-3);
+        var lastDate = firstDate.AddDays(6);
+        var flights = await context.Flights.AsNoTracking()
+            .Where(f => f.From == model.From && f.To == model.To &&
+                        f.DepartureTime >= firstDate &&
+                        f.DepartureTime < lastDate.AddDays(1) &&
+                        f.Status != FlightStatus.Cancelled &&
+                        f.AvailableSeats >= model.Passengers)
+            .ToListAsync(cancellationToken);
+
+        return Enumerable.Range(0, 7).Select(offset =>
+        {
+            var date = firstDate.AddDays(offset);
+            var dayFlights = flights.Where(f => f.DepartureTime.Date == date).ToList();
+            return new FlightDatePriceOption
+            {
+                Date = date,
+                FlightCount = dayFlights.Count(),
+                LowestPrice = dayFlights.Count == 0 ? null : dayFlights.Select(f => FlightFareRules.GetPrice(f.Price, FlightFareRules.Economy, f.DiscountPercent)).Min()
+            };
+        }).ToList();
     }
 
     [HttpGet]

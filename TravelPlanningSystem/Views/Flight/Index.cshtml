@@ -233,6 +233,43 @@
 
     @if (Model.SearchPerformed && Model.Sections.Count > 0)
     {
+        @if (Model.DatePriceOptions.Count > 0 && Model.TripType != "Multi-city")
+        {
+            <section class="flight-date-strip" aria-label="Choose a departure date">
+                <div class="flight-date-strip-heading"><div><span>FLEXIBLE DATES</span><strong>Find a better fare for this route</strong></div><small><i class="bi bi-lightbulb"></i> Prices are lowest available economy fares</small></div>
+                <div class="flight-date-options">
+                    @foreach (var dateOption in Model.DatePriceOptions)
+                    {
+                        var dateIsSelected = Model.DepartureDate?.Date == dateOption.Date.Date;
+                        var linkedReturnDate = !Model.ReturnDate.HasValue || Model.ReturnDate.Value.Date < dateOption.Date
+                            ? dateOption.Date.AddDays(1)
+                            : Model.ReturnDate.Value.Date;
+                        <a class="flight-date-option @(dateIsSelected ? "selected" : "") @(dateOption.LowestPrice is null ? "unavailable" : "")"
+                           asp-action="Index" asp-route-search="true" asp-route-TripType="@Model.TripType"
+                           asp-route-From="@Model.From" asp-route-To="@Model.To"
+                           asp-route-FromAirportCode="@Model.FromAirportCode" asp-route-ToAirportCode="@Model.ToAirportCode"
+                           asp-route-DepartureDate="@dateOption.Date.ToString("yyyy-MM-dd")"
+                           asp-route-ReturnDate="@linkedReturnDate.ToString("yyyy-MM-dd")"
+                           asp-route-Passengers="@Model.Passengers" asp-route-SortBy="@Model.SortBy">
+                            <span class="flight-date-weekday">@dateOption.Date.ToString("ddd")</span>
+                            <strong>@dateOption.Date.ToString("dd")</strong>
+                            <span class="flight-date-month">@dateOption.Date.ToString("MMM")</span>
+                            @if (dateOption.LowestPrice is not null)
+                            {
+                                <span class="flight-date-price">from RM @dateOption.LowestPrice.Value.ToString("N0")</span>
+                                <small>@dateOption.FlightCount flight@(dateOption.FlightCount == 1 ? "" : "s")</small>
+                            }
+                            else
+                            {
+                                <span class="flight-date-price no-fare">No flights</span>
+                                <small>Try another day</small>
+                            }
+                            @if (dateIsSelected) { <i class="bi bi-check-circle-fill date-selected-icon"></i> }
+                        </a>
+                    }
+                </div>
+            </section>
+        }
         <form method="get" asp-controller="FlightBookings" asp-action="Create"
               id="selectFlightsForm" class="flight-results">
             <input type="hidden" name="tripType" value="@Model.TripType" />
