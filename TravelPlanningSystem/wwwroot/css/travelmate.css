@@ -337,6 +337,296 @@ body {
     box-shadow: 0 12px 25px rgba(64,87,255,0.35);
 }
 
+/* Static, compact home search panel */
+.search-box {
+    gap: 22px;
+    border: 1px solid rgba(211,220,239,.8);
+}
+
+.map-icon::before {
+    display: none;
+}
+
+.map-icon-circle {
+    display: grid;
+    width: 54px;
+    height: 54px;
+    place-items: center;
+    color: #4057ff;
+    border: 1px solid #d9e2ff;
+    border-radius: 16px;
+    background: #f3f6ff;
+}
+
+.search-item {
+    padding-left: 22px;
+}
+
+    .search-item label {
+        margin-bottom: 10px;
+        color: #081d49;
+        font-size: 12px;
+        letter-spacing: .02em;
+    }
+
+    .search-item div {
+        gap: 10px;
+        padding: 9px 11px;
+        border: 1px solid #e0e7f4;
+        border-radius: 10px;
+        background: #fbfcff;
+    }
+
+.search-btn {
+    display: inline-flex;
+    width: 122px;
+    height: 56px;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    border: 1px solid #4057ff;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 800;
+    text-decoration: none;
+    box-shadow: 0 10px 20px rgba(64,87,255,.22);
+    cursor: pointer;
+}
+
+    .search-btn:hover {
+        background: #3047df;
+        box-shadow: 0 10px 20px rgba(64,87,255,.28);
+    }
+
+    .search-btn:focus-visible {
+        outline: 3px solid rgba(64,87,255,.22);
+        outline-offset: 3px;
+    }
+
+.search-box, .search-box * {
+    animation: none !important;
+}
+
+.route-animation-section {
+    position: relative;
+    z-index: 4;
+    width: 92%;
+    max-width: 1380px;
+    margin: -26px auto 0;
+}
+
+.route-animation-card {
+    display: grid;
+    grid-template-columns: minmax(280px,.82fr) minmax(420px,1.18fr);
+    min-height: 270px;
+    overflow: hidden;
+    border: 1px solid rgba(210,222,245,.95);
+    border-radius: 24px;
+    background: #fff;
+    box-shadow: 0 20px 48px rgba(21,35,80,.15);
+}
+
+.route-animation-copy {
+    display: flex;
+    padding: 30px 34px;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.route-eyebrow {
+    color: #536ee0;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .14em;
+}
+
+    .route-eyebrow i {
+        margin-right: 5px;
+    }
+
+.route-animation-copy h2 {
+    margin: 8px 0 6px;
+    color: #081d49;
+    font-size: clamp(24px,3vw,36px);
+    letter-spacing: -.7px;
+}
+
+.route-animation-copy p {
+    max-width: 390px;
+    margin: 0;
+    color: #697386;
+    line-height: 1.55;
+}
+
+.route-highlights {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 13px;
+    margin: 17px 0 20px;
+    color: #52617a;
+    font-size: 10px;
+    font-weight: 750;
+}
+
+    .route-highlights i {
+        margin-right: 4px;
+        color: #315ff4;
+    }
+
+.route-cta {
+    display: inline-flex;
+    width: fit-content;
+    padding: 11px 16px;
+    align-items: center;
+    gap: 10px;
+    color: #fff;
+    border-radius: 11px;
+    background: #4057ff;
+    box-shadow: 0 8px 18px rgba(64,87,255,.24);
+    font-size: 12px;
+    font-weight: 850;
+    text-decoration: none;
+}
+
+    .route-cta:hover {
+        color: #fff;
+        background: #3047df;
+    }
+
+.route-animation {
+    position: relative;
+    min-height: 270px;
+    overflow: hidden;
+    background: linear-gradient(135deg,#edf4ff,#f8f4ff);
+}
+
+.route-grid {
+    position: absolute;
+    inset: 0;
+    opacity: .45;
+    background-image: linear-gradient(rgba(86,119,190,.10) 1px, transparent 1px), linear-gradient(90deg, rgba(86,119,190,.10) 1px, transparent 1px);
+    background-size: 38px 38px;
+}
+
+.route-animation::after {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 80% 20%, rgba(115,208,255,.35), transparent 28%), radial-gradient(circle at 18% 90%, rgba(148,120,255,.18), transparent 30%);
+    content: "";
+}
+
+.route-map-line {
+    position: absolute;
+    z-index: 1;
+    inset: 20px 20px 0;
+    width: calc(100% - 40px);
+    height: calc(100% - 20px);
+    overflow: visible;
+}
+
+    .route-map-line path {
+        fill: none;
+        stroke: #6689f4;
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-dasharray: 7 10;
+        animation: route-line-flow 2.8s linear infinite;
+    }
+
+.route-stop {
+    position: absolute;
+    z-index: 3;
+    display: grid;
+    gap: 2px;
+    color: #315ff4;
+    font-size: 20px;
+    filter: drop-shadow(0 4px 6px rgba(49,95,244,.18));
+}
+
+    .route-stop b {
+        color: #31415f;
+        font-size: 10px;
+        font-weight: 850;
+        white-space: nowrap;
+    }
+
+.stop-kl {
+    left: 5%;
+    bottom: 18%;
+}
+
+.stop-sg {
+    left: 46%;
+    top: 34%;
+}
+
+.stop-tokyo {
+    right: 6%;
+    top: 6%;
+}
+
+.route-plane {
+    position: absolute;
+    z-index: 4;
+    left: 3%;
+    bottom: 19%;
+    display: grid;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    color: #fff;
+    border-radius: 50%;
+    background: #4057ff;
+    box-shadow: 0 8px 16px rgba(64,87,255,.3);
+    transform: rotate(20deg);
+    animation: route-plane-travel 7s ease-in-out infinite;
+}
+
+.route-distance {
+    position: absolute;
+    z-index: 3;
+    right: 20px;
+    bottom: 18px;
+    padding: 7px 10px;
+    color: #6b4fd2;
+    border: 1px solid #dfd6ff;
+    border-radius: 999px;
+    background: rgba(255,255,255,.78);
+    font-size: 10px;
+    font-weight: 850;
+}
+
+    .route-distance i {
+        margin-right: 4px;
+        color: #e49c3e;
+    }
+
+@keyframes route-plane-travel {
+    0% {
+        left: 3%;
+        bottom: 19%;
+        transform: rotate(20deg);
+    }
+
+    45% {
+        left: 46%;
+        bottom: 55%;
+        transform: rotate(-18deg);
+    }
+
+    100% {
+        left: 87%;
+        bottom: 76%;
+        transform: rotate(-18deg);
+    }
+}
+
+@keyframes route-line-flow {
+    to {
+        stroke-dashoffset: -34;
+    }
+}
+
 .services {
     width: 88%;
     max-width: 1380px;
@@ -376,69 +666,67 @@ body {
 .service-card {
     min-height: 220px;
     border-radius: 15px;
+    /* Dark mode overrides */
+    html.dark-mode, body.dark-mode {
+        background: #0b0f18 !important;
+        color: #e6eef8 !important;
+    }
 
-/* Dark mode overrides */
-html.dark-mode, body.dark-mode {
-    background: #0b0f18 !important;
-    color: #e6eef8 !important;
-}
+        html.dark-mode .main-navbar, body.dark-mode .main-navbar {
+            background: #0f1724 !important;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6) !important;
+        }
 
-html.dark-mode .main-navbar, body.dark-mode .main-navbar {
-    background: #0f1724 !important;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.6) !important;
-}
+        html.dark-mode .logo-box h3,
+        html.dark-mode .logo-box small,
+        html.dark-mode .nav-menu .nav-link,
+        html.dark-mode .promo-card,
+        html.dark-mode .promo-card p,
+        html.dark-mode .promo-card h4,
+        body.dark-mode .logo-box h3,
+        body.dark-mode .logo-box small,
+        body.dark-mode .nav-menu .nav-link,
+        body.dark-mode .promo-card,
+        body.dark-mode .promo-card p,
+        body.dark-mode .promo-card h4 {
+            color: #e6eef8 !important;
+        }
 
-html.dark-mode .logo-box h3,
-html.dark-mode .logo-box small,
-html.dark-mode .nav-menu .nav-link,
-html.dark-mode .promo-card,
-html.dark-mode .promo-card p,
-html.dark-mode .promo-card h4,
-body.dark-mode .logo-box h3,
-body.dark-mode .logo-box small,
-body.dark-mode .nav-menu .nav-link,
-body.dark-mode .promo-card,
-body.dark-mode .promo-card p,
-body.dark-mode .promo-card h4 {
-    color: #e6eef8 !important;
-}
+            html.dark-mode .nav-menu .nav-link:hover,
+            html.dark-mode .nav-menu .nav-link.active,
+            body.dark-mode .nav-menu .nav-link:hover,
+            body.dark-mode .nav-menu .nav-link.active {
+                background: rgba(99,102,241,0.12) !important;
+                color: #a5b4fc !important;
+            }
 
-html.dark-mode .nav-menu .nav-link:hover,
-html.dark-mode .nav-menu .nav-link.active,
-body.dark-mode .nav-menu .nav-link:hover,
-body.dark-mode .nav-menu .nav-link.active {
-    background: rgba(99,102,241,0.12) !important;
-    color: #a5b4fc !important;
-}
+        html.dark-mode .right-menu .btn-login,
+        body.dark-mode .right-menu .btn-login {
+            border-color: #9ca3ff !important;
+            color: #c7d2fe !important;
+        }
 
-html.dark-mode .right-menu .btn-login,
-body.dark-mode .right-menu .btn-login {
-    border-color: #9ca3ff !important;
-    color: #c7d2fe !important;
-}
+        html.dark-mode .btn-register, body.dark-mode .btn-register {
+            background: #3745a8 !important;
+        }
+        /* slightly dim cards and inputs */
+        html.dark-mode .promo-card,
+        body.dark-mode .promo-card,
+        html.dark-mode .search-box,
+        body.dark-mode .search-box,
+        html.dark-mode .search-item input,
+        body.dark-mode .search-item input,
+        html.dark-mode .search-item select,
+        body.dark-mode .search-item select {
+            background: #0b1220 !important;
+            color: #dbeafe !important;
+            border-color: rgba(255,255,255,0.04) !important;
+        }
+        /* ensure avatar border/remains visible */
+        body.dark-mode .rounded-circle {
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.03) inset;
+        }
 
-html.dark-mode .btn-register, body.dark-mode .btn-register {
-    background: #3745a8 !important;
-}
-
-/* slightly dim cards and inputs */
-html.dark-mode .promo-card,
-body.dark-mode .promo-card,
-html.dark-mode .search-box,
-body.dark-mode .search-box,
-html.dark-mode .search-item input,
-body.dark-mode .search-item input,
-html.dark-mode .search-item select,
-body.dark-mode .search-item select {
-    background: #0b1220 !important;
-    color: #dbeafe !important;
-    border-color: rgba(255,255,255,0.04) !important;
-}
-
-/* ensure avatar border/remains visible */
-body.dark-mode .rounded-circle {
-    box-shadow: 0 0 0 2px rgba(255,255,255,0.03) inset;
-}
     padding: 28px 30px;
     position: relative;
     overflow: hidden;
@@ -828,5 +1116,25 @@ body.dark-mode .rounded-circle {
 
     .booking-hub {
         padding: 35px 18px 60px;
+    }
+}
+
+@media (max-width: 992px) {
+    .route-animation-section {
+        margin-top: -18px;
+    }
+
+    .route-animation-card {
+        grid-template-columns: 1fr;
+    }
+
+    .route-animation {
+        min-height: 235px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .route-map-line path, .route-plane {
+        animation: none;
     }
 }

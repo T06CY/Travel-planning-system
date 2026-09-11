@@ -50,53 +50,23 @@
     </div>
 </section>
 
-<section class="search-wrapper">
-    <div class="container-fluid px-5">
-        <div class="search-box">
-            <div class="map-icon">
-                <i class="bi bi-geo-alt-fill"></i>
-            </div>
-
-            <div class="search-item">
-                <label>Where to?</label>
-                <div>
-                    <i class="bi bi-geo-alt"></i>
-                    <input type="text" placeholder="Search destination" />
-                </div>
-            </div>
-
-            <div class="search-item">
-                <label>Check-in</label>
-                <div>
-                    <i class="bi bi-calendar3"></i>
-                    <input type="text" placeholder="Select date" />
-                </div>
-            </div>
-
-            <div class="search-item">
-                <label>Check-out</label>
-                <div>
-                    <i class="bi bi-calendar3"></i>
-                    <input type="text" placeholder="Select date" />
-                </div>
-            </div>
-
-            <div class="search-item">
-                <label>Travellers</label>
-                <div>
-                    <i class="bi bi-person"></i>
-                    <select>
-                        <option>1 Traveller</option>
-                        <option>2 Travellers</option>
-                        <option>3 Travellers</option>
-                        <option>4 Travellers</option>
-                    </select>
-                </div>
-            </div>
-
-            <button class="search-btn">
-                <i class="bi bi-search"></i>
-            </button>
+<section class="route-animation-section" aria-label="Travel route animation">
+    <div class="route-animation-card">
+        <div class="route-animation-copy">
+            <span class="route-eyebrow"><i class="bi bi-compass"></i> YOUR NEXT ADVENTURE</span>
+            <h2>Take the scenic route.</h2>
+            <p>Explore new places, compare flight schedules and make every journey memorable.</p>
+            <div class="route-highlights"><span><i class="bi bi-calendar2-check"></i> Flexible dates</span><span><i class="bi bi-tags"></i> Clear fares</span><span><i class="bi bi-shield-check"></i> Secure booking</span></div>
+            <a class="route-cta" asp-controller="Flight" asp-action="Index">Plan your trip <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="route-animation" aria-hidden="true">
+            <div class="route-grid"></div>
+            <svg class="route-map-line" viewBox="0 0 620 260" preserveAspectRatio="none"><path d="M42 201 C145 226 192 55 305 113 S455 205 576 48"></path></svg>
+            <span class="route-stop stop-kl"><i class="bi bi-geo-alt-fill"></i><b>Kuala Lumpur</b></span>
+            <span class="route-stop stop-sg"><i class="bi bi-geo-alt-fill"></i><b>Singapore</b></span>
+            <span class="route-stop stop-tokyo"><i class="bi bi-geo-alt-fill"></i><b>Tokyo</b></span>
+            <span class="route-plane"><i class="bi bi-airplane-fill"></i></span>
+            <span class="route-distance"><i class="bi bi-stars"></i> Go further</span>
         </div>
     </div>
 </section>
