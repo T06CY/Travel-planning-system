@@ -1,6 +1,13 @@
 @model TravelPlanningSystem.Models.FlightBooking
 @using TravelPlanningSystem.Models
-@{ ViewData["Title"] = "Manage Flight Booking"; }
+@{
+    ViewData["Title"] = "Manage Flight Booking";
+    var orderedSegments = Model.Segments.OrderBy(s => s.SegmentOrder).ToList();
+    var outboundSegment = orderedSegments.FirstOrDefault();
+    var returnSegment = orderedSegments.Skip(1).FirstOrDefault();
+    var occupiedOutboundSeats = (ViewBag.OccupiedOutboundSeats as HashSet<string>) ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    var occupiedReturnSeats = (ViewBag.OccupiedReturnSeats as HashSet<string>) ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+}
 <link rel="stylesheet" href="~/css/flight.css" asp-append-version="true" />
 <div class="flight-admin-page"><div class="admin-page-header"><div><span class="flight-eyebrow">BOOKING ADMINISTRATION</span><h1>@Model.BookingReference</h1><p>Review the complete reservation and update its status.</p></div><a asp-action="Index" class="secondary-flight-btn">← Booking list</a></div>
 @if(TempData["Message"] is not null){<div class="flight-alert success">@TempData["Message"]</div>}@if(TempData["Error"] is not null){<div class="flight-alert error">@TempData["Error"]</div>}
@@ -34,24 +41,82 @@
     </div>
     <div class="admin-table-wrap">
         <table class="admin-flight-table">
-            <thead><tr><th>Passenger</th><th>Type</th><th>Outbound seat</th>@if (Model.TripType == "Return"){<th>Return seat</th>}<th>Assign seats</th></tr></thead>
+            <thead><tr><th>Passenger</th><th>Type</th><th>Outbound seat / type</th>@if (Model.TripType == "Return"){<th>Return seat / type</th>}<th>Assign seats visually</th></tr></thead>
             <tbody>
             @foreach (var passenger in Model.Passengers)
             {
                 <tr>
                     <td><strong>@passenger.FirstName @passenger.LastName</strong><small class="table-subtext">@passenger.PassportNumber</small></td>
                     <td>@passenger.PassengerType</td>
-                    <td><span class="seat-assignment-badge">@passenger.SeatNumber</span></td>
-                    @if (Model.TripType == "Return") { <td><span class="seat-assignment-badge">@(passenger.ReturnSeatNumber ?? "Not assigned")</span></td> }
+                    <td><span class="seat-assignment-badge">@passenger.SeatNumber</span><small class="table-subtext">@FlightFareRules.GetSeatType(passenger.SeatNumber) · @FlightFareRules.Normalize(outboundSegment?.CabinClass)</small></td>
+                    @if (Model.TripType == "Return") { <td><span class="seat-assignment-badge">@(passenger.ReturnSeatNumber ?? "Not assigned")</span><small class="table-subtext">@FlightFareRules.GetSeatType(passenger.ReturnSeatNumber) · @FlightFareRules.Normalize(returnSegment?.CabinClass)</small></td> }
                     <td>
                         <form asp-action="AssignSeat" method="post" class="admin-seat-form">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="id" value="@Model.FlightBookingId" />
                             <input type="hidden" name="passengerId" value="@passenger.FlightPassengerId" />
-                            <input name="seatNumber" value="@passenger.SeatNumber" maxlength="5" pattern="[1-9][0-9]{0,2}[A-Fa-f]" required />
-                            @if (Model.TripType == "Return") { <input name="returnSeatNumber" value="@passenger.ReturnSeatNumber" maxlength="5" pattern="[1-9][0-9]{0,2}[A-Fa-f]" placeholder="Return" required /> }
+                            <div class="admin-seat-input-group"><label for="admin-seat-@passenger.FlightPassengerId-outbound">Outbound · @FlightFareRules.Normalize(outboundSegment?.CabinClass)</label><input id="admin-seat-@passenger.FlightPassengerId-outbound" name="seatNumber" value="@passenger.SeatNumber" maxlength="5" pattern="[1-9][0-9]{0,2}[A-Fa-f]" required /></div>
+                            @if (Model.TripType == "Return") { <div class="admin-seat-input-group"><label for="admin-seat-@passenger.FlightPassengerId-return">Return · @FlightFareRules.Normalize(returnSegment?.CabinClass)</label><input id="admin-seat-@passenger.FlightPassengerId-return" name="returnSeatNumber" value="@passenger.ReturnSeatNumber" maxlength="5" pattern="[1-9][0-9]{0,2}[A-Fa-f]" placeholder="Return" required /></div> }
                             <button type="submit" class="secondary-flight-btn small-btn">Save seat</button>
                         </form>
+                        <details class="admin-visual-seat-picker">
+                            <summary><i class="bi bi-grid-3x3-gap-fill"></i> Open visual seat map</summary>
+                            <div class="admin-seat-map-note">Only seats in the booked cabin are selectable. Occupied seats are disabled.</div>
+                            <div class="admin-seat-map-columns">
+                                <div>
+                                    <strong class="admin-seat-map-title">Outbound · @FlightFareRules.Normalize(outboundSegment?.CabinClass)</strong>
+                                    <div class="admin-seat-map">
+                                        @{ var outboundCapacity = outboundSegment?.Flight?.SeatCapacity ?? 0; var outboundRows = (int)Math.Ceiling(outboundCapacity / 6m); }
+                                        @for (var row = 1; row <= outboundRows; row++)
+                                        {
+                                            <div class="admin-seat-row">
+                                                @for (var column = 0; column < 6; column++)
+                                                {
+                                                    var number = $"{row}{(char)('A' + column)}";
+                                                    var index = ((row - 1) * 6) + column;
+                                                    if (index < outboundCapacity)
+                                                    {
+                                                        var occupied = occupiedOutboundSeats.Contains(number) && !string.Equals(passenger.SeatNumber, number, StringComparison.OrdinalIgnoreCase);
+                                                        var allowed = FlightFareRules.IsSeatInCabin(number, outboundCapacity, outboundSegment?.CabinClass);
+                                                        var seatCabin = FlightFareRules.IsSeatInCabin(number, outboundCapacity, FlightFareRules.Business) ? "seat-business" : FlightFareRules.IsSeatInCabin(number, outboundCapacity, FlightFareRules.PremiumEconomy) ? "seat-premium" : "seat-standard";
+                                                        <button type="button" class="admin-visual-seat @seatCabin @(allowed ? "admin-seat-allowed" : "admin-seat-other-cabin") @(occupied ? "admin-seat-occupied" : "") @(string.Equals(passenger.SeatNumber, number, StringComparison.OrdinalIgnoreCase) ? "admin-seat-current" : "")" data-admin-seat-button data-seat-number="@number" data-seat-target="#admin-seat-@passenger.FlightPassengerId-outbound" disabled="@(occupied || !allowed)" title="@(occupied ? "Occupied" : allowed ? $"{number} · {FlightFareRules.GetSeatType(number)}" : "Different cabin")">@number</button>
+                                                    }
+                                                    else { <span></span> }
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                @if (Model.TripType == "Return" && returnSegment?.Flight is not null)
+                                {
+                                    <div>
+                                        <strong class="admin-seat-map-title">Return · @FlightFareRules.Normalize(returnSegment.CabinClass)</strong>
+                                        <div class="admin-seat-map">
+                                            @{ var returnCapacity = returnSegment.Flight.SeatCapacity; var returnRows = (int)Math.Ceiling(returnCapacity / 6m); }
+                                            @for (var row = 1; row <= returnRows; row++)
+                                            {
+                                                <div class="admin-seat-row">
+                                                    @for (var column = 0; column < 6; column++)
+                                                    {
+                                                        var number = $"{row}{(char)('A' + column)}";
+                                                        var index = ((row - 1) * 6) + column;
+                                                        if (index < returnCapacity)
+                                                        {
+                                                            var occupied = occupiedReturnSeats.Contains(number) && !string.Equals(passenger.ReturnSeatNumber, number, StringComparison.OrdinalIgnoreCase);
+                                                            var allowed = FlightFareRules.IsSeatInCabin(number, returnCapacity, returnSegment.CabinClass);
+                                                            var seatCabin = FlightFareRules.IsSeatInCabin(number, returnCapacity, FlightFareRules.Business) ? "seat-business" : FlightFareRules.IsSeatInCabin(number, returnCapacity, FlightFareRules.PremiumEconomy) ? "seat-premium" : "seat-standard";
+                                                            <button type="button" class="admin-visual-seat @seatCabin @(allowed ? "admin-seat-allowed" : "admin-seat-other-cabin") @(occupied ? "admin-seat-occupied" : "") @(string.Equals(passenger.ReturnSeatNumber, number, StringComparison.OrdinalIgnoreCase) ? "admin-seat-current" : "")" data-admin-seat-button data-seat-number="@number" data-seat-target="#admin-seat-@passenger.FlightPassengerId-return" disabled="@(occupied || !allowed)" title="@(occupied ? "Occupied" : allowed ? $"{number} · {FlightFareRules.GetSeatType(number)}" : "Different cabin")">@number</button>
+                                                        }
+                                                        else { <span></span> }
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            <div class="admin-seat-legend"><span><i class="seat-swatch seat-business"></i> Business</span><span><i class="seat-swatch seat-premium"></i> Premium Economy</span><span><i class="seat-swatch seat-standard"></i> Economy</span><span><i class="seat-swatch seat-occupied"></i> Occupied</span></div>
+                        </details>
                     </td>
                 </tr>
             }
@@ -60,3 +125,4 @@
     </div>
 </section>
 </div>
+<script src="~/js/admin-seat-picker.js" asp-append-version="true"></script>

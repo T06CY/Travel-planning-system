@@ -15,8 +15,11 @@ public class AdminFlightsController(
     public async Task<IActionResult> Index(
         string? search,
         FlightStatus? status,
-        DateTime? date)
+        DateTime? date,
+        int page = 1)
     {
+        const int pageSize = 30;
+        page = Math.Max(1, page);
         var query = context.Flights
             .AsNoTracking()
             .Include(f => f.Airline)
@@ -43,13 +46,34 @@ public class AdminFlightsController(
         ViewBag.Search = search;
         ViewBag.Status = status;
         ViewBag.Date = date?.ToString("yyyy-MM-dd");
+        var totalRecords = await query.CountAsync();
+        var totalPages = Math.Max(1, (int)Math.Ceiling(totalRecords / (double)pageSize));
+        page = Math.Min(page, totalPages);
 
-        return View(await query
+        var flights = await query
             .OrderBy(f => f.DepartureTime)
-            .Take(500)
-            .ToListAsync());
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        ViewBag.Page = page;
+        ViewBag.PageSize = pageSize;
+        ViewBag.TotalRecords = totalRecords;
+        ViewBag.TotalPages = totalPages;
+
+        var airports = await context.Airports.AsNoTracking()
+            .Where(a => a.IsActive)
+            .OrderBy(a => a.City)
+            .ToListAsync();
+
+        return View(new AdminFlightIndexViewModel
+        {
+            Flights = flights,
+            Airports = airports
+        });
     }
 
+    [NonAction]
     [HttpGet]
     public async Task<IActionResult> Create()
     {
@@ -58,6 +82,7 @@ public class AdminFlightsController(
         return View(model);
     }
 
+    [NonAction]
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(FlightFormViewModel model)
     {
@@ -82,6 +107,7 @@ public class AdminFlightsController(
         return RedirectToAction(nameof(Index));
     }
 
+    [NonAction]
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
@@ -98,6 +124,7 @@ public class AdminFlightsController(
             DepartureTime = flight.DepartureTime,
             ArrivalTime = flight.ArrivalTime,
             Price = flight.Price,
+            DiscountPercent = flight.DiscountPercent,
             SeatCapacity = flight.SeatCapacity,
             AircraftModel = flight.AircraftModel,
             Status = flight.Status,
@@ -110,6 +137,7 @@ public class AdminFlightsController(
         return View(model);
     }
 
+    [NonAction]
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, FlightFormViewModel model)
     {
@@ -176,11 +204,37 @@ public class AdminFlightsController(
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateStatus(int id, FlightStatus status)
     {
+        if (!Enum.IsDefined(status)) return BadRequest();
         var flight = await context.Flights.FindAsync(id);
         if (flight is null) return NotFound();
         flight.Status = status;
+        flight.IsActive = status != FlightStatus.Cancelled;
         await context.SaveChangesAsync();
         TempData["Message"] = $"{flight.FlightNumber} status changed to {status}.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateInventory(int id, decimal price, int seatCapacity, decimal discountPercent)
+    {
+        var flight = await context.Flights.FindAsync(id);
+        if (flight is null) return NotFound();
+
+        var reservedSeats = Math.Max(0, flight.SeatCapacity - flight.AvailableSeats);
+        if (price <= 0 || discountPercent < 0 || discountPercent > 100 || seatCapacity < reservedSeats || seatCapacity > 600)
+        {
+            TempData["Error"] =
+                $"Price must be positive and capacity must be between {reservedSeats} and 600.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        flight.Price = price;
+        flight.DiscountPercent = discountPercent;
+        flight.SeatCapacity = seatCapacity;
+        flight.AvailableSeats = seatCapacity - reservedSeats;
+        await context.SaveChangesAsync();
+
+        TempData["Message"] = $"{flight.FlightNumber} price and seat capacity updated.";
         return RedirectToAction(nameof(Index));
     }
 
@@ -253,6 +307,7 @@ public class AdminFlightsController(
         flight.DepartureTime = model.DepartureTime;
         flight.ArrivalTime = model.ArrivalTime;
         flight.Price = model.Price;
+        flight.DiscountPercent = model.DiscountPercent;
         flight.SeatCapacity = model.SeatCapacity;
         flight.AircraftModel = model.AircraftModel.Trim();
         if (!string.IsNullOrWhiteSpace(model.FlightImagePath))

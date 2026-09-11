@@ -19,11 +19,71 @@ public class AdminDashboardController : Controller
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> Index()
     {
+        var allAnalyticsFlights = await _context.Flights
+            .AsNoTracking()
+            .Include(f => f.Airline)
+            .ToListAsync();
+        var analyticsFlights = allAnalyticsFlights.Where(f => f.IsActive).ToList();
+        var totalAnalytics = analyticsFlights.Count;
+        var activeFlightIds = analyticsFlights.Select(f => f.FlightId).ToHashSet();
+        var bookedSegments = await _context.FlightBookingSegments
+            .AsNoTracking()
+            .Include(s => s.FlightBooking)
+                .ThenInclude(b => b!.Passengers)
+            .Where(s => s.FlightBooking != null &&
+                        s.FlightBooking.Status != FlightBookingStatus.Cancelled &&
+                        activeFlightIds.Contains(s.FlightId))
+            .ToListAsync();
+        var seatsByCabin = FlightFareRules.CabinClasses
+            .Select(cabin =>
+            {
+                var reserved = bookedSegments
+                    .Where(s => FlightFareRules.Normalize(s.CabinClass) == cabin)
+                    .Sum(s => s.FlightBooking?.Passengers.Count ?? 0);
+                var capacity = analyticsFlights.Sum(f => FlightFareRules.GetCapacity(f.SeatCapacity, cabin));
+                var totalReserved = bookedSegments.Sum(s => s.FlightBooking?.Passengers.Count ?? 0);
+                return new FlightCabinAnalyticsItem
+                {
+                    Label = cabin,
+                    Reserved = reserved,
+                    Capacity = capacity,
+                    Percentage = totalReserved == 0 ? 0 : Math.Round(reserved * 100m / totalReserved, 1)
+                };
+            })
+            .ToList();
+
         var model = new AdminDashboardViewModel
         {
             // =====================================================
             // FLIGHT MANAGEMENT
             // =====================================================
+
+            AverageFlightPrice = totalAnalytics == 0 ? 0 : analyticsFlights.Average(f => f.Price),
+            AvailableFlightSeats = analyticsFlights.Sum(f => f.AvailableSeats),
+            FlightSeatCapacity = analyticsFlights.Sum(f => f.SeatCapacity),
+            DelayedFlights = analyticsFlights.Count(f => f.Status == FlightStatus.Delayed),
+            CancelledFlights = allAnalyticsFlights.Count(f => f.Status == FlightStatus.Cancelled),
+            FlightsByAirline = analyticsFlights
+                .GroupBy(f => f.Airline?.AirlineName ?? "Unknown airline")
+                .OrderByDescending(g => g.Count())
+                .Take(6)
+                .Select(g => new FlightAnalyticsItem
+                {
+                    Label = g.Key,
+                    Count = g.Count(),
+                    Percentage = totalAnalytics == 0 ? 0 : Math.Round(g.Count() * 100m / totalAnalytics, 1)
+                }).ToList(),
+            FlightsByRoute = analyticsFlights
+                .GroupBy(f => $"{f.From} → {f.To}")
+                .OrderByDescending(g => g.Count())
+                .Take(6)
+                .Select(g => new FlightAnalyticsItem
+                {
+                    Label = g.Key,
+                    Count = g.Count(),
+                    Percentage = totalAnalytics == 0 ? 0 : Math.Round(g.Count() * 100m / totalAnalytics, 1)
+                }).ToList(),
+            SeatsByCabin = seatsByCabin,
 
             TotalFlights = await _context.Flights.CountAsync(),
 

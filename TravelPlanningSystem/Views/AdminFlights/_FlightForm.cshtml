@@ -4,31 +4,45 @@
 <div asp-validation-summary="ModelOnly" class="flight-validation"></div>
 <div class="admin-form-grid">
     <div class="flight-field"><label asp-for="FlightNumber"></label><input asp-for="FlightNumber" placeholder="Example: MH601" /><span asp-validation-for="FlightNumber"></span></div>
-    <div class="flight-field"><label asp-for="AirlineId">Airline</label><select asp-for="AirlineId"><option value="">Select airline</option>@foreach(var airline in Model.Airlines){
+    <div class="flight-field">
+        <label asp-for="AirlineId">Airline</label><select asp-for="AirlineId">
+        <option value="">Select airline</option>@foreach(var airline in Model.Airlines){
         <option value="@airline.AirlineId">@airline.AirlineName (@airline.AirlineCode)</option>
     }
-</select><span asp-validation-for="AirlineId"></span></div>
-<div class="flight-field"><label asp-for="From">Origin</label><select asp-for="From"><option value="">Select origin</option>@foreach(var airport in Model.Airports){
+</select><span asp-validation-for="AirlineId"></span>
+</div>
+<div class="flight-field">
+    <label asp-for="From">Origin</label><select asp-for="From">
+    <option value="">Select origin</option>@foreach(var airport in Model.Airports){
     <option value="@airport.City">@airport.City (@airport.AirportCode)</option>
 }
-</select><span asp-validation-for="From"></span></div>
-<div class="flight-field"><label asp-for="To">Destination</label><select asp-for="To"><option value="">Select destination</option>@foreach(var airport in Model.Airports){
+</select><span asp-validation-for="From"></span>
+</div>
+<div class="flight-field">
+    <label asp-for="To">Destination</label><select asp-for="To">
+    <option value="">Select destination</option>@foreach(var airport in Model.Airports){
     <option value="@airport.City">@airport.City (@airport.AirportCode)</option>
 }
-</select><span asp-validation-for="To"></span></div>
+</select><span asp-validation-for="To"></span>
+</div>
 <div class="flight-field"><label asp-for="DepartureTime"></label><input asp-for="DepartureTime" type="datetime-local" /><span asp-validation-for="DepartureTime"></span></div>
 <div class="flight-field"><label asp-for="ArrivalTime"></label><input asp-for="ArrivalTime" type="datetime-local" /><span asp-validation-for="ArrivalTime"></span></div>
 <div class="flight-field"><label asp-for="AircraftModel"></label><input asp-for="AircraftModel" /><span asp-validation-for="AircraftModel"></span></div>
 <div class="flight-field"><label asp-for="SeatCapacity"></label><input asp-for="SeatCapacity" /><span asp-validation-for="SeatCapacity"></span></div>
 <div class="flight-field"><label asp-for="Price">Price per passenger (RM)</label><input asp-for="Price" step="0.01" /><span asp-validation-for="Price"></span></div>
+<div class="flight-field"><label asp-for="DiscountPercent">Discount (%)</label><input asp-for="DiscountPercent" min="0" max="100" step="0.5" /><span asp-validation-for="DiscountPercent"></span><small>Applied after cabin pricing.</small></div>
 <div class="flight-field"><label asp-for="Status"></label><select asp-for="Status" asp-items="Html.GetEnumSelectList<FlightStatus>()"></select></div>
-<div class="flight-field wide-field"><label asp-for="FlightImage">Flight image</label><input asp-for="FlightImage" type="file" accept=".jpg,.jpeg,.png,.webp" /><small>Choose the image for this flight only. JPG, PNG or WebP, maximum 5 MB.</small>@if (!string.IsNullOrWhiteSpace(Model.ExistingFlightImageUrl)){
+<div class="flight-field wide-field">
+    <label asp-for="FlightImage">Flight image</label><input asp-for="FlightImage" type="file" accept=".jpg,.jpeg,.png,.webp" /><small>Choose the image for this flight only. JPG, PNG or WebP, maximum 5 MB.</small>@if (!string.IsNullOrWhiteSpace(Model.ExistingFlightImageUrl)){
     <img class="admin-flight-image-preview" src="@Model.ExistingFlightImageUrl" alt="Current flight image" />
 }
 </div>
-<div class="flight-field wide-field"><label asp-for="FlightImagePath">Flight image <span class="required-mark">*</span></label><select asp-for="FlightImagePath" required><option value="">Select an image</option>@foreach (var image in Model.AvailableFlightImages){
+<div class="flight-field wide-field">
+    <label asp-for="FlightImagePath">Flight image <span class="required-mark">*</span></label><select asp-for="FlightImagePath" required>
+    <option value="">Select an image</option>@foreach (var image in Model.AvailableFlightImages){
     <option value="@image">@System.IO.Path.GetFileName(image)</option>
 }
-</select><span asp-validation-for="FlightImagePath"></span><small>Every flight must have an image. Predefined images are stored in wwwroot/images/flights.</small></div>
+</select><span asp-validation-for="FlightImagePath"></span><small>Every flight must have an image. Predefined images are stored in wwwroot/images/flights.</small>
+</div>
 <label class="checkbox-field"><input asp-for="IsActive" /> Active and visible in flight search</label>
 </div>

@@ -14,35 +14,109 @@
 <link rel="stylesheet" href="~/css/flight.css" asp-append-version="true" />
 
 <section class="flight-hero">
-    <div class="flight-shell">
-        <span class="flight-eyebrow">AIRLINE RESERVATION &amp; MANAGEMENT</span>
-        <h1>Where will you fly next?</h1>
-        <p>Compare future schedules, check available seats and reserve your journey.</p>
+    <div class="flight-shell flight-hero-layout">
+        <div class="flight-hero-copy">
+            <span class="flight-eyebrow">AIRLINE RESERVATION &amp; MANAGEMENT</span>
+            <h1>Where will you fly next?</h1>
+            <p>Check live flight schedules, compare database prices and reserve your journey.</p>
+        </div>
+
+        <div class="flight-hero-scene" aria-hidden="true">
+            <span class="hero-cloud cloud-one"><i></i><i></i></span>
+            <span class="hero-cloud cloud-two"><i></i><i></i></span>
+            <span class="hero-cloud cloud-three"><i></i><i></i></span>
+
+            <svg class="hero-flight-route" viewBox="0 0 460 190" focusable="false">
+                <path d="M24 154 C118 172, 210 34, 430 55" />
+                <circle cx="24" cy="154" r="5" />
+                <circle cx="430" cy="55" r="5" />
+            </svg>
+
+            <div class="hero-plane">
+                <span class="hero-plane-glow"></span>
+                <i class="bi bi-airplane-fill"></i>
+            </div>
+
+            <div class="hero-live-pill">
+                <span></span>
+                LIVE FLIGHT SEARCH
+            </div>
+        </div>
     </div>
 </section>
+
+<div id="flightLoadingOverlay"
+     class="flight-loading-overlay"
+     role="status"
+     aria-live="polite"
+     aria-busy="true"
+     hidden>
+    <div class="flight-loading-card">
+        <div class="flight-loading-sky" aria-hidden="true">
+            <span class="loading-cloud loading-cloud-one"></span>
+            <span class="loading-cloud loading-cloud-two"></span>
+            <div class="loading-flight-line"></div>
+            <i class="bi bi-airplane-fill loading-airplane"></i>
+            <span class="loading-location loading-location-start"></span>
+            <span class="loading-location loading-location-end"></span>
+        </div>
+        <span class="flight-loading-label">TRAVELMATE FLIGHT SEARCH</span>
+        <h2>Finding your best flights</h2>
+        <p id="flightLoadingRoute">Preparing your journey…</p>
+        <div class="flight-loading-progress" aria-hidden="true"><span></span></div>
+        <small id="flightLoadingMessage">Checking live flight schedules…</small>
+    </div>
+</div>
 
 <main class="flight-shell flight-content">
     <form method="get" asp-action="Index" id="flightSearchForm" class="flight-search-card">
         <input type="hidden" name="search" value="true" />
 
+        <div class="flight-search-intro">
+            <div>
+                <span>PLAN YOUR JOURNEY</span>
+                <h2>Search and compare flights</h2>
+                <p>Choose your route and we will check live schedules with local booking availability.</p>
+            </div>
+            <div class="flight-search-benefits" aria-label="Search benefits">
+                <span><i class="bi bi-broadcast"></i> Live status</span>
+                <span><i class="bi bi-shield-check"></i> Secure booking</span>
+            </div>
+        </div>
+
         <div class="trip-type-tabs">
-            <label><input asp-for="TripType" type="radio" value="Return" /> Return</label>
-            <label><input asp-for="TripType" type="radio" value="One-way" /> One-way</label>
-            <label><input asp-for="TripType" type="radio" value="Multi-city" /> Multi-city</label>
+            <label><input asp-for="TripType" type="radio" value="Return" /> <i class="bi bi-arrow-left-right"></i> Return</label>
+            <label><input asp-for="TripType" type="radio" value="One-way" /> <i class="bi bi-arrow-right"></i> One-way</label>
+            <label><input asp-for="TripType" type="radio" value="Multi-city" /> <i class="bi bi-signpost-split"></i> Multi-city</label>
         </div>
 
         <div asp-validation-summary="ModelOnly" class="flight-validation"></div>
 
+        <div id="airportSourceStatus" class="airport-source-status">
+            <i class="bi bi-database"></i>
+            <span>Start typing a city, airport name or IATA code. AeroDataBox suggestions will appear after 3 characters.</span>
+        </div>
+
+        <datalist id="airportSuggestions">
+            @foreach (var airport in cities)
+            {
+                <option value="@airport.City"
+                        data-code="@airport.AirportCode"
+                        label="@airport.AirportCode — @airport.AirportName, @airport.Country">
+                </option>
+            }
+        </datalist>
+
         <div id="normalSearchFields" class="flight-search-grid">
             <div class="flight-field">
                 <label asp-for="From">Leaving from</label>
-                <select asp-for="From">
-                    <option value="">Select origin</option>
-                    @foreach (var airport in cities)
-                    {
-                        <option value="@airport.City">@airport.City (@airport.AirportCode)</option>
-                    }
-                </select>
+                <input asp-for="From"
+                       class="airport-autocomplete"
+                       data-code-target="FromAirportCode"
+                       list="airportSuggestions"
+                       placeholder="Type city or airport code"
+                       autocomplete="off" />
+                <input asp-for="FromAirportCode" type="hidden" />
             </div>
 
             <button type="button" class="route-swap" id="swapRoute" title="Swap route">
@@ -51,13 +125,13 @@
 
             <div class="flight-field">
                 <label asp-for="To">Going to</label>
-                <select asp-for="To">
-                    <option value="">Select destination</option>
-                    @foreach (var airport in cities)
-                    {
-                        <option value="@airport.City">@airport.City (@airport.AirportCode)</option>
-                    }
-                </select>
+                <input asp-for="To"
+                       class="airport-autocomplete"
+                       data-code-target="ToAirportCode"
+                       list="airportSuggestions"
+                       placeholder="Type city or airport code"
+                       autocomplete="off" />
+                <input asp-for="ToAirportCode" type="hidden" />
             </div>
 
             <div class="flight-field">
@@ -91,37 +165,29 @@
                         <strong class="segment-label">Flight @(index + 1)</strong>
                         <div class="flight-field">
                             <label>From</label>
-                            <select name="SegmentFrom">
-                                <option value="">Select origin</option>
-                                @foreach (var airport in cities)
-                                {
-                                    if (Model.SegmentFrom[index] == airport.City)
-                                    {
-                                        <option value="@airport.City" selected>@airport.City (@airport.AirportCode)</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="@airport.City">@airport.City (@airport.AirportCode)</option>
-                                    }
-                                }
-                            </select>
+                            <input name="SegmentFrom"
+                                   value="@Model.SegmentFrom[index]"
+                                   class="airport-autocomplete"
+                                   data-segment-code="from"
+                                   list="airportSuggestions"
+                                   placeholder="Type city or code"
+                                   autocomplete="off" />
+                            <input name="SegmentFromAirportCode"
+                                   type="hidden"
+                                   value="@Model.SegmentFromAirportCode.ElementAtOrDefault(index)" />
                         </div>
                         <div class="flight-field">
                             <label>To</label>
-                            <select name="SegmentTo">
-                                <option value="">Select destination</option>
-                                @foreach (var airport in cities)
-                                {
-                                    if (Model.SegmentTo[index] == airport.City)
-                                    {
-                                        <option value="@airport.City" selected>@airport.City (@airport.AirportCode)</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="@airport.City">@airport.City (@airport.AirportCode)</option>
-                                    }
-                                }
-                            </select>
+                            <input name="SegmentTo"
+                                   value="@Model.SegmentTo[index]"
+                                   class="airport-autocomplete"
+                                   data-segment-code="to"
+                                   list="airportSuggestions"
+                                   placeholder="Type city or code"
+                                   autocomplete="off" />
+                            <input name="SegmentToAirportCode"
+                                   type="hidden"
+                                   value="@Model.SegmentToAirportCode.ElementAtOrDefault(index)" />
                         </div>
                         <div class="flight-field">
                             <label>Date</label>
@@ -160,7 +226,7 @@
             </div>
 
             <button type="submit" class="primary-flight-btn">
-                <i class="bi bi-search"></i> Search flights
+                <i class="bi bi-search"></i> Search live flights
             </button>
         </div>
     </form>
@@ -192,6 +258,14 @@
                         </div>
                     </div>
 
+                    <div class="flight-source-banner @(resultSection.UsesLiveData ? "live" : "fallback")">
+                        <i class="bi @(resultSection.UsesLiveData ? "bi-broadcast" : "bi-database")"></i>
+                        <div>
+                            <strong>@(resultSection.UsesLiveData ? "Live flight schedule/status" : "Database fallback")</strong>
+                            <small>@resultSection.DataSourceMessage</small>
+                        </div>
+                    </div>
+
                     @if (resultSection.Flights.Count == 0)
                     {
                         <div class="empty-flights">
@@ -204,8 +278,37 @@
                         <div class="flight-list">
                             @foreach (var flight in resultSection.Flights)
                             {
+                                if (flight is null) { continue; }
                                 var hours = (int)flight.Duration.TotalHours;
                                 var minutes = flight.Duration.Minutes;
+                                var availabilityPercent = flight.SeatCapacity <= 0
+                                    ? 0
+                                    : Math.Clamp(flight.AvailableSeats * 100 / flight.SeatCapacity, 0, 100);
+                                var availabilityClass = availabilityPercent <= 20
+                                    ? "availability-low"
+                                    : availabilityPercent <= 50 ? "availability-medium" : "availability-high";
+                                var economyAvailable = FlightFareRules.GetDisplayedAvailability(
+                                    flight.SeatCapacity, flight.AvailableSeats, FlightFareRules.Economy);
+                                var premiumAvailable = FlightFareRules.GetDisplayedAvailability(
+                                    flight.SeatCapacity, flight.AvailableSeats, FlightFareRules.PremiumEconomy);
+                                var businessAvailable = FlightFareRules.GetDisplayedAvailability(
+                                    flight.SeatCapacity, flight.AvailableSeats, FlightFareRules.Business);
+                                var economyPrice = FlightFareRules.GetPrice(flight.Price, FlightFareRules.Economy, flight.DiscountPercent);
+                                var premiumPrice = FlightFareRules.GetPrice(flight.Price, FlightFareRules.PremiumEconomy, flight.DiscountPercent);
+                                var businessPrice = FlightFareRules.GetPrice(flight.Price, FlightFareRules.Business, flight.DiscountPercent);
+                                var economyListPrice = FlightFareRules.GetPrice(flight.Price, FlightFareRules.Economy);
+                                var premiumListPrice = FlightFareRules.GetPrice(flight.Price, FlightFareRules.PremiumEconomy);
+                                var businessListPrice = FlightFareRules.GetPrice(flight.Price, FlightFareRules.Business);
+                                var statusClass = flight.Status.ToString().ToLowerInvariant();
+                                var statusIcon = flight.Status switch
+                                {
+                                    FlightStatus.Boarding => "bi-person-walking",
+                                    FlightStatus.Departed => "bi-airplane-engines-fill",
+                                    FlightStatus.Arrived => "bi-check-circle-fill",
+                                    FlightStatus.Delayed => "bi-clock-history",
+                                    FlightStatus.Cancelled => "bi-x-circle-fill",
+                                    _ => "bi-calendar-check-fill"
+                                };
                                 <label class="flight-result-card">
                                     <input class="flight-choice" type="radio"
                                            name="segmentChoice_@sectionIndex"
@@ -213,9 +316,13 @@
                                     <span class="choice-marker"><i class="bi bi-check-lg"></i></span>
 
                                     <span class="airline-block">
+                                        @if (flight.IsRealTimeResult)
+                                        {
+                                            <span class="live-flight-badge">LIVE STATUS</span>
+                                        }
                                         @if (!string.IsNullOrWhiteSpace(flight.FlightLogoUrl ?? flight.Airline?.LogoUrl))
                                         {
-                                            <img src="@(flight.FlightLogoUrl ?? flight.Airline?.LogoUrl)" alt="@flight.Airline.AirlineName" />
+                                            <img src="@(flight.FlightLogoUrl ?? flight.Airline?.LogoUrl)" alt="@(flight.Airline?.AirlineName ?? flight.Airline?.AirlineCode ?? "Airline")" />
                                         }
                                         else
                                         {
@@ -227,8 +334,59 @@
                                     <span class="time-block"><strong>@flight.DepartureTime.ToString("HH:mm")</strong><small>@flight.From</small></span>
                                     <span class="duration-block"><small>@hours h @minutes m</small><span></span><small>Direct</small></span>
                                     <span class="time-block"><strong>@flight.ArrivalTime.ToString("HH:mm")</strong><small>@flight.To</small></span>
-                                    <span class="seat-block"><i class="bi bi-person-check"></i> @flight.AvailableSeats seats</span>
-                                    <span class="price-block"><small>per person</small><strong>RM @flight.Price.ToString("N2")</strong></span>
+                                    <span class="flight-card-meta">
+                                        <span class="flight-status @statusClass"
+                                              role="status"
+                                              aria-label="Flight status: @flight.Status">
+                                            <span class="status-signal" aria-hidden="true"></span>
+                                            <i class="bi @statusIcon" aria-hidden="true"></i>
+                                            <strong>@flight.Status</strong>
+                                        </span>
+                                        <span class="seat-block">
+                                            <span><i class="bi bi-person-check"></i> @flight.AvailableSeats seats left</span>
+                                            <span class="seat-availability-bar @availabilityClass" aria-hidden="true"><i style="width:@availabilityPercent%"></i></span>
+                                        </span>
+                                    </span>
+                                    <span class="price-block">
+                                        @if (flight.DiscountPercent > 0)
+                                        {
+                                            <span class="price-drop-badge"><i class="bi bi-lightning-charge-fill"></i> Price drop · Save @flight.DiscountPercent.ToString("0.##")%</span>
+                                            <small class="price-was">Was RM @economyListPrice.ToString("N2")</small>
+                                        }
+                                        <small>fare from</small>
+                                        <strong>RM @economyPrice.ToString("N2")</strong>
+                                        <span class="fare-select-label">Choose below</span>
+                                    </span>
+
+                                    <span class="fare-options" aria-label="Cabin class choices for @flight.FlightNumber">
+                                        <button type="button" class="fare-option economy"
+                                                data-cabin-class="Economy"
+                                                data-fare-price="@economyPrice"
+                                                disabled="@(economyAvailable < Model.Passengers)">
+                                            <span><i class="bi bi-person"></i> Economy</span>
+                                            <strong>RM @economyPrice.ToString("N2")</strong>
+                                            @if (flight.DiscountPercent > 0) { <small class="fare-savings">Save @flight.DiscountPercent.ToString("0.##")% · Was RM @economyListPrice.ToString("N2")</small> }
+                                            <small>@economyAvailable available · Cabin baggage</small>
+                                        </button>
+                                        <button type="button" class="fare-option premium"
+                                                data-cabin-class="Premium Economy"
+                                                data-fare-price="@premiumPrice"
+                                                disabled="@(premiumAvailable < Model.Passengers)">
+                                            <span><i class="bi bi-stars"></i> Premium Economy</span>
+                                            <strong>RM @premiumPrice.ToString("N2")</strong>
+                                            @if (flight.DiscountPercent > 0) { <small class="fare-savings">Save @flight.DiscountPercent.ToString("0.##")% · Was RM @premiumListPrice.ToString("N2")</small> }
+                                            <small>@premiumAvailable available · Extra comfort</small>
+                                        </button>
+                                        <button type="button" class="fare-option business"
+                                                data-cabin-class="Business"
+                                                data-fare-price="@businessPrice"
+                                                disabled="@(businessAvailable < Model.Passengers)">
+                                            <span><i class="bi bi-briefcase"></i> Business</span>
+                                            <strong>RM @businessPrice.ToString("N2")</strong>
+                                            @if (flight.DiscountPercent > 0) { <small class="fare-savings">Save @flight.DiscountPercent.ToString("0.##")% · Was RM @businessListPrice.ToString("N2")</small> }
+                                            <small>@businessAvailable available · Priority service</small>
+                                        </button>
+                                    </span>
                                 </label>
                             }
                         </div>
@@ -250,7 +408,12 @@
         <div class="flight-welcome-state">
             <i class="bi bi-airplane-engines"></i>
             <h2>Start with your route</h2>
-            <p>Future schedules for domestic and international destinations are ready to search.</p>
+            <p>Search live flight schedules with automatic database fallback.</p>
+            <div class="flight-welcome-features">
+                <span><i class="bi bi-broadcast"></i><strong>Live schedules</strong><small>See the latest flight status</small></span>
+                <span><i class="bi bi-tags"></i><strong>Clear prices</strong><small>Compare fares at a glance</small></span>
+                <span><i class="bi bi-grid-3x3-gap"></i><strong>Choose seats</strong><small>Select seats during booking</small></span>
+            </div>
         </div>
     }
 </main>
@@ -258,17 +421,11 @@
 <template id="segmentTemplate">
     <div class="multi-city-row">
         <strong class="segment-label">Flight</strong>
-        <div class="flight-field"><label>From</label><select name="SegmentFrom"><option value="">Select origin</option>@foreach (var airport in cities){
-            <option value="@airport.City">@airport.City (@airport.AirportCode)</option>
-        }
-    </select></div>
-    <div class="flight-field"><label>To</label><select name="SegmentTo"><option value="">Select destination</option>@foreach (var airport in cities){
-        <option value="@airport.City">@airport.City (@airport.AirportCode)</option>
-    }
-</select></div>
-<div class="flight-field"><label>Date</label><input name="SegmentDate" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" /></div>
-<button type="button" class="remove-segment" title="Remove flight"><i class="bi bi-trash"></i></button>
-</div>
+        <div class="flight-field"><label>From</label><input name="SegmentFrom" class="airport-autocomplete" data-segment-code="from" list="airportSuggestions" placeholder="Type city or code" autocomplete="off" /><input name="SegmentFromAirportCode" type="hidden" /></div>
+        <div class="flight-field"><label>To</label><input name="SegmentTo" class="airport-autocomplete" data-segment-code="to" list="airportSuggestions" placeholder="Type city or code" autocomplete="off" /><input name="SegmentToAirportCode" type="hidden" /></div>
+        <div class="flight-field"><label>Date</label><input name="SegmentDate" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" /></div>
+        <button type="button" class="remove-segment" title="Remove flight"><i class="bi bi-trash"></i></button>
+    </div>
 </template>
 
 @section Scripts {
@@ -280,6 +437,96 @@
             const multi = document.getElementById("multiCityFields");
             const returnField = document.getElementById("returnDateField");
             const rows = document.getElementById("segmentRows");
+            const airportSuggestions = document.getElementById("airportSuggestions");
+            const airportSourceStatus = document.getElementById("airportSourceStatus");
+            let airportSearchTimer = null;
+
+            function getCodeInput(input) {
+                if (input.dataset.codeTarget) {
+                    return document.getElementById(input.dataset.codeTarget);
+                }
+
+                const field = input.closest(".flight-field");
+                const name = input.dataset.segmentCode === "from"
+                    ? "SegmentFromAirportCode"
+                    : "SegmentToAirportCode";
+
+                return field?.querySelector(`input[name="${name}"]`) || null;
+            }
+
+            function matchSelectedAirport(input) {
+                const option = Array.from(airportSuggestions.options)
+                    .find(item => item.value.toLowerCase() === input.value.trim().toLowerCase());
+                const codeInput = getCodeInput(input);
+
+                if (codeInput) {
+                    codeInput.value = option?.dataset.code || "";
+                }
+
+                return Boolean(option);
+            }
+
+            function showAirportSource(source, message) {
+                const live = source === "AeroDataBox";
+                airportSourceStatus.classList.toggle("live", live);
+                airportSourceStatus.classList.toggle("fallback", !live);
+                airportSourceStatus.querySelector("i").className =
+                    live ? "bi bi-broadcast" : "bi bi-database";
+                airportSourceStatus.querySelector("span").textContent = message;
+            }
+
+            async function searchAirports(input) {
+                const term = input.value.trim();
+
+                if (term.length < 3) return;
+
+                try {
+                    const response = await fetch(
+                        `@Url.Action("SearchAirports", "Flight")?term=${encodeURIComponent(term)}`,
+                        { headers: { "Accept": "application/json" } });
+
+                    if (!response.ok) throw new Error("Airport request failed");
+
+                    const result = await response.json();
+                    airportSuggestions.replaceChildren();
+
+                    result.airports.forEach(airport => {
+                        const option = document.createElement("option");
+                        option.value = airport.city;
+                        option.dataset.code = airport.code;
+                        option.label = `${airport.code} — ${airport.name}` +
+                            (airport.country ? `, ${airport.country}` : "");
+                        airportSuggestions.appendChild(option);
+                    });
+
+                    showAirportSource(result.source, result.message);
+                    matchSelectedAirport(input);
+                }
+                catch {
+                    showAirportSource(
+                        "Database",
+                        "Live destination search is unavailable. Using database airports.");
+                }
+            }
+
+            function attachAirportAutocomplete(root) {
+                root.querySelectorAll(".airport-autocomplete").forEach(input => {
+                    if (input.dataset.autocompleteReady === "true") return;
+                    input.dataset.autocompleteReady = "true";
+
+                    input.addEventListener("input", function () {
+                        matchSelectedAirport(input);
+                        clearTimeout(airportSearchTimer);
+                        airportSearchTimer = setTimeout(
+                            () => searchAirports(input),
+                            350);
+                    });
+
+                    input.addEventListener("change", function () {
+                        matchSelectedAirport(input);
+                    });
+                });
+            }
 
             function selectedTripType() {
                 return document.querySelector('input[name="TripType"]:checked')?.value || "Return";
@@ -301,22 +548,80 @@
                     row.querySelector(".remove-segment").style.visibility = rows.children.length <= 2 ? "hidden" : "visible";
                     if (index > 0) {
                         const previousTo = rows.children[index - 1].querySelector('[name="SegmentTo"]');
+                        const previousToCode = rows.children[index - 1].querySelector('[name="SegmentToAirportCode"]');
                         const currentFrom = row.querySelector('[name="SegmentFrom"]');
-                        previousTo.addEventListener("change", () => currentFrom.value = previousTo.value);
+                        const currentFromCode = row.querySelector('[name="SegmentFromAirportCode"]');
+                        previousTo.onchange = () => {
+                            currentFrom.value = previousTo.value;
+                            currentFromCode.value = previousToCode.value;
+                        };
                     }
                 });
+
+                attachAirportAutocomplete(rows);
             }
 
             tripTypes.forEach(x => x.addEventListener("change", updateTripType));
             document.getElementById("swapRoute").addEventListener("click", function () {
                 const from = document.getElementById("From");
                 const to = document.getElementById("To");
+                const fromCode = document.getElementById("FromAirportCode");
+                const toCode = document.getElementById("ToAirportCode");
                 [from.value, to.value] = [to.value, from.value];
+                [fromCode.value, toCode.value] = [toCode.value, fromCode.value];
             });
             document.getElementById("addSegment").addEventListener("click", function () {
                 if (rows.children.length >= 5) return alert("Maximum 5 flights are allowed.");
                 rows.appendChild(document.getElementById("segmentTemplate").content.cloneNode(true));
                 numberRows();
+            });
+
+            document.getElementById("flightSearchForm").addEventListener("submit", function (event) {
+                const enabledAirportInputs = Array.from(
+                    this.querySelectorAll(".airport-autocomplete:not(:disabled)"));
+                const invalidInput = enabledAirportInputs.find(input => {
+                    const codeInput = getCodeInput(input);
+                    return !input.value.trim() || !codeInput?.value.trim();
+                });
+
+                if (invalidInput) {
+                    event.preventDefault();
+                    invalidInput.focus();
+                    alert("Please type at least 3 characters and select a valid airport from the suggestion list.");
+                    return;
+                }
+
+                if (!this.checkValidity()) return;
+
+                const overlay = document.getElementById("flightLoadingOverlay");
+                const routeText = document.getElementById("flightLoadingRoute");
+                const messageText = document.getElementById("flightLoadingMessage");
+                const type = selectedTripType();
+
+                if (type === "Multi-city") {
+                    const activeRows = Array.from(rows.querySelectorAll(".multi-city-row"));
+                    const firstCity = activeRows[0]?.querySelector('[name="SegmentFrom"]')?.value || "Origin";
+                    const lastCity = activeRows.at(-1)?.querySelector('[name="SegmentTo"]')?.value || "Destination";
+                    routeText.textContent = `${firstCity} → ${lastCity} · ${activeRows.length} flights`;
+                } else {
+                    routeText.textContent = `${document.getElementById("From").value} → ${document.getElementById("To").value}`;
+                }
+
+                overlay.hidden = false;
+                document.body.classList.add("flight-loading-active");
+                this.querySelector('button[type="submit"]')?.setAttribute("disabled", "disabled");
+
+                const loadingMessages = [
+                    "Checking live flight schedules…",
+                    "Comparing available flights…",
+                    "Checking prices and seat availability…",
+                    "Preparing your flight results…"
+                ];
+                let messageIndex = 0;
+                window.setInterval(function () {
+                    messageIndex = (messageIndex + 1) % loadingMessages.length;
+                    messageText.textContent = loadingMessages[messageIndex];
+                }, 1500);
             });
             rows.addEventListener("click", function (event) {
                 const button = event.target.closest(".remove-segment");
@@ -328,27 +633,73 @@
 
             document.getElementById("selectFlightsForm")?.addEventListener("submit", function (event) {
                 this.querySelectorAll('input[name="flightIds"]').forEach(x => x.remove());
+                this.querySelectorAll('input[name="cabinClasses"]').forEach(x => x.remove());
                 const sections = this.querySelectorAll(".result-section");
                 let complete = true;
                 sections.forEach(section => {
                     const selected = section.querySelector(".flight-choice:checked");
-                    if (!selected) complete = false;
+                    const selectedCard = selected?.closest(".flight-result-card");
+                    const selectedFare = selectedCard?.querySelector(".fare-option.active:not(:disabled)");
+                    if (!selected || !selectedFare) complete = false;
                     else {
                         const hidden = document.createElement("input");
                         hidden.type = "hidden";
                         hidden.name = "flightIds";
                         hidden.value = selected.value;
                         this.appendChild(hidden);
+
+                        const cabin = document.createElement("input");
+                        cabin.type = "hidden";
+                        cabin.name = "cabinClasses";
+                        cabin.value = selectedFare.dataset.cabinClass;
+                        this.appendChild(cabin);
                     }
                 });
                 if (!complete) {
                     event.preventDefault();
-                    alert("Please select one flight for every segment.");
+                    alert("Please select one flight and cabin class for every segment.");
                 }
             });
 
+            function activateDefaultFare(card) {
+                if (card.querySelector(".fare-option.active:not(:disabled)")) return;
+                card.querySelectorAll(".fare-option").forEach(option => option.classList.remove("active"));
+                const defaultFare = card.querySelector('.fare-option[data-cabin-class="Economy"]:not(:disabled)') ||
+                    card.querySelector(".fare-option:not(:disabled)");
+                defaultFare?.classList.add("active");
+            }
+
+            document.querySelectorAll(".flight-choice").forEach(choice => {
+                choice.addEventListener("change", function () {
+                    if (choice.checked) activateDefaultFare(choice.closest(".flight-result-card"));
+                });
+            });
+
+            document.querySelectorAll(".fare-option").forEach(option => {
+                option.addEventListener("click", function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (option.disabled) return;
+
+                    const card = option.closest(".flight-result-card");
+                    const choice = card.querySelector(".flight-choice");
+                    card.querySelectorAll(".fare-option").forEach(item => item.classList.remove("active"));
+                    option.classList.add("active");
+                    choice.checked = true;
+                    choice.dispatchEvent(new Event("change", { bubbles: true }));
+                });
+            });
+
             updateTripType();
+            attachAirportAutocomplete(document);
             numberRows();
+        });
+
+        window.addEventListener("pageshow", function () {
+            const overlay = document.getElementById("flightLoadingOverlay");
+            if (overlay) overlay.hidden = true;
+            document.body.classList.remove("flight-loading-active");
+            document.querySelector('#flightSearchForm button[type="submit"]')?.removeAttribute("disabled");
         });
     </script>
 }

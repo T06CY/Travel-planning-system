@@ -1,17 +1,53 @@
 @model TravelPlanningSystem.ViewModels.FlightBookingCreateViewModel
 @using System
+@using TravelPlanningSystem.Models
 
 @{
     ViewData["Title"] = "Passenger Details & Checkout";
+    var farePerPassenger = Model.Flights
+        .Select((flight, index) => FlightFareRules.GetPrice(
+            flight.Price,
+            Model.CabinClasses.ElementAtOrDefault(index),
+            flight.DiscountPercent))
+        .Sum();
+    var outboundCabin = FlightFareRules.Normalize(Model.CabinClasses.ElementAtOrDefault(0));
+    var returnCabin = FlightFareRules.Normalize(Model.CabinClasses.ElementAtOrDefault(1));
 }
 
 <link rel="stylesheet" href="~/css/flight.css" asp-append-version="true" />
 
 <style>
-    .payment-option-card { border: 2px solid #e2e8f0; border-radius: 12px; padding: 14px 18px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 12px; }
-    .payment-option-card:hover { border-color: #4158ff; background: #f8fafc; }
-    .payment-option-card input:checked + label { color: #4158ff; font-weight: 700; }
-    .addon-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .payment-option-card {
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 14px 18px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+        .payment-option-card:hover {
+            border-color: #4158ff;
+            background: #f8fafc;
+        }
+
+        .payment-option-card input:checked + label {
+            color: #4158ff;
+            font-weight: 700;
+        }
+
+    .addon-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 </style>
 
 <main class="flight-shell booking-page">
@@ -28,15 +64,39 @@
         @Html.AntiForgeryToken()
         <input asp-for="TripType" type="hidden" />
         <input asp-for="PassengerCount" type="hidden" id="flightPassengerCount" />
-        <input type="hidden" id="flightBaseFarePerPax" value="@(Model.Flights.Sum(f => f.Price))" />
+        <input type="hidden" id="flightBaseFarePerPax" value="@farePerPassenger.ToString(System.Globalization.CultureInfo.InvariantCulture)" />
 
         @foreach (var id in Model.FlightIds)
         {
             <input name="FlightIds" type="hidden" value="@id" />
         }
+        @foreach (var cabinClass in Model.CabinClasses)
+        {
+            <input name="CabinClasses" type="hidden" value="@cabinClass" />
+        }
 
         <div class="booking-main-column">
             <div asp-validation-summary="All" class="flight-validation"></div>
+
+            <section class="booking-fare-overview" aria-label="Selected fares">
+                <div class="booking-fare-heading">
+                    <span><i class="bi bi-check-circle-fill"></i></span>
+                    <div><strong>Your selected fares</strong><small>Cabin and price are confirmed for each flight.</small></div>
+                </div>
+                <div class="booking-fare-list">
+                    @for (var fareIndex = 0; fareIndex < Model.Flights.Count; fareIndex++)
+                    {
+                        var fareFlight = Model.Flights[fareIndex];
+                        var cabinClass = FlightFareRules.Normalize(Model.CabinClasses.ElementAtOrDefault(fareIndex));
+                        var farePrice = FlightFareRules.GetPrice(fareFlight.Price, cabinClass, fareFlight.DiscountPercent);
+                        <div>
+                            <span>Flight @(fareIndex + 1) · @fareFlight.FlightNumber</span>
+                            <strong>@cabinClass</strong>
+                            <small>@fareFlight.From → @fareFlight.To · RM @farePrice.ToString("N2") / pax</small>
+                        </div>
+                    }
+                </div>
+            </section>
 
             <!-- 1. 联系人资料 -->
             <section class="booking-form-card">
@@ -143,12 +203,14 @@
             }
 
             <!-- 3. 机舱选座 -->
-            <section class="booking-form-card simple-seat-picker" id="seatPicker">
+            <section class="booking-form-card simple-seat-picker" id="seatPicker"
+                     data-outbound-cabin="@outboundCabin"
+                     data-return-cabin="@returnCabin">
                 <div class="card-heading">
                     <i class="bi bi-grid-3x3-gap-fill"></i>
                     <div>
                         <h2>Choose a seat</h2>
-                        <p>Select one available seat for each passenger before confirming.</p>
+                        <p>Select seats inside your chosen cabin: outbound <strong>@outboundCabin</strong>@(string.Equals(Model.TripType, "Return", StringComparison.OrdinalIgnoreCase) ? $", return {returnCabin}" : "").</p>
                     </div>
                 </div>
 
@@ -171,17 +233,21 @@
                 }
 
                 <div class="seat-picker-legend">
-                    <span><i class="seat-swatch seat-premium"></i> Front / preferred</span>
-                    <span><i class="seat-swatch seat-standard"></i> Standard</span>
+                    <span><i class="seat-swatch seat-business"></i> Business</span>
+                    <span><i class="seat-swatch seat-premium"></i> Premium Economy</span>
+                    <span><i class="seat-swatch seat-standard"></i> Economy</span>
                     <span><i class="seat-swatch seat-selected"></i> Selected</span>
                     <span><i class="seat-swatch seat-occupied"></i> Occupied</span>
                 </div>
+                <div class="seat-type-guide"><i class="bi bi-info-circle"></i><span><strong>Seat position:</strong> A/F window · B/E middle · C/D aisle</span></div>
 
                 <div class="simple-aircraft-map" data-seat-leg-map="outbound">
                     <div class="simple-aircraft-front"><i class="bi bi-airplane-fill"></i> FRONT</div>
                     <div class="simple-seat-labels"><span>A</span><span>B</span><span>C</span><b></b><span>D</span><span>E</span><span>F</span></div>
                     <div class="simple-seat-grid">
-                        @{ var rowCount = (int)Math.Ceiling(Model.SeatCapacity / 6m); }
+                        @{
+                            var rowCount = (int)Math.Ceiling(Model.SeatCapacity / 6m);
+                        }
                         @for (var row = 1; row <= rowCount; row++)
                         {
                             <div class="simple-seat-row">
@@ -198,12 +264,21 @@
                                     {
                                         var occupied = Model.OccupiedSeats.Any(seat =>
                                             string.Equals(seat, seatNumber, StringComparison.OrdinalIgnoreCase));
-                                        var seatClass = row <= 5 ? "seat-premium" : "seat-standard";
+                                        var cabinName = FlightFareRules.IsSeatInCabin(seatNumber, Model.SeatCapacity, FlightFareRules.Business)
+                                            ? FlightFareRules.Business
+                                            : FlightFareRules.IsSeatInCabin(seatNumber, Model.SeatCapacity, FlightFareRules.PremiumEconomy)
+                                                ? FlightFareRules.PremiumEconomy
+                                                : FlightFareRules.Economy;
+                                        var seatClass = cabinName == FlightFareRules.Business
+                                            ? "seat-business"
+                                            : cabinName == FlightFareRules.PremiumEconomy ? "seat-premium" : "seat-standard";
                                         <button type="button"
                                                 class="visual-seat @seatClass @(occupied ? "seat-occupied" : "")"
                                                 data-seat-number="@seatNumber"
+                                                data-seat-cabin="@cabinName"
+                                                data-seat-type="@FlightFareRules.GetSeatType(seatNumber)"
                                                 disabled="@occupied"
-                                                title="@(occupied ? "Occupied" : $"Select seat {seatNumber}")">
+                                                title="@(occupied ? "Occupied" : $"{cabinName} seat {seatNumber}")">
                                             @seatNumber
                                         </button>
                                     }
@@ -303,6 +378,8 @@
             @for (var index = 0; index < Model.Flights.Count; index++)
             {
                 var flight = Model.Flights[index];
+                var cabinClass = FlightFareRules.Normalize(Model.CabinClasses.ElementAtOrDefault(index));
+                var cabinPrice = FlightFareRules.GetPrice(flight.Price, cabinClass, flight.DiscountPercent);
                 <div class="summary-segment">
                     <div class="summary-segment-top">
                         <span>Flight @(index + 1)</span>
@@ -310,7 +387,8 @@
                     </div>
                     <h3>@flight.From <i class="bi bi-arrow-right"></i> @flight.To</h3>
                     <p>@flight.DepartureTime.ToString("ddd, dd MMM yyyy · HH:mm")</p>
-                    <small>@flight.Airline?.AirlineName · RM @flight.Price.ToString("N2") per person</small>
+                    <span class="summary-cabin-class"><i class="bi bi-stars"></i> @cabinClass</span>
+                    <small>@flight.Airline?.AirlineName · RM @cabinPrice.ToString("N2") per person</small>
                 </div>
             }
 
@@ -318,7 +396,7 @@
 
             <div class="d-flex justify-content-between text-muted small mb-2">
                 <span>Base Airfare (@Model.PassengerCount pax)</span>
-                <strong class="text-dark" id="flightBaseTotalText">RM @((Model.Flights.Sum(f => f.Price) * Model.PassengerCount).ToString("N2"))</strong>
+                <strong class="text-dark" id="flightBaseTotalText">RM @((farePerPassenger * Model.PassengerCount).ToString("N2"))</strong>
             </div>
 
             <div class="d-flex justify-content-between text-primary small mb-2" id="baggageSummaryRow" style="display: none;">
@@ -370,7 +448,7 @@
 {
     <partial name="_ValidationScriptsPartial" />
     <script src="~/js/flight-seat-picker.js" asp-append-version="true"></script>
-    
+
     <!-- 实时计费与优惠核算脚本 -->
     <script>
         const paxCount = parseInt(document.getElementById('flightPassengerCount')?.value) || 1;
@@ -378,156 +456,156 @@
         let flightDiscount = 0;
 
         function calculateFlightTotal() {
-            const baseTotal = paxCount * baseFarePerPax;
+        const baseTotal = paxCount * baseFarePerPax;
 
-            // 行李费
-            const baggageSelect = document.getElementById('flightBaggageOption');
-            const selectedOption = baggageSelect.options[baggageSelect.selectedIndex];
-            const bagPricePerPax = parseFloat(selectedOption.getAttribute('data-price') || 0);
-            document.getElementById('flightBaggagePrice').value = bagPricePerPax;
-            const baggageTotal = bagPricePerPax * paxCount;
+        // 行李费
+        const baggageSelect = document.getElementById('flightBaggageOption');
+        const selectedOption = baggageSelect.options[baggageSelect.selectedIndex];
+        const bagPricePerPax = parseFloat(selectedOption.getAttribute('data-price') || 0);
+        document.getElementById('flightBaggagePrice').value = bagPricePerPax;
+        const baggageTotal = bagPricePerPax * paxCount;
 
-            const bagRow = document.getElementById('baggageSummaryRow');
-            if (baggageTotal > 0) {
-                bagRow.style.display = 'flex';
-                document.getElementById('baggageSummaryText').innerText = '+ RM ' + baggageTotal.toFixed(2);
-            } else {
-                bagRow.style.display = 'none';
-            }
+        const bagRow = document.getElementById('baggageSummaryRow');
+        if (baggageTotal > 0) {
+        bagRow.style.display = 'flex';
+        document.getElementById('baggageSummaryText').innerText = '+ RM ' + baggageTotal.toFixed(2);
+        } else {
+        bagRow.style.display = 'none';
+        }
 
-            // 保险费
-            const hasInsurance = document.getElementById('chkFlightInsurance').checked;
-            const insuranceTotal = hasInsurance ? (18.00 * paxCount) : 0;
-            const insRow = document.getElementById('insuranceSummaryRow');
-            if (insuranceTotal > 0) {
-                insRow.style.display = 'flex';
-                document.getElementById('insuranceSummaryText').innerText = '+ RM ' + insuranceTotal.toFixed(2);
-            } else {
-                insRow.style.display = 'none';
-            }
+        // 保险费
+        const hasInsurance = document.getElementById('chkFlightInsurance').checked;
+        const insuranceTotal = hasInsurance ? (18.00 * paxCount) : 0;
+        const insRow = document.getElementById('insuranceSummaryRow');
+        if (insuranceTotal > 0) {
+        insRow.style.display = 'flex';
+        document.getElementById('insuranceSummaryText').innerText = '+ RM ' + insuranceTotal.toFixed(2);
+        } else {
+        insRow.style.display = 'none';
+        }
 
-            // 优惠码
-            const promo = document.getElementById('flightPromoInput').value.trim().toUpperCase();
-            if (promo === 'TRAVEL2026') {
-                flightDiscount = baseTotal * 0.15;
-            } else if (promo === 'FLY50') {
-                flightDiscount = Math.min(baseTotal, 50.00);
-            } else if (promo === 'PROMO10') {
-                flightDiscount = Math.min(baseTotal, 10.00);
-            } else {
-                flightDiscount = 0;
-            }
+        // 优惠码
+        const promo = document.getElementById('flightPromoInput').value.trim().toUpperCase();
+        if (promo === 'TRAVEL2026') {
+        flightDiscount = baseTotal * 0.15;
+        } else if (promo === 'FLY50') {
+        flightDiscount = Math.min(baseTotal, 50.00);
+        } else if (promo === 'PROMO10') {
+        flightDiscount = Math.min(baseTotal, 10.00);
+        } else {
+        flightDiscount = 0;
+        }
 
-            const discRow = document.getElementById('flightDiscountRow');
-            if (flightDiscount > 0) {
-                discRow.style.display = 'flex';
-                document.getElementById('flightDiscountText').innerText = '- RM ' + flightDiscount.toFixed(2);
-            } else {
-                discRow.style.display = 'none';
-            }
+        const discRow = document.getElementById('flightDiscountRow');
+        if (flightDiscount > 0) {
+        discRow.style.display = 'flex';
+        document.getElementById('flightDiscountText').innerText = '- RM ' + flightDiscount.toFixed(2);
+        } else {
+        discRow.style.display = 'none';
+        }
 
-            const grandTotal = Math.max(0, baseTotal + baggageTotal + insuranceTotal - flightDiscount);
-            document.getElementById('flightGrandTotalText').innerText = 'RM ' + grandTotal.toFixed(2);
+        const grandTotal = Math.max(0, baseTotal + baggageTotal + insuranceTotal - flightDiscount);
+        document.getElementById('flightGrandTotalText').innerText = 'RM ' + grandTotal.toFixed(2);
         }
 
         document.getElementById('applyFlightPromoBtn')?.addEventListener('click', function () {
-            const promo = document.getElementById('flightPromoInput').value.trim().toUpperCase();
-            const msg = document.getElementById('flightPromoMessage');
-            if (promo === 'TRAVEL2026') {
-                msg.className = 'small d-block mt-1 text-success';
-                msg.innerText = 'Promo applied: 15% OFF flight fare!';
-            } else if (promo === 'FLY50') {
-                msg.className = 'small d-block mt-1 text-success';
-                msg.innerText = 'Promo applied: RM 50.00 OFF!';
-            } else if (promo === 'PROMO10') {
-                msg.className = 'small d-block mt-1 text-success';
-                msg.innerText = 'Promo applied: RM 10.00 OFF!';
-            } else {
-                msg.className = 'small d-block mt-1 text-danger';
-                msg.innerText = 'Invalid or expired flight promo code.';
-            }
-            calculateFlightTotal();
+        const promo = document.getElementById('flightPromoInput').value.trim().toUpperCase();
+        const msg = document.getElementById('flightPromoMessage');
+        if (promo === 'TRAVEL2026') {
+        msg.className = 'small d-block mt-1 text-success';
+        msg.innerText = 'Promo applied: 15% OFF flight fare!';
+        } else if (promo === 'FLY50') {
+        msg.className = 'small d-block mt-1 text-success';
+        msg.innerText = 'Promo applied: RM 50.00 OFF!';
+        } else if (promo === 'PROMO10') {
+        msg.className = 'small d-block mt-1 text-success';
+        msg.innerText = 'Promo applied: RM 10.00 OFF!';
+        } else {
+        msg.className = 'small d-block mt-1 text-danger';
+        msg.innerText = 'Invalid or expired flight promo code.';
+        }
+        calculateFlightTotal();
         });
 
         document.addEventListener('DOMContentLoaded', calculateFlightTotal);
 
         document.addEventListener('DOMContentLoaded', function () {
-            const namePattern = /^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ' -]{1,79}$/;
-            const genericDocumentPattern = /^[A-Za-z0-9]{6,30}$/;
-            const malaysianDocumentPattern = /^(\d{12}|[A-Za-z]\d{8})$/;
+        const namePattern = /^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ' -]{1,79}$/;
+        const genericDocumentPattern = /^[A-Za-z0-9]{6,30}$/;
+        const malaysianDocumentPattern = /^(\d{12}|[A-Za-z]\d{8})$/;
 
-            function setFieldError(field, message) {
-                const container = field.closest('.flight-field');
-                const messageElement = container?.querySelector('[data-valmsg-for]');
-                if (!messageElement) return;
+        function setFieldError(field, message) {
+        const container = field.closest('.flight-field');
+        const messageElement = container?.querySelector('[data-valmsg-for]');
+        if (!messageElement) return;
 
-                messageElement.textContent = message;
-                messageElement.classList.toggle('field-validation-error', Boolean(message));
-                messageElement.classList.toggle('field-validation-valid', !message);
-                field.setAttribute('aria-invalid', message ? 'true' : 'false');
-            }
+        messageElement.textContent = message;
+        messageElement.classList.toggle('field-validation-error', Boolean(message));
+        messageElement.classList.toggle('field-validation-valid', !message);
+        field.setAttribute('aria-invalid', message ? 'true' : 'false');
+        }
 
-            function calculateAge(dateOfBirth) {
-                const today = new Date();
-                let age = today.getFullYear() - dateOfBirth.getFullYear();
-                const birthdayPassed = today.getMonth() > dateOfBirth.getMonth() ||
-                    (today.getMonth() === dateOfBirth.getMonth() && today.getDate() >= dateOfBirth.getDate());
-                if (!birthdayPassed) age--;
-                return age;
-            }
+        function calculateAge(dateOfBirth) {
+        const today = new Date();
+        let age = today.getFullYear() - dateOfBirth.getFullYear();
+        const birthdayPassed = today.getMonth() > dateOfBirth.getMonth() ||
+        (today.getMonth() === dateOfBirth.getMonth() && today.getDate() >= dateOfBirth.getDate());
+        if (!birthdayPassed) age--;
+        return age;
+        }
 
-            function validatePassengerField(field) {
-                const name = field.name || '';
-                const value = field.value.trim();
-                let message = '';
+        function validatePassengerField(field) {
+        const name = field.name || '';
+        const value = field.value.trim();
+        let message = '';
 
-                if (name.endsWith('.FirstName') || name.endsWith('.LastName')) {
-                    if (!value) message = 'This field is required.';
-                    else if (!namePattern.test(value)) message = 'Use 2–80 letters, spaces, apostrophes or hyphens only.';
-                } else if (name.endsWith('.Nationality')) {
-                    if (!value) message = 'Nationality is required.';
-                } else if (name.endsWith('.PassportNumber')) {
-                    const nationality = field.closest('.passenger-card')?.querySelector('[name$=".Nationality"]')?.value.trim() || '';
-                    const pattern = nationality.toLowerCase() === 'malaysian' ? malaysianDocumentPattern : genericDocumentPattern;
-                    if (!value) message = 'Passport or ID number is required.';
-                    else if (!pattern.test(value)) {
-                        message = nationality.toLowerCase() === 'malaysian'
-                            ? 'Use a 12-digit MyKad number or a passport number with 1 letter followed by 8 digits.'
-                            : 'Use 6–30 letters and numbers only.';
-                    }
-                } else if (name.endsWith('.DateOfBirth')) {
-                    if (!value) message = 'Date of birth is required.';
-                    else {
-                        const dateOfBirth = new Date(`${value}T00:00:00`);
-                        const age = calculateAge(dateOfBirth);
-                        const passengerType = field.closest('.passenger-card')?.querySelector('[name$=".PassengerType"]')?.value;
-                        if (dateOfBirth >= new Date(new Date().toDateString())) message = 'Date of birth must be before today.';
-                        else if (passengerType === 'Adult' && age < 12) message = 'Adult passengers must be at least 12 years old.';
-                        else if (passengerType === 'Child' && (age < 2 || age > 11)) message = 'Child passengers must be 2 to 11 years old.';
-                    }
-                } else if (name.endsWith('.PassengerType')) {
-                    const dateField = field.closest('.passenger-card')?.querySelector('[name$=".DateOfBirth"]');
-                    if (dateField?.value) validatePassengerField(dateField);
-                }
+        if (name.endsWith('.FirstName') || name.endsWith('.LastName')) {
+        if (!value) message = 'This field is required.';
+        else if (!namePattern.test(value)) message = 'Use 2–80 letters, spaces, apostrophes or hyphens only.';
+        } else if (name.endsWith('.Nationality')) {
+        if (!value) message = 'Nationality is required.';
+        } else if (name.endsWith('.PassportNumber')) {
+        const nationality = field.closest('.passenger-card')?.querySelector('[name$=".Nationality"]')?.value.trim() || '';
+        const pattern = nationality.toLowerCase() === 'malaysian' ? malaysianDocumentPattern : genericDocumentPattern;
+        if (!value) message = 'Passport or ID number is required.';
+        else if (!pattern.test(value)) {
+        message = nationality.toLowerCase() === 'malaysian'
+        ? 'Use a 12-digit MyKad number or a passport number with 1 letter followed by 8 digits.'
+        : 'Use 6–30 letters and numbers only.';
+        }
+        } else if (name.endsWith('.DateOfBirth')) {
+        if (!value) message = 'Date of birth is required.';
+        else {
+        const dateOfBirth = new Date(`${value}T00:00:00`);
+        const age = calculateAge(dateOfBirth);
+        const passengerType = field.closest('.passenger-card')?.querySelector('[name$=".PassengerType"]')?.value;
+        if (dateOfBirth >= new Date(new Date().toDateString())) message = 'Date of birth must be before today.';
+        else if (passengerType === 'Adult' && age < 12) message = 'Adult passengers must be at least 12 years old.';
+        else if (passengerType === 'Child' && (age < 2 || age > 11)) message = 'Child passengers must be 2 to 11 years old.';
+        }
+        } else if (name.endsWith('.PassengerType')) {
+        const dateField = field.closest('.passenger-card')?.querySelector('[name$=".DateOfBirth"]');
+        if (dateField?.value) validatePassengerField(dateField);
+        }
 
-                if (!name.endsWith('.PassengerType')) setFieldError(field, message);
-                return !message;
-            }
+        if (!name.endsWith('.PassengerType')) setFieldError(field, message);
+        return !message;
+        }
 
-            document.querySelectorAll('.passenger-card input, .passenger-card select').forEach(function (field) {
-                if (field.name.endsWith('.FirstName') || field.name.endsWith('.LastName') ||
-                    field.name.endsWith('.PassportNumber') || field.name.endsWith('.Nationality') ||
-                    field.name.endsWith('.DateOfBirth') || field.name.endsWith('.PassengerType')) {
-                    field.addEventListener('blur', function () { validatePassengerField(field); });
-                    field.addEventListener('change', function () {
-                        validatePassengerField(field);
-                        if (field.name.endsWith('.Nationality')) {
-                            const passport = field.closest('.passenger-card')?.querySelector('[name$=".PassportNumber"]');
-                            if (passport) validatePassengerField(passport);
-                        }
-                    });
-                }
-            });
+        document.querySelectorAll('.passenger-card input, .passenger-card select').forEach(function (field) {
+        if (field.name.endsWith('.FirstName') || field.name.endsWith('.LastName') ||
+        field.name.endsWith('.PassportNumber') || field.name.endsWith('.Nationality') ||
+        field.name.endsWith('.DateOfBirth') || field.name.endsWith('.PassengerType')) {
+        field.addEventListener('blur', function () { validatePassengerField(field); });
+        field.addEventListener('change', function () {
+        validatePassengerField(field);
+        if (field.name.endsWith('.Nationality')) {
+        const passport = field.closest('.passenger-card')?.querySelector('[name$=".PassportNumber"]');
+        if (passport) validatePassengerField(passport);
+        }
+        });
+        }
+        });
         });
     </script>
 }

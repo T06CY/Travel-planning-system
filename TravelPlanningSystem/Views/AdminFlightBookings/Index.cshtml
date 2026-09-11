@@ -9,5 +9,28 @@
         @if(!Model.Any()){<tr><td colspan="7"><div class="empty-flights"><i class="bi bi-journal-x"></i><div><strong>No bookings found</strong></div></div></td></tr>}
         @foreach(var booking in Model){var first=booking.Segments.OrderBy(s=>s.SegmentOrder).FirstOrDefault()?.Flight;var last=booking.Segments.OrderBy(s=>s.SegmentOrder).LastOrDefault()?.Flight;<tr><td><strong>@booking.BookingReference</strong><small class="table-subtext">@booking.BookingDate.ToString("dd MMM yyyy")</small></td><td><strong>@booking.ContactName</strong><small class="table-subtext">@booking.ContactEmail</small></td><td><strong>@first?.From → @last?.To</strong><small class="table-subtext">@booking.TripType · @booking.Segments.Count segment(s)</small></td><td>@booking.Passengers.Count</td><td>RM @booking.TotalAmount.ToString("N2")</td><td><span class="booking-status status-@booking.Status.ToString().ToLowerInvariant()">@booking.Status</span></td><td><a asp-action="Details" asp-route-id="@booking.FlightBookingId" class="secondary-flight-btn small-btn">Manage</a></td></tr>}
         </tbody></table></div>
+        @{ var currentPage = (int?)ViewBag.Page ?? 1; var totalPages = (int?)ViewBag.TotalPages ?? 1; var totalRecords = (int?)ViewBag.TotalRecords ?? 0; var firstRecord = totalRecords == 0 ? 0 : ((currentPage - 1) * 30) + 1; var lastRecord = Math.Min(currentPage * 30, totalRecords); }
+        <div class="admin-pagination-bar">
+            <span>Showing @firstRecord–@lastRecord of @totalRecords bookings</span>
+            @if (totalPages > 1)
+            {
+                <nav class="admin-pagination" aria-label="Booking pages">
+                    <a class="@(currentPage == 1 ? "disabled" : "")" asp-action="Index" asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.Status" asp-route-page="@(currentPage - 1)">Previous</a>
+                    @if (currentPage > 3)
+                    {
+                        <a asp-action="Index" asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.Status" asp-route-page="1">1</a><span class="pagination-ellipsis">…</span>
+                    }
+                    @for (var pageNumber = Math.Max(1, currentPage - 2); pageNumber <= Math.Min(totalPages, currentPage + 2); pageNumber++)
+                    {
+                        <a class="@(pageNumber == currentPage ? "active" : "")" asp-action="Index" asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.Status" asp-route-page="@pageNumber">@pageNumber</a>
+                    }
+                    @if (currentPage < totalPages - 2)
+                    {
+                        <span class="pagination-ellipsis">…</span><a asp-action="Index" asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.Status" asp-route-page="@totalPages">@totalPages</a>
+                    }
+                    <a class="@(currentPage == totalPages ? "disabled" : "")" asp-action="Index" asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.Status" asp-route-page="@(currentPage + 1)">Next</a>
+                </nav>
+            }
+        </div>
     </div>
 </div>

@@ -49,6 +49,9 @@ public class FlightBooking
 
     public DateTime? CancelledAt { get; set; }
 
+    [StringLength(500)]
+    public string? DisruptionMessage { get; set; }
+
     public ICollection<FlightBookingSegment> Segments { get; set; } =
         new List<FlightBookingSegment>();
 

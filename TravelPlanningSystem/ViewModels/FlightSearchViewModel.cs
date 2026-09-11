@@ -8,6 +8,8 @@ public class FlightSearchViewModel
     public string TripType { get; set; } = "Return";
     public string? From { get; set; }
     public string? To { get; set; }
+    public string? FromAirportCode { get; set; }
+    public string? ToAirportCode { get; set; }
 
     [DataType(DataType.Date)]
     public DateTime? DepartureDate { get; set; }
@@ -23,6 +25,8 @@ public class FlightSearchViewModel
 
     public List<string> SegmentFrom { get; set; } = new();
     public List<string> SegmentTo { get; set; } = new();
+    public List<string> SegmentFromAirportCode { get; set; } = new();
+    public List<string> SegmentToAirportCode { get; set; } = new();
     public List<DateTime?> SegmentDate { get; set; } = new();
 
     public List<Airport> Airports { get; set; } = new();
@@ -37,4 +41,7 @@ public class FlightSearchSection
     public string To { get; set; } = string.Empty;
     public DateTime Date { get; set; }
     public List<Flight> Flights { get; set; } = new();
+    public bool UsesLiveData { get; set; }
+    public string DataSourceMessage { get; set; } = string.Empty;
+    public DateTime? LiveCheckedAtUtc { get; set; }
 }

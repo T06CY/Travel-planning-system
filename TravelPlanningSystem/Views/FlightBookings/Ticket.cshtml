@@ -1,6 +1,10 @@
 @model TravelPlanningSystem.Models.FlightBooking
+@using TravelPlanningSystem.Models
 @{
     ViewData["Title"] = "E-Ticket";
+    var insuranceFee = Model.HasTravelInsurance ? 18m * Model.Passengers.Count : 0m;
+    var baggageFee = Math.Max(0m, Model.AddonFee - insuranceFee);
+    var airfareTotal = Math.Max(0m, Model.TotalAmount + Model.DiscountAmount - Model.AddonFee);
 }
 <link rel="stylesheet" href="~/css/flight.css" asp-append-version="true" />
 
@@ -16,7 +20,7 @@
                     var flight = segment.Flight;
                     if (flight is not null)
                     {
-                        <section><div class="ticket-airline"><strong>@flight.Airline?.AirlineName</strong><span>@flight.FlightNumber · @flight.AircraftModel</span></div><div class="ticket-route"><div><strong>@flight.DepartureTime.ToString("HH:mm")</strong><span>@flight.From</span><small>@flight.DepartureTime.ToString("ddd, dd MMM yyyy")</small></div><i class="bi bi-airplane"></i><div><strong>@flight.ArrivalTime.ToString("HH:mm")</strong><span>@flight.To</span><small>@flight.ArrivalTime.ToString("ddd, dd MMM yyyy")</small></div></div></section>
+                        <section><div class="ticket-airline"><strong>@flight.Airline?.AirlineName</strong><span>@flight.FlightNumber · @flight.AircraftModel · @segment.CabinClass</span></div><div class="ticket-route"><div><strong>@flight.DepartureTime.ToString("HH:mm")</strong><span>@flight.From</span><small>@flight.DepartureTime.ToString("ddd, dd MMM yyyy")</small></div><i class="bi bi-airplane"></i><div><strong>@flight.ArrivalTime.ToString("HH:mm")</strong><span>@flight.To</span><small>@flight.ArrivalTime.ToString("ddd, dd MMM yyyy")</small></div></div></section>
                     }
                 }
             </div>
@@ -25,9 +29,21 @@
         <footer>
             @foreach (var passenger in Model.Passengers)
             {
-                <div><span>PASSENGER</span><strong>@passenger.FirstName @passenger.LastName</strong></div><div><span>TYPE</span><strong>@passenger.PassengerType</strong></div><div><span>OUTBOUND SEAT</span><strong>@passenger.SeatNumber</strong></div>@if (Model.TripType == "Return") { <div><span>RETURN SEAT</span><strong>@(passenger.ReturnSeatNumber ?? "Not assigned")</strong></div> }<div><span>MEAL</span><strong>@passenger.MealPreference</strong></div>
+                <div><span>PASSENGER</span><strong>@passenger.FirstName @passenger.LastName</strong></div><div><span>TYPE</span><strong>@passenger.PassengerType</strong></div><div><span>OUTBOUND SEAT</span><strong>@passenger.SeatNumber · @FlightFareRules.GetSeatType(passenger.SeatNumber)</strong></div>@if (Model.TripType == "Return") { <div><span>RETURN SEAT</span><strong>@(passenger.ReturnSeatNumber ?? "Not assigned") · @FlightFareRules.GetSeatType(passenger.ReturnSeatNumber)</strong></div> }<div><span>MEAL</span><strong>@passenger.MealPreference</strong></div>
             }
         </footer>
     </article>
+    <section class="ticket-addons" aria-label="Ticket price and baggage summary">
+        <div class="ticket-addons-heading"><div><span class="flight-eyebrow">TRIP EXTRAS</span><h2>Fare, baggage and protection</h2></div><strong>RM @Model.TotalAmount.ToString("N2")</strong></div>
+        <div class="ticket-addon-grid">
+            <div><span>Flight fare</span><strong>RM @airfareTotal.ToString("N2")</strong></div>
+            <div><span>Baggage</span><strong>RM @baggageFee.ToString("N2")</strong><small>@(string.IsNullOrWhiteSpace(Model.BaggageOption) ? "No extra baggage" : Model.BaggageOption)</small></div>
+            <div><span>Travel protection</span><strong>RM @insuranceFee.ToString("N2")</strong><small>@(Model.HasTravelInsurance ? "Comprehensive cover" : "Not selected")</small></div>
+        </div>
+        @if (Model.DiscountAmount > 0)
+        {
+            <div class="ticket-discount"><span>Discount applied</span><strong>− RM @Model.DiscountAmount.ToString("N2")</strong></div>
+        }
+    </section>
     <p class="ticket-note no-print">Select “Save as PDF” in the print window to download the e-ticket as a PDF file.</p>
 </main>

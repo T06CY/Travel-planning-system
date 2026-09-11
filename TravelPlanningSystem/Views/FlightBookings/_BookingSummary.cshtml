@@ -1,4 +1,10 @@
 @model TravelPlanningSystem.Models.FlightBooking
+@using TravelPlanningSystem.Models
+@{
+    var insuranceFee = Model.HasTravelInsurance ? 18m * Model.Passengers.Count : 0m;
+    var baggageFee = Math.Max(0m, Model.AddonFee - insuranceFee);
+    var airfareTotal = Math.Max(0m, Model.TotalAmount + Model.DiscountAmount - Model.AddonFee);
+}
 
 <section class="booking-form-card booking-detail-card">
     <div class="booking-reference-row">
@@ -22,7 +28,11 @@
                         {
                             <span class="airline-fallback">@flight.Airline?.AirlineCode</span>
                         }
-                        <div><strong>@flight.Airline?.AirlineName</strong><small>@flight.FlightNumber · @flight.AircraftModel</small></div>
+                        <div>
+                            <strong>@flight.Airline?.AirlineName</strong>
+                            <small>@flight.FlightNumber · @flight.AircraftModel</small>
+                            <span class="summary-cabin-class"><i class="bi bi-stars"></i> @segment.CabinClass · RM @segment.PricePerPassenger.ToString("N2") / pax</span>
+                        </div>
                     </div>
                     <div class="detail-route">
                         <div><strong>@flight.DepartureTime.ToString("HH:mm")</strong><span>@flight.From</span><small>@flight.DepartureTime.ToString("dd MMM yyyy")</small></div>
@@ -40,18 +50,33 @@
         <div><span>Total paid</span><strong>RM @Model.TotalAmount.ToString("N2")</strong><small>@Model.Passengers.Count passenger(s)</small></div>
     </div>
 
+    <section class="booking-price-breakdown" aria-label="Fare and add-on price breakdown">
+        <div class="booking-price-heading">
+            <div><span class="flight-eyebrow">PRICE SUMMARY</span><h3>What you paid</h3></div>
+            <span class="booking-price-passengers">@Model.Passengers.Count passenger@(Model.Passengers.Count == 1 ? "" : "s")</span>
+        </div>
+        <div class="price-breakdown-row"><span>Flight fare <small>Cabin fares and selected seats</small></span><strong>RM @airfareTotal.ToString("N2")</strong></div>
+        <div class="price-breakdown-row addon"><span>Baggage <small>@(string.IsNullOrWhiteSpace(Model.BaggageOption) ? "No extra baggage" : Model.BaggageOption)</small></span><strong>+ RM @baggageFee.ToString("N2")</strong></div>
+        <div class="price-breakdown-row addon"><span>Travel protection <small>@(Model.HasTravelInsurance ? "Comprehensive cover" : "Not selected")</small></span><strong>+ RM @insuranceFee.ToString("N2")</strong></div>
+        @if (Model.DiscountAmount > 0)
+        {
+            <div class="price-breakdown-row discount"><span>Discount</span><strong>− RM @Model.DiscountAmount.ToString("N2")</strong></div>
+        }
+        <div class="booking-price-total"><span>Total paid</span><strong>RM @Model.TotalAmount.ToString("N2")</strong></div>
+    </section>
+
     <h3 class="passenger-list-title">Passenger and preferences</h3>
     <div class="passenger-table-wrap">
         <table class="passenger-table">
-            <thead><tr><th>Passenger</th><th>Type</th><th>Travel document</th><th>Outbound seat</th>@if (Model.TripType == "Return") {
+            <thead><tr><th>Passenger</th><th>Type</th><th>Travel document</th><th>Outbound seat / type</th>@if (Model.TripType == "Return") {
                 <th>Return seat</th>
             }
             <th>Meal</th></tr></thead>
             <tbody>
                 @foreach (var passenger in Model.Passengers)
                 {
-                    <tr><td><strong>@passenger.FirstName @passenger.LastName</strong><small>@passenger.Nationality</small></td><td>@passenger.PassengerType</td><td>@passenger.PassportNumber</td><td><span class="seat-pill">@passenger.SeatNumber</span></td>@if (Model.TripType == "Return") {
-                        <td><span class="seat-pill">@(passenger.ReturnSeatNumber ?? "Not assigned")</span></td>
+                    <tr><td><strong>@passenger.FirstName @passenger.LastName</strong><small>@passenger.Nationality</small></td><td>@passenger.PassengerType</td><td>@passenger.PassportNumber</td><td><span class="seat-pill">@passenger.SeatNumber</span><small class="seat-type-detail"><i class="bi bi-layout-sidebar-inset"></i> @FlightFareRules.GetSeatType(passenger.SeatNumber)</small></td>@if (Model.TripType == "Return") {
+                        <td><span class="seat-pill">@(passenger.ReturnSeatNumber ?? "Not assigned")</span><small class="seat-type-detail"><i class="bi bi-layout-sidebar-inset"></i> @FlightFareRules.GetSeatType(passenger.ReturnSeatNumber)</small></td>
                     }
                     <td>@passenger.MealPreference</td></tr>
                 }
@@ -61,6 +86,8 @@
 
     @if (Model.Status == TravelPlanningSystem.Models.FlightBookingStatus.Cancelled)
     {
-        <div class="cancelled-note"><i class="bi bi-info-circle"></i><div><strong>Booking cancelled</strong><p>@Model.CancellationReason</p></div></div>
+        <div class="cancelled-note"><i class="bi bi-info-circle"></i><div><strong>Booking cancelled</strong><p>@(Model.CancellationReason ?? Model.DisruptionMessage)</p>@if (Model.PaymentStatus == "Refunded"){<small>Full refund recorded: RM @Model.TotalAmount.ToString("N2")</small>}</div></div>
     }
+    @if (!string.IsNullOrWhiteSpace(Model.DisruptionMessage) && Model.Status != FlightBookingStatus.Cancelled)
+    { <div class="flight-alert warning"><i class="bi bi-megaphone"></i><div><strong>Flight update</strong><p>@Model.DisruptionMessage</p></div></div> }
 </section>

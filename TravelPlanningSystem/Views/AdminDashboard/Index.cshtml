@@ -206,7 +206,7 @@
         var transTripsCount = DbContext.Trips.Count(t => t.IsActive);
         var transBookingsCount = DbContext.TransportationBookings.Count();
         var transRevenue = DbContext.TransportationBookings.Where(b => b.BookingStatus == "Confirmed").Sum(b => (decimal?)b.TotalAmount) ?? 0m;
-        
+
         var transConfirmed = DbContext.TransportationBookings.Count(b => b.BookingStatus == "Confirmed");
         var transCancelled = DbContext.TransportationBookings.Count(b => b.BookingStatus == "Cancelled");
         var recentTransBookings = DbContext.TransportationBookings
@@ -383,9 +383,9 @@
                 Current statistics for flights and flight bookings.
             </p>
         </div>
-        <a asp-controller="AdminFlights" asp-action="Create" class="dashboard-add-button">
-            <i class="bi bi-plus-lg"></i>
-            Add Flight
+        <a asp-controller="AdminFlights" asp-action="Index" class="dashboard-add-button">
+            <i class="bi bi-sliders"></i>
+            Manage Flights
         </a>
     </div>
 
@@ -423,6 +423,74 @@
             <div class="stat-icon"><i class="bi bi-person-check"></i></div>
         </div>
     </div>
+
+    <section class="dashboard-panel flight-analytics-panel">
+        <div class="dashboard-panel-heading">
+            <div>
+                <h3>Flight analytics</h3>
+                <p>Demand, capacity and schedule analysis for the local booking inventory.</p>
+            </div>
+            <a asp-controller="AdminFlights" asp-action="Index">View flights <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="flight-analytics-kpis">
+            <div><span>Average price</span><strong>RM @Model.AverageFlightPrice.ToString("N2")</strong></div>
+            <div><span>Available seats</span><strong>@Model.AvailableFlightSeats / @Model.FlightSeatCapacity</strong></div>
+            <div><span>Delayed flights</span><strong>@Model.DelayedFlights</strong></div>
+            <div><span>Cancelled flights</span><strong>@Model.CancelledFlights</strong></div>
+        </div>
+        <div class="flight-analytics-columns">
+            <div>
+                <h4>Flights by airline</h4>
+                @if (!Model.FlightsByAirline.Any())
+                {
+                    <p class="analytics-empty">No active flight data yet.</p>
+                }
+                @foreach (var item in Model.FlightsByAirline)
+                {
+                    <div class="analytics-bar-row">
+                        <span>@item.Label</span><strong>@item.Count <small>(@item.Percentage%)</small></strong>
+                        <div><i style="width:@item.Percentage%"></i></div>
+                    </div>
+                }
+            </div>
+            <div>
+                <h4>Top routes</h4>
+                @if (!Model.FlightsByRoute.Any())
+                {
+                    <p class="analytics-empty">Routes appear after customers search or book flights.</p>
+                }
+                @foreach (var item in Model.FlightsByRoute)
+                {
+                    <div class="analytics-route-row"><span>@item.Label</span><strong>@item.Count</strong></div>
+                }
+            </div>
+        </div>
+        @{
+            var cabinReservedTotal = Model.SeatsByCabin.Sum(item => item.Reserved);
+            var cabinColors = new[] { "#315ff4", "#e4a514", "#8a5bd6" };
+            var cabinGradient = cabinReservedTotal == 0
+                ? "conic-gradient(#e7edf6 0 100%)"
+                : $"conic-gradient({cabinColors[0]} 0 {Model.SeatsByCabin[0].Reserved * 100m / cabinReservedTotal:0.##}%, {cabinColors[1]} {Model.SeatsByCabin[0].Reserved * 100m / cabinReservedTotal:0.##}% {(Model.SeatsByCabin[0].Reserved + Model.SeatsByCabin[1].Reserved) * 100m / cabinReservedTotal:0.##}%, {cabinColors[2]} {(Model.SeatsByCabin[0].Reserved + Model.SeatsByCabin[1].Reserved) * 100m / cabinReservedTotal:0.##}% 100%)";
+        }
+        <div class="flight-cabin-report">
+            <div class="flight-cabin-report-heading">
+                <div><h4>Seat demand by cabin</h4><p>Reserved seats across active flights.</p></div>
+                <span class="flight-report-total">@cabinReservedTotal reserved</span>
+            </div>
+            <div class="flight-cabin-report-body">
+                <div class="flight-cabin-pie" style="background:@cabinGradient" role="img" aria-label="Reserved seats by cabin"></div>
+                <div class="flight-cabin-legend">
+                    @for (var cabinIndex = 0; cabinIndex < Model.SeatsByCabin.Count; cabinIndex++)
+                    {
+                        var cabin = Model.SeatsByCabin[cabinIndex];
+                        var cabinPercent = cabinReservedTotal == 0 ? 0 : Math.Round(cabin.Reserved * 100m / cabinReservedTotal, 1);
+                        <div class="flight-cabin-legend-row"><span><i style="background:@cabinColors[cabinIndex]"></i>@cabin.Label</span><strong>@cabin.Reserved <small>(@cabinPercent%)</small></strong><em>@cabin.Available available</em></div>
+                    }
+                </div>
+            </div>
+            <small class="flight-report-note">Capacity is split by cabin using the aircraft seat layout. Cancelled bookings are excluded.</small>
+        </div>
+    </section>
 
     <div class="booking-status-grid mb-4">
         <a asp-controller="AdminFlightBookings" asp-action="Index" asp-route-status="Pending" class="booking-status-card">
@@ -754,15 +822,40 @@
 </div>
 
 <style>
-    .dashboard-heading { display: block !important; width: 100%; margin-bottom: 24px; }
-    .dashboard-heading > div { width: 100%; }
-    .section-heading { width: 100%; }
-    .dashboard-panel { min-width: 0; }
-    .dashboard-panel .table-responsive { width: 100%; overflow-x: auto; }
-    .dashboard-table { width: 100%; }
+    .dashboard-heading {
+        display: block !important;
+        width: 100%;
+        margin-bottom: 24px;
+    }
+
+        .dashboard-heading > div {
+            width: 100%;
+        }
+
+    .section-heading {
+        width: 100%;
+    }
+
+    .dashboard-panel {
+        min-width: 0;
+    }
+
+        .dashboard-panel .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+    .dashboard-table {
+        width: 100%;
+    }
 
     @@media (min-width: 1200px) {
-        .row.g-4 > .col-xl-6 { display: flex; }
-        .row.g-4 > .col-xl-6 > .dashboard-panel { width: 100%; }
+        .row.g-4 > .col-xl-6 {
+            display: flex;
+        }
+
+            .row.g-4 > .col-xl-6 > .dashboard-panel {
+                width: 100%;
+            }
     }
 </style>

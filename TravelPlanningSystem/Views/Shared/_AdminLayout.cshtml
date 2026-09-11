@@ -6,9 +6,9 @@
     var isUserManagement = controller == "AdminUserManagement";
 
     // Flight
-    var isFlightManagement = controller == "AdminFlights" && action != "Create";
-    var isAddFlight = controller == "AdminFlights" && action == "Create";
-    var isFlightBookings = controller == "AdminFlightBookings";
+    var isFlightManagement = controller == "AdminFlights";
+    var isFlightBookings = controller == "AdminFlightBookings" && action != "Weather" && action != "Disrupt";
+    var isFlightWeather = controller == "AdminFlightBookings" && action == "Weather";
 
     // Hotel
     var isRoomManagement = controller == "AdminRooms" && action != "Create";
@@ -93,18 +93,16 @@
                     <span>Flight Management</span>
                 </a>
 
-                <a asp-controller="AdminFlights"
-                   asp-action="Create"
-                   class="@(isAddFlight ? "active" : "")">
-                    <i class="bi bi-plus-circle"></i>
-                    <span>Add Flight</span>
-                </a>
-
                 <a asp-controller="AdminFlightBookings"
                    asp-action="Index"
                    class="@(isFlightBookings ? "active" : "")">
                     <i class="bi bi-calendar2-check"></i>
                     <span>Flight Bookings</span>
+                </a>
+
+                <a asp-controller="AdminFlightBookings" asp-action="Weather" class="@(isFlightWeather ? "active" : "")">
+                    <i class="bi bi-cloud-sun"></i>
+                    <span>Weather & Disruptions</span>
                 </a>
 
                 <!-- HOTEL MANAGEMENT -->

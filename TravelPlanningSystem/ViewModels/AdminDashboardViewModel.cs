@@ -5,6 +5,15 @@ namespace TravelPlanningSystem.ViewModels;
 public class AdminDashboardViewModel
 {
 
+    public decimal AverageFlightPrice { get; set; }
+    public int AvailableFlightSeats { get; set; }
+    public int FlightSeatCapacity { get; set; }
+    public int DelayedFlights { get; set; }
+    public int CancelledFlights { get; set; }
+    public List<FlightAnalyticsItem> FlightsByAirline { get; set; } = new();
+    public List<FlightAnalyticsItem> FlightsByRoute { get; set; } = new();
+    public List<FlightCabinAnalyticsItem> SeatsByCabin { get; set; } = new();
+
     public int TotalFlights { get; set; }
 
     public int ActiveFlights { get; set; }
@@ -79,4 +88,20 @@ public class AdminDashboardViewModel
     // List of staff users for admin overview
     public List<StaffUser> StaffUsers { get; set; }
         = new List<StaffUser>();
+}
+
+public class FlightAnalyticsItem
+{
+    public string Label { get; set; } = string.Empty;
+    public int Count { get; set; }
+    public decimal Percentage { get; set; }
+}
+
+public class FlightCabinAnalyticsItem
+{
+    public string Label { get; set; } = string.Empty;
+    public int Reserved { get; set; }
+    public int Capacity { get; set; }
+    public int Available => Math.Max(0, Capacity - Reserved);
+    public decimal Percentage { get; set; }
 }

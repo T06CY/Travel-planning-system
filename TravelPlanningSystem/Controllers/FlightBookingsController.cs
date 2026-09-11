@@ -16,12 +16,15 @@ public class FlightBookingsController(AppDbContext context) : Controller
     [HttpGet]
     public async Task<IActionResult> Create(
         [FromQuery] List<int> flightIds,
+        [FromQuery] List<string> cabinClasses,
         int passengers = 1,
         string tripType = "One-way")
     {
+        var selectedFlightIds = flightIds.Distinct().Take(5).ToList();
         var model = new FlightBookingCreateViewModel
         {
-            FlightIds = flightIds.Distinct().Take(5).ToList(),
+            FlightIds = selectedFlightIds,
+            CabinClasses = NormalizeCabinClasses(cabinClasses, selectedFlightIds.Count),
             PassengerCount = Math.Clamp(passengers, 1, 9),
             TripType = tripType
         };
@@ -55,6 +58,13 @@ public class FlightBookingsController(AppDbContext context) : Controller
     {
         model.FlightIds = model.FlightIds.Distinct().Take(5).ToList();
         model.PassengerCount = Math.Clamp(model.PassengerCount, 1, 9);
+
+        if (model.CabinClasses.Count != model.FlightIds.Count ||
+            model.CabinClasses.Any(cabinClass => !FlightFareRules.IsValid(cabinClass)))
+        {
+            ModelState.AddModelError(nameof(model.CabinClasses), "Select a valid cabin class for every flight.");
+        }
+        model.CabinClasses = NormalizeCabinClasses(model.CabinClasses, model.FlightIds.Count);
 
         if (model.Passengers.Count != model.PassengerCount)
         {
@@ -149,9 +159,23 @@ public class FlightBookingsController(AppDbContext context) : Controller
                 {
                     ModelState.AddModelError(nameof(model.Passengers), $"Seat {passenger.SeatNumber} is not available on this aircraft.");
                 }
+                else if (!FlightFareRules.IsSeatInCabin(
+                    passenger.SeatNumber,
+                    orderedFlights[0].SeatCapacity,
+                    model.CabinClasses[0]))
+                {
+                    ModelState.AddModelError(nameof(model.Passengers), $"Seat {passenger.SeatNumber} is not in the selected {model.CabinClasses[0]} cabin.");
+                }
                 if (isReturnTrip && !IsValidSeat(passenger.ReturnSeatNumber!, orderedFlights[1].SeatCapacity))
                 {
                     ModelState.AddModelError(nameof(model.Passengers), $"Return seat {passenger.ReturnSeatNumber} is not available on this aircraft.");
+                }
+                else if (isReturnTrip && !FlightFareRules.IsSeatInCabin(
+                    passenger.ReturnSeatNumber!,
+                    orderedFlights[1].SeatCapacity,
+                    model.CabinClasses[1]))
+                {
+                    ModelState.AddModelError(nameof(model.Passengers), $"Return seat {passenger.ReturnSeatNumber} is not in the selected {model.CabinClasses[1]} cabin.");
                 }
             }
             if (isReturnTrip && model.Passengers.GroupBy(p => p.ReturnSeatNumber, StringComparer.OrdinalIgnoreCase).Any(g => g.Count() > 1))
@@ -172,6 +196,43 @@ public class FlightBookingsController(AppDbContext context) : Controller
             f.Status is FlightStatus.Cancelled or FlightStatus.Departed or FlightStatus.Arrived))
         {
             ModelState.AddModelError(string.Empty, "A selected flight no longer has enough available seats.");
+        }
+
+        if (orderedFlights.Count == model.CabinClasses.Count)
+        {
+            var selectedFlightIds = orderedFlights.Select(flight => flight.FlightId).ToList();
+            var cabinBookings = await context.FlightBookingSegments
+                .AsNoTracking()
+                .Where(segment =>
+                    selectedFlightIds.Contains(segment.FlightId) &&
+                    segment.FlightBooking != null &&
+                    segment.FlightBooking.Status != FlightBookingStatus.Cancelled)
+                .Select(segment => new
+                {
+                    segment.FlightId,
+                    segment.CabinClass,
+                    PassengerCount = segment.FlightBooking!.Passengers.Count
+                })
+                .ToListAsync();
+
+            for (var index = 0; index < orderedFlights.Count; index++)
+            {
+                var flight = orderedFlights[index];
+                var cabinClass = model.CabinClasses[index];
+                var alreadyBooked = cabinBookings
+                    .Where(item =>
+                        item.FlightId == flight.FlightId &&
+                        FlightFareRules.Normalize(item.CabinClass) == cabinClass)
+                    .Sum(item => item.PassengerCount);
+                var cabinCapacity = FlightFareRules.GetCapacity(flight.SeatCapacity, cabinClass);
+
+                if (cabinCapacity == 0 || alreadyBooked + model.PassengerCount > cabinCapacity)
+                {
+                    ModelState.AddModelError(
+                        nameof(model.CabinClasses),
+                        $"{cabinClass} is no longer available on flight {flight.FlightNumber}.");
+                }
+            }
         }
 
         var selectedSeats = model.Passengers
@@ -204,10 +265,10 @@ public class FlightBookingsController(AppDbContext context) : Controller
         {
             var returnFlightId = orderedFlights[1].FlightId;
             var occupiedReturnSeats = await context.FlightPassengers
-                .Where(p => selectedReturnSeats.Contains(p.SeatNumber) &&
+                .Where(p => p.ReturnSeatNumber != null && selectedReturnSeats.Contains(p.ReturnSeatNumber) &&
                     p.FlightBooking != null && p.FlightBooking.Status != FlightBookingStatus.Cancelled &&
                     p.FlightBooking.Segments.Any(s => s.FlightId == returnFlightId))
-                .Select(p => p.SeatNumber).Distinct().ToListAsync();
+                .Select(p => p.ReturnSeatNumber!).Distinct().ToListAsync();
 
             if (occupiedReturnSeats.Count > 0)
             {
@@ -223,7 +284,9 @@ public class FlightBookingsController(AppDbContext context) : Controller
         }
 
         // ⭐ 1. 精细费用核算：机票基准票价 + 托运行李额加购 + 航空延误意外险 - 优惠券抵扣
-        decimal flightBaseTotal = orderedFlights.Sum(f => f.Price) * model.PassengerCount;
+        decimal flightBaseTotal = orderedFlights
+            .Select((flight, index) => FlightFareRules.GetPrice(flight.Price, model.CabinClasses[index]))
+            .Sum() * model.PassengerCount;
         decimal baggageTotal = model.BaggagePrice * model.PassengerCount;
         decimal insuranceTotal = model.HasTravelInsurance ? (18.00m * model.PassengerCount) : 0m;
         decimal addonTotal = baggageTotal + insuranceTotal;
@@ -270,7 +333,8 @@ public class FlightBookingsController(AppDbContext context) : Controller
             {
                 FlightId = flight.FlightId,
                 SegmentOrder = index + 1,
-                PricePerPassenger = flight.Price
+                PricePerPassenger = FlightFareRules.GetPrice(flight.Price, model.CabinClasses[index]),
+                CabinClass = model.CabinClasses[index]
             });
         }
 
@@ -429,7 +493,10 @@ public class FlightBookingsController(AppDbContext context) : Controller
             .Select(passenger => passenger.SeatNumber)
             .Distinct()
             .ToListAsync();
-        model.TotalAmount = model.Flights.Sum(f => f.Price) * model.PassengerCount;
+        model.CabinClasses = NormalizeCabinClasses(model.CabinClasses, model.Flights.Count);
+        model.TotalAmount = model.Flights
+            .Select((flight, index) => FlightFareRules.GetPrice(flight.Price, model.CabinClasses[index]))
+            .Sum() * model.PassengerCount;
 
         return model.Flights.Count == model.FlightIds.Count && model.Flights.Count > 0;
     }
@@ -509,6 +576,17 @@ public class FlightBookingsController(AppDbContext context) : Controller
     private static string PhoneFormatMessage(string country) => country == "MY"
         ? "Enter a Malaysian mobile number such as 0123456789."
         : "Enter an international number such as +6581234567.";
+
+    private static List<string> NormalizeCabinClasses(IEnumerable<string>? cabinClasses, int count)
+    {
+        var values = (cabinClasses ?? Enumerable.Empty<string>())
+            .Take(count)
+            .Select(FlightFareRules.Normalize)
+            .ToList();
+
+        while (values.Count < count) values.Add(FlightFareRules.Economy);
+        return values;
+    }
 
     private static bool IsPlaceholder(string value)
     {

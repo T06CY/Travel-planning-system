@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using TravelPlanningSystem.Data;
 using TravelPlanningSystem.Models.Transportation;
+using TravelPlanningSystem.Services;
 
 // 使用别名，避免与 ASP.NET Core 的 Route 路由类命名冲突
 using TransportRoute = TravelPlanningSystem.Models.Transportation.Route;
@@ -10,6 +11,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddMemoryCache();
+builder.Services.Configure<RealTimeFlightOptions>(
+    builder.Configuration.GetSection(RealTimeFlightOptions.SectionName));
+builder.Services.AddHttpClient<IRealTimeFlightService, AeroDataBoxFlightService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(20);
+});
+builder.Services.AddHttpClient<IAirportLookupService, AeroDataBoxAirportService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(15);
+});
 
 // Add cookie authentication to enable simple sign-in for testing
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -35,7 +47,16 @@ using (var scope = app.Services.CreateScope())
 
     try
     {
-        await context.Database.MigrateAsync();
+        try
+        {
+            await context.Database.MigrateAsync();
+        }
+        catch (Exception migrationException)
+        {
+            // Continue to the idempotent compatibility checks below. This keeps
+            // older databases usable even when a migration was partially applied.
+            Console.Error.WriteLine("Database migration warning: " + migrationException.Message);
+        }
 
         // 自动给 HotelRooms / Rooms 表补上缺失的 RoomType 字段（解决 Hotel 报错）
         await context.Database.ExecuteSqlRawAsync(@"
@@ -57,6 +78,20 @@ using (var scope = app.Services.CreateScope())
                 ALTER TABLE [dbo].[HotelReservations]
                     ADD [RewardPointsAwarded] bit NOT NULL
                         CONSTRAINT [DF_HotelReservations_RewardPointsAwarded] DEFAULT 0;
+            END
+
+            IF OBJECT_ID(N'[dbo].[Flights]', N'U') IS NOT NULL
+               AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Flights]') AND name = 'DiscountPercent')
+            BEGIN
+                ALTER TABLE [dbo].[Flights]
+                    ADD [DiscountPercent] decimal(5,2) NOT NULL
+                        CONSTRAINT [DF_Flights_DiscountPercent] DEFAULT 0;
+            END
+
+            IF OBJECT_ID(N'[dbo].[FlightBookings]', N'U') IS NOT NULL
+               AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[FlightBookings]') AND name = 'DisruptionMessage')
+            BEGIN
+                ALTER TABLE [dbo].[FlightBookings] ADD [DisruptionMessage] nvarchar(500) NULL;
             END
         ");
 

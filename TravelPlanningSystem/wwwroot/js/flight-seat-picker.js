@@ -33,8 +33,10 @@
         }
         function inputsFor(leg) { return leg === "return" ? returnInputs : outboundInputs; }
         function inputFor(leg, index) { return inputsFor(leg).find(function (input) { return Number(input.dataset.passengerIndex) === index; }); }
+        function cabinFor(leg) { return leg === "return" ? picker.dataset.returnCabin : picker.dataset.outboundCabin; }
         function refresh() {
             const selected = inputsFor(activeLeg).map(function (input) { return (input.value || "").trim().toUpperCase(); });
+            const activeCabin = cabinFor(activeLeg) || "Economy";
             maps.forEach(function (map) {
                 const visible = map.dataset.seatLegMap === activeLeg;
                 map.hidden = !visible;
@@ -43,9 +45,11 @@
                     const number = (seat.dataset.seatNumber || "").toUpperCase();
                     const mine = selected[activePassenger] === number;
                     const other = selected.some(function (value, index) { return index !== activePassenger && value === number && value !== ""; });
+                    const allowedCabin = seat.dataset.seatCabin === activeCabin;
                     seat.classList.toggle("seat-selected", mine);
                     seat.classList.toggle("seat-taken-by-other", other);
-                    seat.disabled = seat.classList.contains("seat-occupied") || other;
+                    seat.classList.toggle("seat-unavailable-cabin", !allowedCabin);
+                    seat.disabled = seat.classList.contains("seat-occupied") || other || !allowedCabin;
                 });
             });
             passengers.forEach(function (button) {
@@ -59,7 +63,11 @@
             });
             legButtons.forEach(function (button) { button.classList.toggle("active", button.dataset.seatLeg === activeLeg); });
             const current = selected[activePassenger] || "";
-            if (message) message.textContent = current ? "Passenger " + (activePassenger + 1) + " selected " + (activeLeg === "return" ? "return " : "") + "seat " + current + "." : "Passenger " + (activePassenger + 1) + " must select a " + (activeLeg === "return" ? "return " : "") + "seat.";
+            const currentSeat = current ? maps.find(function (map) { return map.dataset.seatLegMap === activeLeg; })?.querySelector('[data-seat-number="' + current + '"]') : null;
+            const seatType = currentSeat?.dataset.seatType || "";
+            if (message) message.textContent = current
+                ? "Passenger " + (activePassenger + 1) + " selected " + (activeLeg === "return" ? "return " : "") + "seat " + current + (seatType ? " (" + seatType + ")" : "") + " in " + activeCabin + "."
+                : "Passenger " + (activePassenger + 1) + " must select a " + activeCabin + " seat for the " + (activeLeg === "return" ? "return" : "outbound") + " flight.";
         }
         passengers.forEach(function (button) { button.addEventListener("click", function () { activePassenger = Number(button.dataset.passengerIndex); refresh(); }); });
         legButtons.forEach(function (button) { button.addEventListener("click", function () { activeLeg = button.dataset.seatLeg; refresh(); }); });

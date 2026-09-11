@@ -20,4 +20,7 @@ public class FlightBookingSegment
 
     [Column(TypeName = "decimal(10,2)")]
     public decimal PricePerPassenger { get; set; }
+
+    [Required, StringLength(30)]
+    public string CabinClass { get; set; } = FlightFareRules.Economy;
 }

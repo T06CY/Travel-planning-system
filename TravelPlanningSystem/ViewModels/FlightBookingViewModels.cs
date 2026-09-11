@@ -8,6 +8,7 @@ public class FlightBookingCreateViewModel
 {
     public List<int> FlightIds { get; set; } = new();
     public List<Flight> Flights { get; set; } = new();
+    public List<string> CabinClasses { get; set; } = new();
 
     [Required]
     public string TripType { get; set; } = "One-way";
@@ -110,6 +111,10 @@ public class FlightFormViewModel
 
     [Range(0.01, 999999)]
     public decimal Price { get; set; }
+
+    [Range(0, 100)]
+    [Display(Name = "Discount (%)")]
+    public decimal DiscountPercent { get; set; }
 
     [Range(1, 600)]
     public int SeatCapacity { get; set; } = 180;

@@ -38,6 +38,9 @@ public class Flight
     [Range(0.01, 999999)]
     public decimal Price { get; set; }
 
+    [Range(0, 100)]
+    public decimal DiscountPercent { get; set; }
+
     [Range(1, 600)]
     public int SeatCapacity { get; set; }
 
@@ -59,4 +62,7 @@ public class Flight
 
     [NotMapped]
     public TimeSpan Duration => ArrivalTime - DepartureTime;
+
+    [NotMapped]
+    public bool IsRealTimeResult { get; set; }
 }

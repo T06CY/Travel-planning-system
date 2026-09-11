@@ -1,4 +1,4 @@
-@model IEnumerable<TravelPlanningSystem.Models.Flight>
+@model TravelPlanningSystem.ViewModels.AdminFlightIndexViewModel
 @using TravelPlanningSystem.Models
 @{
     ViewData["Title"] = "Flight Management";
@@ -6,69 +6,94 @@
 <link rel="stylesheet" href="~/css/flight.css" asp-append-version="true" />
 
 <div class="flight-admin-page">
-    <div class="admin-page-header"><div><span class="flight-eyebrow">AIRLINE OPERATIONS</span><h1>Flight Management</h1><p>Maintain schedules, capacity, pricing, airline images and flight status.</p></div><a asp-action="Create" class="primary-flight-btn"><i class="bi bi-plus-lg"></i> Add flight</a></div>
-    @if (TempData["Message"] is not null)
-    {
-        <div class="flight-alert success">@TempData["Message"]</div>
-    }
+    <div class="admin-page-header"><div><span class="flight-eyebrow">AIRLINE OPERATIONS</span><h1>Flight Management</h1><p>Review flight demand and manage local prices, seat capacity, schedules and availability.</p></div></div>
+    @if (TempData["Message"] is not null) { <div class="flight-alert success">@TempData["Message"]</div> }
+    @if (TempData["Error"] is not null) { <div class="flight-alert danger">@TempData["Error"]</div> }
 
     <div class="admin-flight-card">
         <form method="get" class="admin-filter-bar">
             <div class="flight-field"><label>Search</label><input name="search" value="@ViewBag.Search" placeholder="Flight, airline or route" /></div>
-            <div class="flight-field"><label>Status</label><select name="status"><option value="">All statuses</option>@foreach (var item in Enum.GetValues<FlightStatus>()){if (ViewBag.Status?.ToString() == item.ToString()){
-                <option value="@item" selected>@item</option>
-            }else
-            {
+            <div class="flight-field"><label>Status</label><select name="status"><option value="">All statuses</option>@foreach (var item in Enum.GetValues<FlightStatus>()){if (ViewBag.Status?.ToString() == item.ToString()){<option value="@item" selected>@item</option>}else{<option value="@item">@item</option>}}</select></div>
+            <div class="flight-field"><label>Departure date</label><input type="date" name="date" value="@ViewBag.Date" /></div>
+            <button class="primary-flight-btn" type="submit"><i class="bi bi-search"></i> Filter</button>
+            <a asp-action="Index" class="secondary-flight-btn">Clear</a>
+        </form>
 
-                <option value="@item">@item</option>
-            }
-        }
-    </select></div>
-    <div class="flight-field"><label>Departure date</label><input type="date" name="date" value="@ViewBag.Date" /></div>
-    <button class="primary-flight-btn" type="submit"><i class="bi bi-search"></i> Filter</button>
-    <a asp-action="Index" class="secondary-flight-btn">Clear</a>
-</form>
-
-<div class="admin-table-wrap">
-    <table class="admin-flight-table">
-        <thead><tr><th>Flight</th><th>Route</th><th>Schedule</th><th>Price</th><th>Capacity</th><th>Status</th><th>Actions</th></tr></thead>
-        <tbody>
-            @if (!Model.Any())
+        <div class="admin-table-wrap"><table class="admin-flight-table">
+            <thead><tr><th>Flight</th><th>Route</th><th>Schedule</th><th>Price</th><th>Capacity</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+            @if (!Model.Flights.Any()) { <tr><td colspan="7"><div class="empty-flights"><i class="bi bi-airplane"></i><div><strong>No flights found</strong><p>No local flight schedule matches the current filters.</p></div></div></td></tr> }
+            @foreach (var flight in Model.Flights)
             {
-                <tr><td colspan="7"><div class="empty-flights"><i class="bi bi-airplane"></i><div><strong>No flights found</strong><p>Add a schedule or change the filters.</p></div></div></td></tr>
-            }
-            @foreach (var flight in Model)
-            {
+                var reservedSeats = Math.Max(0, flight.SeatCapacity - flight.AvailableSeats);
+                var demandPercent = flight.SeatCapacity > 0 ? (double)reservedSeats / flight.SeatCapacity * 100 : 0;
+                var highDemand = demandPercent >= 80;
+                var discountedPrice = FlightFareRules.GetPrice(flight.Price, FlightFareRules.Economy, flight.DiscountPercent);
                 <tr>
-                    <td><div class="admin-airline-cell">@if(!string.IsNullOrWhiteSpace(flight.FlightLogoUrl ?? flight.Airline?.LogoUrl)){
-                        <img src="@(flight.FlightLogoUrl ?? flight.Airline?.LogoUrl)" alt="" />
-                    }else
-                    {
-
-                        <span class="airline-fallback">@flight.Airline?.AirlineCode</span>
-                    }
-                    <div><strong>@flight.FlightNumber</strong><small>@flight.Airline?.AirlineName</small></div></div></td>
+                    <td><div class="admin-airline-cell">@if(!string.IsNullOrWhiteSpace(flight.FlightLogoUrl ?? flight.Airline?.LogoUrl)){<img src="@(flight.FlightLogoUrl ?? flight.Airline?.LogoUrl)" alt="" />}else{<span class="airline-fallback">@flight.Airline?.AirlineCode</span>}<div><strong>@flight.FlightNumber</strong><small>@flight.Airline?.AirlineName</small></div></div></td>
                     <td><strong>@flight.From → @flight.To</strong><small class="table-subtext">@flight.AircraftModel</small></td>
                     <td><strong>@flight.DepartureTime.ToString("dd MMM yyyy")</strong><small class="table-subtext">@flight.DepartureTime.ToString("HH:mm") – @flight.ArrivalTime.ToString("HH:mm")</small></td>
-                    <td>RM @flight.Price.ToString("N2")</td>
+                    <td>
+                        <div class="admin-price-display">
+                            @if (flight.DiscountPercent > 0)
+                            {
+                                <small class="admin-price-original">Original RM @flight.Price.ToString("N2")</small>
+                                <strong class="admin-price-after">RM @discountedPrice.ToString("N2")</strong>
+                                <span class="admin-discount-badge">-@flight.DiscountPercent.ToString("0.##")%</span>
+                            }
+                            else
+                            {
+                                <strong>RM @flight.Price.ToString("N2")</strong>
+                                <small class="table-subtext">No discount</small>
+                            }
+                        </div>
+                    </td>
                     <td><strong>@flight.AvailableSeats / @flight.SeatCapacity</strong><small class="table-subtext">available</small></td>
-                    <td><form asp-action="UpdateStatus" method="post" class="status-form">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@flight.FlightId" /><select name="status" onchange="this.form.submit()">@foreach(var status in Enum.GetValues<FlightStatus>()){if(flight.Status == status){
-                        <option value="@status" selected>@status</option>
-                    }else
-                    {
-
-                        <option value="@status">@status</option>
-                    }
-                }
-            </select></form>@if(!flight.IsActive){
-            <small class="inactive-label">Inactive</small>
-        }
-    </td>
-    <td><div class="table-actions"><a asp-action="Edit" asp-route-id="@flight.FlightId" title="Edit"><i class="bi bi-pencil"></i></a><a asp-action="Delete" asp-route-id="@flight.FlightId" class="danger" title="Delete"><i class="bi bi-trash"></i></a></div></td>
-</tr>
+                    <td>
+                        <span class="booking-status status-@flight.Status.ToString().ToLowerInvariant()">@flight.Status</span>
+                        @if (highDemand) {<span class="high-demand-badge" title="@reservedSeats of @flight.SeatCapacity seats reserved"><i class="bi bi-fire"></i> High demand</span>}
+                        <small class="demand-subtext">@demandPercent.ToString("0")% booked</small>
+                        @if(!flight.IsActive){<small class="inactive-label">Inactive</small>}
+                        <form asp-action="UpdateStatus" method="post" class="inline-status-form">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@flight.FlightId" />
+                            <select name="status" aria-label="Status for @flight.FlightNumber">
+                                @foreach (var item in Enum.GetValues<FlightStatus>())
+                                {
+                                    if (item == flight.Status) { <option value="@item" selected>@item</option> }
+                                    else { <option value="@item">@item</option> }
+                                }
+                            </select>
+                            <button type="submit" title="Save status"><i class="bi bi-arrow-repeat"></i></button>
+                        </form>
+                    </td>
+                    <td><form asp-action="UpdateInventory" method="post" class="inline-inventory-form">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@flight.FlightId" /><label><span>Base price</span><input name="price" type="number" min="0.01" step="0.01" value="@flight.Price" aria-label="Base price" /></label><label><span>Discount %</span><input name="discountPercent" type="number" min="0" max="100" step="0.5" value="@flight.DiscountPercent" aria-label="Discount percent" /></label><label><span>Capacity</span><input name="seatCapacity" type="number" min="1" max="600" value="@flight.SeatCapacity" aria-label="Seat capacity" /></label><button type="submit" title="Save base price, discount and capacity"><i class="bi bi-check-lg"></i></button><a asp-action="Delete" asp-route-id="@flight.FlightId" class="danger" title="Remove cached flight"><i class="bi bi-trash"></i></a></form></td>
+                </tr>
             }
-</tbody>
-</table>
-</div>
-</div>
+            </tbody>
+        </table></div>
+        @{ var currentPage = (int?)ViewBag.Page ?? 1; var totalPages = (int?)ViewBag.TotalPages ?? 1; var totalRecords = (int?)ViewBag.TotalRecords ?? 0; var firstRecord = totalRecords == 0 ? 0 : ((currentPage - 1) * 30) + 1; var lastRecord = Math.Min(currentPage * 30, totalRecords); }
+        <div class="admin-pagination-bar">
+            <span>Showing @firstRecord–@lastRecord of @totalRecords flights</span>
+            @if (totalPages > 1)
+            {
+                <nav class="admin-pagination" aria-label="Flight pages">
+                    <a class="@(currentPage == 1 ? "disabled" : "")" asp-action="Index" asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.Status" asp-route-date="@ViewBag.Date" asp-route-page="@(currentPage - 1)">Previous</a>
+                    @if (currentPage > 3)
+                    {
+                        <a asp-action="Index" asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.Status" asp-route-date="@ViewBag.Date" asp-route-page="1">1</a><span class="pagination-ellipsis">…</span>
+                    }
+                    @for (var pageNumber = Math.Max(1, currentPage - 2); pageNumber <= Math.Min(totalPages, currentPage + 2); pageNumber++)
+                    {
+                        <a class="@(pageNumber == currentPage ? "active" : "")" asp-action="Index" asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.Status" asp-route-date="@ViewBag.Date" asp-route-page="@pageNumber">@pageNumber</a>
+                    }
+                    @if (currentPage < totalPages - 2)
+                    {
+                        <span class="pagination-ellipsis">…</span><a asp-action="Index" asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.Status" asp-route-date="@ViewBag.Date" asp-route-page="@totalPages">@totalPages</a>
+                    }
+                    <a class="@(currentPage == totalPages ? "disabled" : "")" asp-action="Index" asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.Status" asp-route-date="@ViewBag.Date" asp-route-page="@(currentPage + 1)">Next</a>
+                </nav>
+            }
+        </div>
+    </div>
 </div>

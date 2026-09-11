@@ -23,1773 +23,1785 @@ namespace TravelPlanningSystem.Migrations
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("TravelPlanningSystem.Models.Activity", b =>
-                {
-                    b.Property<int>("ActivityId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("ActivityId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ActivityId"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ActivityId"));
 
-                    b.Property<int>("ActivityCategoryId")
-                        .HasColumnType("int");
+                b.Property<int>("ActivityCategoryId")
+                    .HasColumnType("int");
 
-                    b.Property<string>("ActivityName")
-                        .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("nvarchar(120)");
+                b.Property<string>("ActivityName")
+                    .IsRequired()
+                    .HasMaxLength(120)
+                    .HasColumnType("nvarchar(120)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
+                b.Property<string>("Description")
+                    .IsRequired()
+                    .HasMaxLength(2000)
+                    .HasColumnType("nvarchar(2000)");
 
-                    b.Property<string>("Destination")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
+                b.Property<string>("Destination")
+                    .IsRequired()
+                    .HasMaxLength(80)
+                    .HasColumnType("nvarchar(80)");
 
-                    b.Property<double>("DurationHours")
-                        .HasColumnType("float");
+                b.Property<double>("DurationHours")
+                    .HasColumnType("float");
 
-                    b.Property<string>("IncludedItems")
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
+                b.Property<string>("IncludedItems")
+                    .HasMaxLength(300)
+                    .HasColumnType("nvarchar(300)");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                b.Property<bool>("IsActive")
+                    .HasColumnType("bit");
 
-                    b.Property<bool>("IsFeatured")
-                        .HasColumnType("bit");
+                b.Property<bool>("IsFeatured")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("Location")
-                        .IsRequired()
-                        .HasMaxLength(180)
-                        .HasColumnType("nvarchar(180)");
+                b.Property<string>("Location")
+                    .IsRequired()
+                    .HasMaxLength(180)
+                    .HasColumnType("nvarchar(180)");
 
-                    b.Property<int>("MaximumParticipants")
-                        .HasColumnType("int");
+                b.Property<int>("MaximumParticipants")
+                    .HasColumnType("int");
 
-                    b.Property<int>("MinimumAge")
-                        .HasColumnType("int");
+                b.Property<int>("MinimumAge")
+                    .HasColumnType("int");
 
-                    b.Property<int>("MinimumParticipants")
-                        .HasColumnType("int");
+                b.Property<int>("MinimumParticipants")
+                    .HasColumnType("int");
 
-                    b.Property<decimal>("PricePerPerson")
-                        .HasColumnType("decimal(10,2)");
+                b.Property<decimal>("PricePerPerson")
+                    .HasColumnType("decimal(10,2)");
 
-                    b.Property<string>("WhatToBring")
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
+                b.Property<string>("WhatToBring")
+                    .HasMaxLength(300)
+                    .HasColumnType("nvarchar(300)");
 
-                    b.HasKey("ActivityId");
+                b.HasKey("ActivityId");
 
-                    b.HasIndex("ActivityCategoryId");
+                b.HasIndex("ActivityCategoryId");
 
-                    b.ToTable("Activities");
-                });
+                b.ToTable("Activities");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.ActivityBooking", b =>
-                {
-                    b.Property<int>("ActivityBookingId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("ActivityBookingId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ActivityBookingId"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ActivityBookingId"));
 
-                    b.Property<int>("ActivitySessionId")
-                        .HasColumnType("int");
+                b.Property<int>("ActivitySessionId")
+                    .HasColumnType("int");
 
-                    b.Property<decimal>("AddonFee")
-                        .HasColumnType("decimal(10,2)");
+                b.Property<decimal>("AddonFee")
+                    .HasColumnType("decimal(10,2)");
 
-                    b.Property<DateTime>("BookingDate")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("BookingDate")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("BookingReference")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                b.Property<string>("BookingReference")
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasColumnType("nvarchar(20)");
 
-                    b.Property<int>("BookingStatus")
-                        .HasColumnType("int");
+                b.Property<int>("BookingStatus")
+                    .HasColumnType("int");
 
-                    b.Property<string>("CancellationReason")
-                        .HasMaxLength(400)
-                        .HasColumnType("nvarchar(400)");
+                b.Property<string>("CancellationReason")
+                    .HasMaxLength(400)
+                    .HasColumnType("nvarchar(400)");
 
-                    b.Property<DateTime?>("CancelledAt")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime?>("CancelledAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("ContactEmail")
-                        .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("nvarchar(120)");
+                b.Property<string>("DisruptionMessage")
+                    .HasMaxLength(500)
+                    .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("ContactName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                b.Property<string>("ContactEmail")
+                    .IsRequired()
+                    .HasMaxLength(120)
+                    .HasColumnType("nvarchar(120)");
 
-                    b.Property<string>("ContactPhone")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                b.Property<string>("ContactName")
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnType("nvarchar(100)");
 
-                    b.Property<decimal>("DiscountAmount")
-                        .HasColumnType("decimal(10,2)");
+                b.Property<string>("ContactPhone")
+                    .IsRequired()
+                    .HasMaxLength(30)
+                    .HasColumnType("nvarchar(30)");
 
-                    b.Property<int>("ParticipantCount")
-                        .HasColumnType("int");
+                b.Property<decimal>("DiscountAmount")
+                    .HasColumnType("decimal(10,2)");
 
-                    b.Property<string>("PaymentMethod")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                b.Property<int>("ParticipantCount")
+                    .HasColumnType("int");
 
-                    b.Property<string>("PaymentStatus")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                b.Property<string>("PaymentMethod")
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasColumnType("nvarchar(50)");
 
-                    b.Property<decimal>("PricePerPerson")
-                        .HasColumnType("decimal(10,2)");
+                b.Property<string>("PaymentStatus")
+                    .IsRequired()
+                    .HasMaxLength(30)
+                    .HasColumnType("nvarchar(30)");
 
-                    b.Property<string>("PromoCode")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                b.Property<decimal>("PricePerPerson")
+                    .HasColumnType("decimal(10,2)");
 
-                    b.Property<decimal>("TotalAmount")
-                        .HasColumnType("decimal(12,2)");
+                b.Property<string>("PromoCode")
+                    .HasMaxLength(50)
+                    .HasColumnType("nvarchar(50)");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
+                b.Property<decimal>("TotalAmount")
+                    .HasColumnType("decimal(12,2)");
 
-                    b.HasKey("ActivityBookingId");
+                b.Property<int>("UserId")
+                    .HasColumnType("int");
 
-                    b.HasIndex("ActivitySessionId");
+                b.HasKey("ActivityBookingId");
 
-                    b.ToTable("ActivityBookings");
-                });
+                b.HasIndex("ActivitySessionId");
+
+                b.ToTable("ActivityBookings");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.ActivityCategory", b =>
-                {
-                    b.Property<int>("ActivityCategoryId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("ActivityCategoryId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ActivityCategoryId"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ActivityCategoryId"));
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                b.Property<string>("Description")
+                    .HasMaxLength(250)
+                    .HasColumnType("nvarchar(250)");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                b.Property<bool>("IsActive")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(60)
-                        .HasColumnType("nvarchar(60)");
+                b.Property<string>("Name")
+                    .IsRequired()
+                    .HasMaxLength(60)
+                    .HasColumnType("nvarchar(60)");
 
-                    b.HasKey("ActivityCategoryId");
+                b.HasKey("ActivityCategoryId");
 
-                    b.ToTable("ActivityCategories");
-                });
+                b.ToTable("ActivityCategories");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.ActivityPhoto", b =>
-                {
-                    b.Property<int>("ActivityPhotoId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("ActivityPhotoId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ActivityPhotoId"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ActivityPhotoId"));
 
-                    b.Property<int>("ActivityId")
-                        .HasColumnType("int");
+                b.Property<int>("ActivityId")
+                    .HasColumnType("int");
 
-                    b.Property<string>("Caption")
-                        .HasMaxLength(120)
-                        .HasColumnType("nvarchar(120)");
+                b.Property<string>("Caption")
+                    .HasMaxLength(120)
+                    .HasColumnType("nvarchar(120)");
 
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("int");
+                b.Property<int>("DisplayOrder")
+                    .HasColumnType("int");
 
-                    b.Property<bool>("IsPrimary")
-                        .HasColumnType("bit");
+                b.Property<bool>("IsPrimary")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("PhotoUrl")
-                        .IsRequired()
-                        .HasMaxLength(350)
-                        .HasColumnType("nvarchar(350)");
+                b.Property<string>("PhotoUrl")
+                    .IsRequired()
+                    .HasMaxLength(350)
+                    .HasColumnType("nvarchar(350)");
 
-                    b.HasKey("ActivityPhotoId");
+                b.HasKey("ActivityPhotoId");
 
-                    b.HasIndex("ActivityId");
+                b.HasIndex("ActivityId");
 
-                    b.ToTable("ActivityPhotos");
-                });
+                b.ToTable("ActivityPhotos");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.ActivityReview", b =>
-                {
-                    b.Property<int>("ActivityReviewId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("ActivityReviewId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ActivityReviewId"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ActivityReviewId"));
 
-                    b.Property<int>("ActivityBookingId")
-                        .HasColumnType("int");
+                b.Property<int>("ActivityBookingId")
+                    .HasColumnType("int");
 
-                    b.Property<int>("ActivityId")
-                        .HasColumnType("int");
+                b.Property<int>("ActivityId")
+                    .HasColumnType("int");
 
-                    b.Property<string>("Comment")
-                        .IsRequired()
-                        .HasMaxLength(800)
-                        .HasColumnType("nvarchar(800)");
+                b.Property<string>("Comment")
+                    .IsRequired()
+                    .HasMaxLength(800)
+                    .HasColumnType("nvarchar(800)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsVisible")
-                        .HasColumnType("bit");
+                b.Property<bool>("IsVisible")
+                    .HasColumnType("bit");
 
-                    b.Property<int>("Rating")
-                        .HasColumnType("int");
+                b.Property<int>("Rating")
+                    .HasColumnType("int");
 
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime?>("UpdatedAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
+                b.Property<int>("UserId")
+                    .HasColumnType("int");
 
-                    b.HasKey("ActivityReviewId");
+                b.HasKey("ActivityReviewId");
 
-                    b.HasIndex("ActivityBookingId")
-                        .IsUnique();
+                b.HasIndex("ActivityBookingId")
+                    .IsUnique();
 
-                    b.HasIndex("ActivityId");
+                b.HasIndex("ActivityId");
 
-                    b.ToTable("ActivityReviews");
-                });
+                b.ToTable("ActivityReviews");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.ActivitySession", b =>
-                {
-                    b.Property<int>("ActivitySessionId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("ActivitySessionId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ActivitySessionId"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ActivitySessionId"));
 
-                    b.Property<int>("ActivityId")
-                        .HasColumnType("int");
+                b.Property<int>("ActivityId")
+                    .HasColumnType("int");
 
-                    b.Property<int>("AvailableSlots")
-                        .HasColumnType("int");
+                b.Property<int>("AvailableSlots")
+                    .HasColumnType("int");
 
-                    b.Property<int>("Capacity")
-                        .HasColumnType("int");
+                b.Property<int>("Capacity")
+                    .HasColumnType("int");
 
-                    b.Property<TimeSpan>("EndTime")
-                        .HasColumnType("time");
+                b.Property<TimeSpan>("EndTime")
+                    .HasColumnType("time");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                b.Property<bool>("IsActive")
+                    .HasColumnType("bit");
 
-                    b.Property<DateTime>("SessionDate")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("SessionDate")
+                    .HasColumnType("datetime2");
 
-                    b.Property<TimeSpan>("StartTime")
-                        .HasColumnType("time");
+                b.Property<TimeSpan>("StartTime")
+                    .HasColumnType("time");
 
-                    b.HasKey("ActivitySessionId");
+                b.HasKey("ActivitySessionId");
 
-                    b.HasIndex("ActivityId");
+                b.HasIndex("ActivityId");
 
-                    b.ToTable("ActivitySessions");
-                });
+                b.ToTable("ActivitySessions");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.Airline", b =>
-                {
-                    b.Property<int>("AirlineId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("AirlineId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AirlineId"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AirlineId"));
 
-                    b.Property<string>("AirlineCode")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                b.Property<string>("AirlineCode")
+                    .IsRequired()
+                    .HasMaxLength(10)
+                    .HasColumnType("nvarchar(10)");
 
-                    b.Property<string>("AirlineName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                b.Property<string>("AirlineName")
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("ContactNumber")
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                b.Property<string>("ContactNumber")
+                    .HasMaxLength(30)
+                    .HasColumnType("nvarchar(30)");
 
-                    b.Property<string>("Country")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
+                b.Property<string>("Country")
+                    .IsRequired()
+                    .HasMaxLength(80)
+                    .HasColumnType("nvarchar(80)");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                b.Property<bool>("IsActive")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("LogoUrl")
-                        .HasMaxLength(350)
-                        .HasColumnType("nvarchar(350)");
+                b.Property<string>("LogoUrl")
+                    .HasMaxLength(350)
+                    .HasColumnType("nvarchar(350)");
 
-                    b.Property<string>("SupportEmail")
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
+                b.Property<string>("SupportEmail")
+                    .HasMaxLength(150)
+                    .HasColumnType("nvarchar(150)");
 
-                    b.HasKey("AirlineId");
+                b.HasKey("AirlineId");
 
-                    b.HasIndex("AirlineCode")
-                        .IsUnique();
+                b.HasIndex("AirlineCode")
+                    .IsUnique();
 
-                    b.ToTable("Airlines");
-                });
+                b.ToTable("Airlines");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.Airport", b =>
-                {
-                    b.Property<int>("AirportId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("AirportId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AirportId"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AirportId"));
 
-                    b.Property<string>("AirportCode")
-                        .IsRequired()
-                        .HasMaxLength(5)
-                        .HasColumnType("nvarchar(5)");
+                b.Property<string>("AirportCode")
+                    .IsRequired()
+                    .HasMaxLength(5)
+                    .HasColumnType("nvarchar(5)");
 
-                    b.Property<string>("AirportName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                b.Property<string>("AirportName")
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("City")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
+                b.Property<string>("City")
+                    .IsRequired()
+                    .HasMaxLength(80)
+                    .HasColumnType("nvarchar(80)");
 
-                    b.Property<string>("Country")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
+                b.Property<string>("Country")
+                    .IsRequired()
+                    .HasMaxLength(80)
+                    .HasColumnType("nvarchar(80)");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                b.Property<bool>("IsActive")
+                    .HasColumnType("bit");
 
-                    b.HasKey("AirportId");
+                b.HasKey("AirportId");
 
-                    b.HasIndex("AirportCode")
-                        .IsUnique();
+                b.HasIndex("AirportCode")
+                    .IsUnique();
 
-                    b.ToTable("Airports");
-                });
+                b.ToTable("Airports");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.ApplicationUser", b =>
-                {
-                    b.Property<Guid>("UserId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+            {
+                b.Property<Guid>("UserId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("AccountStatus")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                b.Property<string>("AccountStatus")
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasColumnType("nvarchar(20)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("DateOfBirth")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime?>("DateOfBirth")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
+                b.Property<string>("Email")
+                    .IsRequired()
+                    .HasMaxLength(150)
+                    .HasColumnType("nvarchar(150)");
 
-                    b.Property<int>("FailedLoginAttempts")
-                        .HasColumnType("int");
+                b.Property<int>("FailedLoginAttempts")
+                    .HasColumnType("int");
 
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                b.Property<string>("FirstName")
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                b.Property<string>("LastName")
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnType("nvarchar(100)");
 
-                    b.Property<DateTime?>("LockoutUntil")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime?>("LockoutUntil")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("LoyaltyTier")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                b.Property<string>("LoyaltyTier")
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("OAuthProvider")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                b.Property<string>("OAuthProvider")
+                    .HasMaxLength(50)
+                    .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("PasswordHash")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PhoneNumber")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                b.Property<string>("PhoneNumber")
+                    .HasMaxLength(20)
+                    .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("PreferredCurrency")
-                        .IsRequired()
-                        .HasMaxLength(3)
-                        .HasColumnType("nvarchar(3)");
+                b.Property<string>("PreferredCurrency")
+                    .IsRequired()
+                    .HasMaxLength(3)
+                    .HasColumnType("nvarchar(3)");
 
-                    b.Property<string>("PreferredLanguage")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                b.Property<string>("PreferredLanguage")
+                    .IsRequired()
+                    .HasMaxLength(10)
+                    .HasColumnType("nvarchar(10)");
 
-                    b.Property<string>("ProfilePic")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                b.Property<string>("ProfilePic")
+                    .HasMaxLength(250)
+                    .HasColumnType("nvarchar(250)");
 
-                    b.Property<string>("ProfilePictureUrl")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                b.Property<string>("ProfilePictureUrl")
+                    .HasMaxLength(250)
+                    .HasColumnType("nvarchar(250)");
 
-                    b.Property<int>("RewardPoints")
-                        .HasColumnType("int");
+                b.Property<int>("RewardPoints")
+                    .HasColumnType("int");
 
-                    b.HasKey("UserId");
+                b.HasKey("UserId");
 
-                    b.HasIndex("Email")
-                        .IsUnique();
+                b.HasIndex("Email")
+                    .IsUnique();
 
-                    b.ToTable("Users");
-                });
+                b.ToTable("Users");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.Flight", b =>
-                {
-                    b.Property<int>("FlightId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("FlightId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FlightId"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FlightId"));
 
-                    b.Property<string>("AircraftModel")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
+                b.Property<string>("AircraftModel")
+                    .IsRequired()
+                    .HasMaxLength(80)
+                    .HasColumnType("nvarchar(80)");
 
-                    b.Property<int>("AirlineId")
-                        .HasColumnType("int");
+                b.Property<int>("AirlineId")
+                    .HasColumnType("int");
 
-                    b.Property<DateTime>("ArrivalTime")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("ArrivalTime")
+                    .HasColumnType("datetime2");
 
-                    b.Property<int>("AvailableSeats")
-                        .HasColumnType("int");
+                b.Property<int>("AvailableSeats")
+                    .HasColumnType("int");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("DepartureTime")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("DepartureTime")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("FlightLogoUrl")
-                        .HasMaxLength(350)
-                        .HasColumnType("nvarchar(350)");
+                b.Property<decimal>("DiscountPercent")
+                    .HasColumnType("decimal(5,2)");
 
-                    b.Property<string>("FlightNumber")
-                        .IsRequired()
-                        .HasMaxLength(15)
-                        .HasColumnType("nvarchar(15)");
+                b.Property<string>("FlightLogoUrl")
+                    .HasMaxLength(350)
+                    .HasColumnType("nvarchar(350)");
 
-                    b.Property<string>("From")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
+                b.Property<string>("FlightNumber")
+                    .IsRequired()
+                    .HasMaxLength(15)
+                    .HasColumnType("nvarchar(15)");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                b.Property<string>("From")
+                    .IsRequired()
+                    .HasMaxLength(80)
+                    .HasColumnType("nvarchar(80)");
 
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(10,2)");
+                b.Property<bool>("IsActive")
+                    .HasColumnType("bit");
 
-                    b.Property<int>("SeatCapacity")
-                        .HasColumnType("int");
+                b.Property<decimal>("Price")
+                    .HasColumnType("decimal(10,2)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                b.Property<int>("SeatCapacity")
+                    .HasColumnType("int");
 
-                    b.Property<string>("To")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
+                b.Property<int>("Status")
+                    .HasColumnType("int");
 
-                    b.HasKey("FlightId");
+                b.Property<string>("To")
+                    .IsRequired()
+                    .HasMaxLength(80)
+                    .HasColumnType("nvarchar(80)");
 
-                    b.HasIndex("AirlineId");
+                b.HasKey("FlightId");
 
-                    b.HasIndex("FlightNumber", "DepartureTime")
-                        .IsUnique();
+                b.HasIndex("AirlineId");
 
-                    b.ToTable("Flights");
-                });
+                b.HasIndex("FlightNumber", "DepartureTime")
+                    .IsUnique();
+
+                b.ToTable("Flights");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.FlightBooking", b =>
-                {
-                    b.Property<int>("FlightBookingId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("FlightBookingId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FlightBookingId"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FlightBookingId"));
 
-                    b.Property<decimal>("AddonFee")
-                        .HasColumnType("decimal(12,2)");
+                b.Property<decimal>("AddonFee")
+                    .HasColumnType("decimal(12,2)");
 
-                    b.Property<string>("BaggageOption")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                b.Property<string>("BaggageOption")
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasColumnType("nvarchar(50)");
 
-                    b.Property<DateTime>("BookingDate")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("BookingDate")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("BookingReference")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                b.Property<string>("BookingReference")
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("CancellationReason")
-                        .HasMaxLength(400)
-                        .HasColumnType("nvarchar(400)");
+                b.Property<string>("CancellationReason")
+                    .HasMaxLength(400)
+                    .HasColumnType("nvarchar(400)");
 
-                    b.Property<DateTime?>("CancelledAt")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime?>("CancelledAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("ContactEmail")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
+                b.Property<string>("ContactEmail")
+                    .IsRequired()
+                    .HasMaxLength(150)
+                    .HasColumnType("nvarchar(150)");
 
-                    b.Property<string>("ContactName")
-                        .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("nvarchar(120)");
+                b.Property<string>("ContactName")
+                    .IsRequired()
+                    .HasMaxLength(120)
+                    .HasColumnType("nvarchar(120)");
 
-                    b.Property<string>("ContactPhone")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                b.Property<string>("ContactPhone")
+                    .IsRequired()
+                    .HasMaxLength(30)
+                    .HasColumnType("nvarchar(30)");
 
-                    b.Property<decimal>("DiscountAmount")
-                        .HasColumnType("decimal(12,2)");
+                b.Property<decimal>("DiscountAmount")
+                    .HasColumnType("decimal(12,2)");
 
-                    b.Property<bool>("HasTravelInsurance")
-                        .HasColumnType("bit");
+                b.Property<bool>("HasTravelInsurance")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("PaymentMethod")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                b.Property<string>("PaymentMethod")
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("PaymentStatus")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                b.Property<string>("PaymentStatus")
+                    .IsRequired()
+                    .HasMaxLength(30)
+                    .HasColumnType("nvarchar(30)");
 
-                    b.Property<string>("PromoCode")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                b.Property<string>("PromoCode")
+                    .HasMaxLength(50)
+                    .HasColumnType("nvarchar(50)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                b.Property<int>("Status")
+                    .HasColumnType("int");
 
-                    b.Property<decimal>("TotalAmount")
-                        .HasColumnType("decimal(12,2)");
+                b.Property<decimal>("TotalAmount")
+                    .HasColumnType("decimal(12,2)");
 
-                    b.Property<string>("TripType")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                b.Property<string>("TripType")
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("UserEmail")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
+                b.Property<string>("UserEmail")
+                    .IsRequired()
+                    .HasMaxLength(150)
+                    .HasColumnType("nvarchar(150)");
 
-                    b.HasKey("FlightBookingId");
+                b.HasKey("FlightBookingId");
 
-                    b.HasIndex("BookingReference")
-                        .IsUnique();
+                b.HasIndex("BookingReference")
+                    .IsUnique();
 
-                    b.ToTable("FlightBookings");
-                });
+                b.ToTable("FlightBookings");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.FlightBookingSegment", b =>
-                {
-                    b.Property<int>("FlightBookingSegmentId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("FlightBookingSegmentId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FlightBookingSegmentId"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FlightBookingSegmentId"));
 
-                    b.Property<int>("FlightBookingId")
-                        .HasColumnType("int");
+                b.Property<int>("FlightBookingId")
+                    .HasColumnType("int");
 
-                    b.Property<int>("FlightId")
-                        .HasColumnType("int");
+                b.Property<int>("FlightId")
+                    .HasColumnType("int");
 
-                    b.Property<decimal>("PricePerPassenger")
-                        .HasColumnType("decimal(10,2)");
+                b.Property<string>("CabinClass")
+                    .IsRequired()
+                    .HasMaxLength(30)
+                    .HasColumnType("nvarchar(30)");
 
-                    b.Property<int>("SegmentOrder")
-                        .HasColumnType("int");
+                b.Property<decimal>("PricePerPassenger")
+                    .HasColumnType("decimal(10,2)");
 
-                    b.HasKey("FlightBookingSegmentId");
+                b.Property<int>("SegmentOrder")
+                    .HasColumnType("int");
 
-                    b.HasIndex("FlightId");
+                b.HasKey("FlightBookingSegmentId");
 
-                    b.HasIndex("FlightBookingId", "SegmentOrder")
-                        .IsUnique();
+                b.HasIndex("FlightId");
 
-                    b.ToTable("FlightBookingSegments");
-                });
+                b.HasIndex("FlightBookingId", "SegmentOrder")
+                    .IsUnique();
+
+                b.ToTable("FlightBookingSegments");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.FlightPassenger", b =>
-                {
-                    b.Property<int>("FlightPassengerId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("FlightPassengerId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FlightPassengerId"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FlightPassengerId"));
 
-                    b.Property<DateTime>("DateOfBirth")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("DateOfBirth")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
+                b.Property<string>("FirstName")
+                    .IsRequired()
+                    .HasMaxLength(80)
+                    .HasColumnType("nvarchar(80)");
 
-                    b.Property<int>("FlightBookingId")
-                        .HasColumnType("int");
+                b.Property<int>("FlightBookingId")
+                    .HasColumnType("int");
 
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
+                b.Property<string>("LastName")
+                    .IsRequired()
+                    .HasMaxLength(80)
+                    .HasColumnType("nvarchar(80)");
 
-                    b.Property<string>("MealPreference")
-                        .IsRequired()
-                        .HasMaxLength(40)
-                        .HasColumnType("nvarchar(40)");
+                b.Property<string>("MealPreference")
+                    .IsRequired()
+                    .HasMaxLength(40)
+                    .HasColumnType("nvarchar(40)");
 
-                    b.Property<string>("Nationality")
-                        .IsRequired()
-                        .HasMaxLength(60)
-                        .HasColumnType("nvarchar(60)");
+                b.Property<string>("Nationality")
+                    .IsRequired()
+                    .HasMaxLength(60)
+                    .HasColumnType("nvarchar(60)");
 
-                    b.Property<string>("PassengerType")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                b.Property<string>("PassengerType")
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("PassportNumber")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                b.Property<string>("PassportNumber")
+                    .IsRequired()
+                    .HasMaxLength(30)
+                    .HasColumnType("nvarchar(30)");
 
-                    b.Property<string>("ReturnSeatNumber")
-                        .HasMaxLength(5)
-                        .HasColumnType("nvarchar(5)");
+                b.Property<string>("ReturnSeatNumber")
+                    .HasMaxLength(5)
+                    .HasColumnType("nvarchar(5)");
 
-                    b.Property<string>("SeatNumber")
-                        .IsRequired()
-                        .HasMaxLength(5)
-                        .HasColumnType("nvarchar(5)");
+                b.Property<string>("SeatNumber")
+                    .IsRequired()
+                    .HasMaxLength(5)
+                    .HasColumnType("nvarchar(5)");
 
-                    b.HasKey("FlightPassengerId");
+                b.HasKey("FlightPassengerId");
 
-                    b.HasIndex("FlightBookingId");
+                b.HasIndex("FlightBookingId");
 
-                    b.ToTable("FlightPassengers");
-                });
+                b.ToTable("FlightPassengers");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.HotelCity", b =>
-                {
-                    b.Property<int>("HotelCityId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("HotelCityId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("HotelCityId"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("HotelCityId"));
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
+                b.Property<string>("Name")
+                    .IsRequired()
+                    .HasMaxLength(80)
+                    .HasColumnType("nvarchar(80)");
 
-                    b.HasKey("HotelCityId");
+                b.HasKey("HotelCityId");
 
-                    b.ToTable("HotelCities");
-                });
+                b.ToTable("HotelCities");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.HotelReservation", b =>
-                {
-                    b.Property<int>("HotelReservationId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("HotelReservationId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("HotelReservationId"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("HotelReservationId"));
 
-                    b.Property<string>("CancellationReason")
-                        .HasMaxLength(400)
-                        .HasColumnType("nvarchar(400)");
+                b.Property<string>("CancellationReason")
+                    .HasMaxLength(400)
+                    .HasColumnType("nvarchar(400)");
 
-                    b.Property<DateTime?>("CancelledAt")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime?>("CancelledAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("CheckInDate")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("CheckInDate")
+                    .HasColumnType("datetime2");
 
-                    b.Property<TimeSpan>("CheckInTime")
-                        .HasColumnType("time");
+                b.Property<TimeSpan>("CheckInTime")
+                    .HasColumnType("time");
 
-                    b.Property<DateTime>("CheckOutDate")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("CheckOutDate")
+                    .HasColumnType("datetime2");
 
-                    b.Property<TimeSpan>("CheckOutTime")
-                        .HasColumnType("time");
+                b.Property<TimeSpan>("CheckOutTime")
+                    .HasColumnType("time");
 
-                    b.Property<string>("ContactEmail")
-                        .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("nvarchar(120)");
+                b.Property<string>("ContactEmail")
+                    .IsRequired()
+                    .HasMaxLength(120)
+                    .HasColumnType("nvarchar(120)");
 
-                    b.Property<string>("ContactName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                b.Property<string>("ContactName")
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("ContactPhone")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                b.Property<string>("ContactPhone")
+                    .IsRequired()
+                    .HasMaxLength(30)
+                    .HasColumnType("nvarchar(30)");
 
-                    b.Property<int>("GuestCount")
-                        .HasColumnType("int");
+                b.Property<int>("GuestCount")
+                    .HasColumnType("int");
 
-                    b.Property<int>("HotelRoomId")
-                        .HasColumnType("int");
+                b.Property<int>("HotelRoomId")
+                    .HasColumnType("int");
 
-                    b.Property<bool>("RewardPointsAwarded")
-                        .HasColumnType("bit");
+                b.Property<bool>("RewardPointsAwarded")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("PaymentMethod")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                b.Property<string>("PaymentMethod")
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("PaymentStatus")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                b.Property<string>("PaymentStatus")
+                    .IsRequired()
+                    .HasMaxLength(30)
+                    .HasColumnType("nvarchar(30)");
 
-                    b.Property<decimal>("PricePerNight")
-                        .HasColumnType("decimal(10,2)");
+                b.Property<decimal>("PricePerNight")
+                    .HasColumnType("decimal(10,2)");
 
-                    b.Property<DateTime>("ReservationDate")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("ReservationDate")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("ReservationReference")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                b.Property<string>("ReservationReference")
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasColumnType("nvarchar(20)");
 
-                    b.Property<int>("ReservationStatus")
-                        .HasColumnType("int");
+                b.Property<int>("ReservationStatus")
+                    .HasColumnType("int");
 
-                    b.Property<decimal>("TotalAmount")
-                        .HasColumnType("decimal(12,2)");
+                b.Property<decimal>("TotalAmount")
+                    .HasColumnType("decimal(12,2)");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
+                b.Property<int>("UserId")
+                    .HasColumnType("int");
 
-                    b.HasKey("HotelReservationId");
+                b.HasKey("HotelReservationId");
 
-                    b.HasIndex("HotelRoomId");
+                b.HasIndex("HotelRoomId");
 
-                    b.ToTable("HotelReservations");
-                });
+                b.ToTable("HotelReservations");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.HotelReview", b =>
-                {
-                    b.Property<int>("HotelReviewId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("HotelReviewId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("HotelReviewId"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("HotelReviewId"));
 
-                    b.Property<string>("Comment")
-                        .IsRequired()
-                        .HasMaxLength(800)
-                        .HasColumnType("nvarchar(800)");
+                b.Property<string>("Comment")
+                    .IsRequired()
+                    .HasMaxLength(800)
+                    .HasColumnType("nvarchar(800)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<int>("HotelReservationId")
-                        .HasColumnType("int");
+                b.Property<int>("HotelReservationId")
+                    .HasColumnType("int");
 
-                    b.Property<int>("HotelRoomId")
-                        .HasColumnType("int");
+                b.Property<int>("HotelRoomId")
+                    .HasColumnType("int");
 
-                    b.Property<bool>("IsVisible")
-                        .HasColumnType("bit");
+                b.Property<bool>("IsVisible")
+                    .HasColumnType("bit");
 
-                    b.Property<int>("Rating")
-                        .HasColumnType("int");
+                b.Property<int>("Rating")
+                    .HasColumnType("int");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
+                b.Property<int>("UserId")
+                    .HasColumnType("int");
 
-                    b.HasKey("HotelReviewId");
+                b.HasKey("HotelReviewId");
 
-                    b.HasIndex("HotelReservationId")
-                        .IsUnique();
+                b.HasIndex("HotelReservationId")
+                    .IsUnique();
 
-                    b.HasIndex("HotelRoomId");
+                b.HasIndex("HotelRoomId");
 
-                    b.ToTable("HotelReviews");
-                });
+                b.ToTable("HotelReviews");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.HotelRoom", b =>
-                {
-                    b.Property<int>("HotelRoomId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("HotelRoomId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("HotelRoomId"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("HotelRoomId"));
 
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasMaxLength(180)
-                        .HasColumnType("nvarchar(180)");
+                b.Property<string>("Address")
+                    .IsRequired()
+                    .HasMaxLength(180)
+                    .HasColumnType("nvarchar(180)");
 
-                    b.Property<string>("Amenities")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                b.Property<string>("Amenities")
+                    .HasMaxLength(500)
+                    .HasColumnType("nvarchar(500)");
 
-                    b.Property<int>("Capacity")
-                        .HasColumnType("int");
+                b.Property<int>("Capacity")
+                    .HasColumnType("int");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
+                b.Property<string>("Description")
+                    .IsRequired()
+                    .HasMaxLength(2000)
+                    .HasColumnType("nvarchar(2000)");
 
-                    b.Property<string>("Destination")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
+                b.Property<string>("Destination")
+                    .IsRequired()
+                    .HasMaxLength(80)
+                    .HasColumnType("nvarchar(80)");
 
-                    b.Property<string>("HotelName")
-                        .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("nvarchar(120)");
+                b.Property<string>("HotelName")
+                    .IsRequired()
+                    .HasMaxLength(120)
+                    .HasColumnType("nvarchar(120)");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                b.Property<bool>("IsActive")
+                    .HasColumnType("bit");
 
-                    b.Property<bool>("IsFeatured")
-                        .HasColumnType("bit");
+                b.Property<bool>("IsFeatured")
+                    .HasColumnType("bit");
 
-                    b.Property<decimal>("PricePerNight")
-                        .HasColumnType("decimal(10,2)");
+                b.Property<decimal>("PricePerNight")
+                    .HasColumnType("decimal(10,2)");
 
-                    b.Property<string>("RoomName")
-                        .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("nvarchar(120)");
+                b.Property<string>("RoomName")
+                    .IsRequired()
+                    .HasMaxLength(120)
+                    .HasColumnType("nvarchar(120)");
 
-                    b.Property<string>("RoomType")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                b.Property<string>("RoomType")
+                    .IsRequired()
+                    .HasMaxLength(30)
+                    .HasColumnType("nvarchar(30)");
 
-                    b.Property<int>("StarRating")
-                        .HasColumnType("int");
+                b.Property<int>("StarRating")
+                    .HasColumnType("int");
 
-                    b.Property<int>("TotalRooms")
-                        .HasColumnType("int");
+                b.Property<int>("TotalRooms")
+                    .HasColumnType("int");
 
-                    b.HasKey("HotelRoomId");
+                b.HasKey("HotelRoomId");
 
-                    b.ToTable("HotelRooms");
-                });
+                b.ToTable("HotelRooms");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.HotelRoomPhoto", b =>
-                {
-                    b.Property<int>("HotelRoomPhotoId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("HotelRoomPhotoId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("HotelRoomPhotoId"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("HotelRoomPhotoId"));
 
-                    b.Property<string>("Caption")
-                        .HasMaxLength(120)
-                        .HasColumnType("nvarchar(120)");
+                b.Property<string>("Caption")
+                    .HasMaxLength(120)
+                    .HasColumnType("nvarchar(120)");
 
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("int");
+                b.Property<int>("DisplayOrder")
+                    .HasColumnType("int");
 
-                    b.Property<int>("HotelRoomId")
-                        .HasColumnType("int");
+                b.Property<int>("HotelRoomId")
+                    .HasColumnType("int");
 
-                    b.Property<bool>("IsPrimary")
-                        .HasColumnType("bit");
+                b.Property<bool>("IsPrimary")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("PhotoUrl")
-                        .IsRequired()
-                        .HasMaxLength(350)
-                        .HasColumnType("nvarchar(350)");
+                b.Property<string>("PhotoUrl")
+                    .IsRequired()
+                    .HasMaxLength(350)
+                    .HasColumnType("nvarchar(350)");
 
-                    b.HasKey("HotelRoomPhotoId");
+                b.HasKey("HotelRoomPhotoId");
 
-                    b.HasIndex("HotelRoomId");
+                b.HasIndex("HotelRoomId");
 
-                    b.ToTable("HotelRoomPhotos");
-                });
+                b.ToTable("HotelRoomPhotos");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.StaffRole", b =>
-                {
-                    b.Property<Guid>("RoleId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+            {
+                b.Property<Guid>("RoleId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("RoleName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                b.Property<string>("RoleName")
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasColumnType("nvarchar(50)");
 
-                    b.HasKey("RoleId");
+                b.HasKey("RoleId");
 
-                    b.ToTable("StaffRoles");
-                });
+                b.ToTable("StaffRoles");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.StaffUser", b =>
-                {
-                    b.Property<Guid>("StaffId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+            {
+                b.Property<Guid>("StaffId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("AccessLevel")
-                        .HasColumnType("int");
+                b.Property<int>("AccessLevel")
+                    .HasColumnType("int");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("Department")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                b.Property<string>("Department")
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
+                b.Property<string>("Email")
+                    .IsRequired()
+                    .HasMaxLength(150)
+                    .HasColumnType("nvarchar(150)");
 
-                    b.Property<int>("FailedLoginAttempts")
-                        .HasColumnType("int");
+                b.Property<int>("FailedLoginAttempts")
+                    .HasColumnType("int");
 
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                b.Property<string>("FirstName")
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("LastLoginIp")
-                        .HasMaxLength(45)
-                        .HasColumnType("nvarchar(45)");
+                b.Property<string>("LastLoginIp")
+                    .HasMaxLength(45)
+                    .HasColumnType("nvarchar(45)");
 
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                b.Property<string>("LastName")
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnType("nvarchar(100)");
 
-                    b.Property<DateTime?>("LockoutUntil")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime?>("LockoutUntil")
+                    .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("ManagedPropertyId")
-                        .HasColumnType("uniqueidentifier");
+                b.Property<Guid?>("ManagedPropertyId")
+                    .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("MfaSecret")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                b.Property<string>("MfaSecret")
+                    .HasMaxLength(100)
+                    .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("PasswordHash")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ProfilePic")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                b.Property<string>("ProfilePic")
+                    .HasMaxLength(250)
+                    .HasColumnType("nvarchar(250)");
 
-                    b.Property<string>("ProfilePictureUrl")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                b.Property<string>("ProfilePictureUrl")
+                    .HasMaxLength(250)
+                    .HasColumnType("nvarchar(250)");
 
-                    b.Property<Guid>("RoleId")
-                        .HasColumnType("uniqueidentifier");
+                b.Property<Guid>("RoleId")
+                    .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                b.Property<string>("Status")
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasColumnType("nvarchar(20)");
 
-                    b.HasKey("StaffId");
+                b.HasKey("StaffId");
 
-                    b.HasIndex("Email")
-                        .IsUnique();
+                b.HasIndex("Email")
+                    .IsUnique();
 
-                    b.HasIndex("RoleId");
+                b.HasIndex("RoleId");
 
-                    b.ToTable("StaffUsers");
-                });
+                b.ToTable("StaffUsers");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.Transportation.Route", b =>
-                {
-                    b.Property<int>("RouteId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("RouteId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RouteId"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RouteId"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                b.Property<string>("Description")
+                    .HasMaxLength(1000)
+                    .HasColumnType("nvarchar(1000)");
 
-                    b.Property<string>("Destination")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                b.Property<string>("Destination")
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnType("nvarchar(100)");
 
-                    b.Property<decimal>("DistanceKm")
-                        .HasColumnType("decimal(10,2)");
+                b.Property<decimal>("DistanceKm")
+                    .HasColumnType("decimal(10,2)");
 
-                    b.Property<double>("EstimatedDurationHours")
-                        .HasColumnType("float");
+                b.Property<double>("EstimatedDurationHours")
+                    .HasColumnType("float");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                b.Property<bool>("IsActive")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("Origin")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                b.Property<string>("Origin")
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("Stops")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                b.Property<string>("Stops")
+                    .HasMaxLength(500)
+                    .HasColumnType("nvarchar(500)");
 
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("UpdatedAt")
+                    .HasColumnType("datetime2");
 
-                    b.HasKey("RouteId");
+                b.HasKey("RouteId");
 
-                    b.ToTable("Routes");
-                });
+                b.ToTable("Routes");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.Transportation.Seat", b =>
-                {
-                    b.Property<int>("SeatId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("SeatId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SeatId"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SeatId"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsAvailable")
-                        .HasColumnType("bit");
+                b.Property<bool>("IsAvailable")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("SeatClass")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                b.Property<string>("SeatClass")
+                    .HasMaxLength(20)
+                    .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("SeatNumber")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                b.Property<string>("SeatNumber")
+                    .IsRequired()
+                    .HasMaxLength(10)
+                    .HasColumnType("nvarchar(10)");
 
-                    b.Property<string>("SeatType")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                b.Property<string>("SeatType")
+                    .HasMaxLength(50)
+                    .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                b.Property<string>("Status")
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasColumnType("nvarchar(50)");
 
-                    b.Property<int>("TripId")
-                        .HasColumnType("int");
+                b.Property<int>("TripId")
+                    .HasColumnType("int");
 
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("UpdatedAt")
+                    .HasColumnType("datetime2");
 
-                    b.HasKey("SeatId");
+                b.HasKey("SeatId");
 
-                    b.HasIndex("TripId");
+                b.HasIndex("TripId");
 
-                    b.ToTable("Seats");
-                });
+                b.ToTable("Seats");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.Transportation.TransportationBooking", b =>
-                {
-                    b.Property<int>("BookingId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("BookingId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BookingId"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BookingId"));
 
-                    b.Property<decimal>("BaggageFeeTotal")
-                        .HasColumnType("decimal(18,2)");
+                b.Property<decimal>("BaggageFeeTotal")
+                    .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal>("BaseFareTotal")
-                        .HasColumnType("decimal(18,2)");
+                b.Property<decimal>("BaseFareTotal")
+                    .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateTime>("BookingDate")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("BookingDate")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("BookingReference")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                b.Property<string>("BookingReference")
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("BookingStatus")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                b.Property<string>("BookingStatus")
+                    .IsRequired()
+                    .HasMaxLength(30)
+                    .HasColumnType("nvarchar(30)");
 
-                    b.Property<string>("ContactEmail")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
+                b.Property<string>("ContactEmail")
+                    .IsRequired()
+                    .HasMaxLength(150)
+                    .HasColumnType("nvarchar(150)");
 
-                    b.Property<string>("ContactName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                b.Property<string>("ContactName")
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("ContactPhone")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                b.Property<string>("ContactPhone")
+                    .IsRequired()
+                    .HasMaxLength(30)
+                    .HasColumnType("nvarchar(30)");
 
-                    b.Property<decimal>("DiscountAmount")
-                        .HasColumnType("decimal(18,2)");
+                b.Property<decimal>("DiscountAmount")
+                    .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal>("InsuranceFeeTotal")
-                        .HasColumnType("decimal(18,2)");
+                b.Property<decimal>("InsuranceFeeTotal")
+                    .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("PaymentMethod")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                b.Property<string>("PaymentMethod")
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("PaymentStatus")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                b.Property<string>("PaymentStatus")
+                    .IsRequired()
+                    .HasMaxLength(30)
+                    .HasColumnType("nvarchar(30)");
 
-                    b.Property<string>("PromoCode")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                b.Property<string>("PromoCode")
+                    .HasMaxLength(50)
+                    .HasColumnType("nvarchar(50)");
 
-                    b.Property<decimal>("TotalAmount")
-                        .HasColumnType("decimal(18,2)");
+                b.Property<decimal>("TotalAmount")
+                    .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("TripId")
-                        .HasColumnType("int");
+                b.Property<int>("TripId")
+                    .HasColumnType("int");
 
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("UpdatedAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                b.Property<Guid>("UserId")
+                    .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("BookingId");
+                b.HasKey("BookingId");
 
-                    b.HasIndex("TripId");
+                b.HasIndex("TripId");
 
-                    b.HasIndex("UserId");
+                b.HasIndex("UserId");
 
-                    b.ToTable("TransportationBookings");
-                });
+                b.ToTable("TransportationBookings");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.Transportation.TransportationPassenger", b =>
-                {
-                    b.Property<int>("PassengerId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("PassengerId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PassengerId"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PassengerId"));
 
-                    b.Property<string>("BaggageOption")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                b.Property<string>("BaggageOption")
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasColumnType("nvarchar(50)");
 
-                    b.Property<decimal>("BaggagePrice")
-                        .HasColumnType("decimal(18,2)");
+                b.Property<decimal>("BaggagePrice")
+                    .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateTime?>("BoardedAt")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime?>("BoardedAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<int>("BookingId")
-                        .HasColumnType("int");
+                b.Property<int>("BookingId")
+                    .HasColumnType("int");
 
-                    b.Property<string>("FullName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                b.Property<string>("FullName")
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnType("nvarchar(100)");
 
-                    b.Property<bool>("HasTravelInsurance")
-                        .HasColumnType("bit");
+                b.Property<bool>("HasTravelInsurance")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("IdNumber")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                b.Property<string>("IdNumber")
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasColumnType("nvarchar(50)");
 
-                    b.Property<decimal>("InsurancePrice")
-                        .HasColumnType("decimal(18,2)");
+                b.Property<decimal>("InsurancePrice")
+                    .HasColumnType("decimal(18,2)");
 
-                    b.Property<bool>("IsBoarded")
-                        .HasColumnType("bit");
+                b.Property<bool>("IsBoarded")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("PassengerType")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                b.Property<string>("PassengerType")
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasColumnType("nvarchar(20)");
 
-                    b.Property<int?>("SeatId")
-                        .HasColumnType("int");
+                b.Property<int?>("SeatId")
+                    .HasColumnType("int");
 
-                    b.Property<string>("SeatNumber")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                b.Property<string>("SeatNumber")
+                    .IsRequired()
+                    .HasMaxLength(10)
+                    .HasColumnType("nvarchar(10)");
 
-                    b.Property<string>("SpecialRequests")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                b.Property<string>("SpecialRequests")
+                    .HasMaxLength(255)
+                    .HasColumnType("nvarchar(255)");
 
-                    b.HasKey("PassengerId");
+                b.HasKey("PassengerId");
 
-                    b.HasIndex("BookingId");
+                b.HasIndex("BookingId");
 
-                    b.HasIndex("SeatId");
+                b.HasIndex("SeatId");
 
-                    b.ToTable("TransportationPassengers");
-                });
+                b.ToTable("TransportationPassengers");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.Transportation.TransportationReview", b =>
-                {
-                    b.Property<int>("ReviewId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("ReviewId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReviewId"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReviewId"));
 
-                    b.Property<string>("Comment")
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
+                b.Property<string>("Comment")
+                    .HasMaxLength(2000)
+                    .HasColumnType("nvarchar(2000)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsVisible")
-                        .HasColumnType("bit");
+                b.Property<bool>("IsVisible")
+                    .HasColumnType("bit");
 
-                    b.Property<int>("Rating")
-                        .HasColumnType("int");
+                b.Property<int>("Rating")
+                    .HasColumnType("int");
 
-                    b.Property<string>("Title")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                b.Property<string>("Title")
+                    .HasMaxLength(500)
+                    .HasColumnType("nvarchar(500)");
 
-                    b.Property<int>("TripId")
-                        .HasColumnType("int");
+                b.Property<int>("TripId")
+                    .HasColumnType("int");
 
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("UpdatedAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                b.Property<Guid>("UserId")
+                    .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("ReviewId");
+                b.HasKey("ReviewId");
 
-                    b.HasIndex("TripId");
+                b.HasIndex("TripId");
 
-                    b.HasIndex("UserId");
+                b.HasIndex("UserId");
 
-                    b.ToTable("TransportationReviews");
-                });
+                b.ToTable("TransportationReviews");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.Transportation.Trip", b =>
-                {
-                    b.Property<int>("TripId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("TripId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TripId"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TripId"));
 
-                    b.Property<DateTime>("ArrivalTime")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("ArrivalTime")
+                    .HasColumnType("datetime2");
 
-                    b.Property<int>("AvailableSeats")
-                        .HasColumnType("int");
+                b.Property<int>("AvailableSeats")
+                    .HasColumnType("int");
 
-                    b.Property<decimal>("BaseFare")
-                        .HasColumnType("decimal(10,2)");
+                b.Property<decimal>("BaseFare")
+                    .HasColumnType("decimal(10,2)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("DepartureTime")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("DepartureTime")
+                    .HasColumnType("datetime2");
 
-                    b.Property<decimal>("DiscountPercentage")
-                        .HasColumnType("decimal(5,2)");
+                b.Property<decimal>("DiscountPercentage")
+                    .HasColumnType("decimal(5,2)");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                b.Property<bool>("IsActive")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("Notes")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                b.Property<string>("Notes")
+                    .HasMaxLength(500)
+                    .HasColumnType("nvarchar(500)");
 
-                    b.Property<int>("RouteId")
-                        .HasColumnType("int");
+                b.Property<int>("RouteId")
+                    .HasColumnType("int");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                b.Property<string>("Status")
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasColumnType("nvarchar(50)");
 
-                    b.Property<int>("TotalSeats")
-                        .HasColumnType("int");
+                b.Property<int>("TotalSeats")
+                    .HasColumnType("int");
 
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("UpdatedAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<int>("VehicleId")
-                        .HasColumnType("int");
+                b.Property<int>("VehicleId")
+                    .HasColumnType("int");
 
-                    b.HasKey("TripId");
+                b.HasKey("TripId");
 
-                    b.HasIndex("RouteId");
+                b.HasIndex("RouteId");
 
-                    b.HasIndex("VehicleId");
+                b.HasIndex("VehicleId");
 
-                    b.ToTable("Trips");
-                });
+                b.ToTable("Trips");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.Transportation.Vehicle", b =>
-                {
-                    b.Property<int>("VehicleId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("VehicleId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VehicleId"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VehicleId"));
 
-                    b.Property<string>("Amenities")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                b.Property<string>("Amenities")
+                    .HasMaxLength(500)
+                    .HasColumnType("nvarchar(500)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                b.Property<bool>("IsActive")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("LicensePlate")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                b.Property<string>("LicensePlate")
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasColumnType("nvarchar(50)");
 
-                    b.Property<int>("ManufactureYear")
-                        .HasColumnType("int");
+                b.Property<int>("ManufactureYear")
+                    .HasColumnType("int");
 
-                    b.Property<string>("RegistrationNumber")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                b.Property<string>("RegistrationNumber")
+                    .HasMaxLength(500)
+                    .HasColumnType("nvarchar(500)");
 
-                    b.Property<int>("SeatingCapacity")
-                        .HasColumnType("int");
+                b.Property<int>("SeatingCapacity")
+                    .HasColumnType("int");
 
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("UpdatedAt")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("VehicleModel")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                b.Property<string>("VehicleModel")
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("VehicleType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                b.Property<string>("VehicleType")
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasColumnType("nvarchar(50)");
 
-                    b.HasKey("VehicleId");
+                b.HasKey("VehicleId");
 
-                    b.ToTable("Vehicles");
-                });
+                b.ToTable("Vehicles");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.Activity", b =>
-                {
-                    b.HasOne("TravelPlanningSystem.Models.ActivityCategory", "ActivityCategory")
-                        .WithMany("Activities")
-                        .HasForeignKey("ActivityCategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("TravelPlanningSystem.Models.ActivityCategory", "ActivityCategory")
+                    .WithMany("Activities")
+                    .HasForeignKey("ActivityCategoryId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("ActivityCategory");
-                });
+                b.Navigation("ActivityCategory");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.ActivityBooking", b =>
-                {
-                    b.HasOne("TravelPlanningSystem.Models.ActivitySession", "ActivitySession")
-                        .WithMany("Bookings")
-                        .HasForeignKey("ActivitySessionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("TravelPlanningSystem.Models.ActivitySession", "ActivitySession")
+                    .WithMany("Bookings")
+                    .HasForeignKey("ActivitySessionId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("ActivitySession");
-                });
+                b.Navigation("ActivitySession");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.ActivityPhoto", b =>
-                {
-                    b.HasOne("TravelPlanningSystem.Models.Activity", "Activity")
-                        .WithMany("Photos")
-                        .HasForeignKey("ActivityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("TravelPlanningSystem.Models.Activity", "Activity")
+                    .WithMany("Photos")
+                    .HasForeignKey("ActivityId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Activity");
-                });
+                b.Navigation("Activity");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.ActivityReview", b =>
-                {
-                    b.HasOne("TravelPlanningSystem.Models.ActivityBooking", "ActivityBooking")
-                        .WithOne("Review")
-                        .HasForeignKey("TravelPlanningSystem.Models.ActivityReview", "ActivityBookingId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+            {
+                b.HasOne("TravelPlanningSystem.Models.ActivityBooking", "ActivityBooking")
+                    .WithOne("Review")
+                    .HasForeignKey("TravelPlanningSystem.Models.ActivityReview", "ActivityBookingId")
+                    .OnDelete(DeleteBehavior.NoAction)
+                    .IsRequired();
 
-                    b.HasOne("TravelPlanningSystem.Models.Activity", "Activity")
-                        .WithMany("Reviews")
-                        .HasForeignKey("ActivityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.HasOne("TravelPlanningSystem.Models.Activity", "Activity")
+                    .WithMany("Reviews")
+                    .HasForeignKey("ActivityId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Activity");
+                b.Navigation("Activity");
 
-                    b.Navigation("ActivityBooking");
-                });
+                b.Navigation("ActivityBooking");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.ActivitySession", b =>
-                {
-                    b.HasOne("TravelPlanningSystem.Models.Activity", "Activity")
-                        .WithMany("Sessions")
-                        .HasForeignKey("ActivityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("TravelPlanningSystem.Models.Activity", "Activity")
+                    .WithMany("Sessions")
+                    .HasForeignKey("ActivityId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Activity");
-                });
+                b.Navigation("Activity");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.Flight", b =>
-                {
-                    b.HasOne("TravelPlanningSystem.Models.Airline", "Airline")
-                        .WithMany("Flights")
-                        .HasForeignKey("AirlineId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+            {
+                b.HasOne("TravelPlanningSystem.Models.Airline", "Airline")
+                    .WithMany("Flights")
+                    .HasForeignKey("AirlineId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
 
-                    b.Navigation("Airline");
-                });
+                b.Navigation("Airline");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.FlightBookingSegment", b =>
-                {
-                    b.HasOne("TravelPlanningSystem.Models.FlightBooking", "FlightBooking")
-                        .WithMany("Segments")
-                        .HasForeignKey("FlightBookingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("TravelPlanningSystem.Models.FlightBooking", "FlightBooking")
+                    .WithMany("Segments")
+                    .HasForeignKey("FlightBookingId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("TravelPlanningSystem.Models.Flight", "Flight")
-                        .WithMany("BookingSegments")
-                        .HasForeignKey("FlightId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                b.HasOne("TravelPlanningSystem.Models.Flight", "Flight")
+                    .WithMany("BookingSegments")
+                    .HasForeignKey("FlightId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
 
-                    b.Navigation("Flight");
+                b.Navigation("Flight");
 
-                    b.Navigation("FlightBooking");
-                });
+                b.Navigation("FlightBooking");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.FlightPassenger", b =>
-                {
-                    b.HasOne("TravelPlanningSystem.Models.FlightBooking", "FlightBooking")
-                        .WithMany("Passengers")
-                        .HasForeignKey("FlightBookingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("TravelPlanningSystem.Models.FlightBooking", "FlightBooking")
+                    .WithMany("Passengers")
+                    .HasForeignKey("FlightBookingId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("FlightBooking");
-                });
+                b.Navigation("FlightBooking");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.HotelReservation", b =>
-                {
-                    b.HasOne("TravelPlanningSystem.Models.HotelRoom", "HotelRoom")
-                        .WithMany("Reservations")
-                        .HasForeignKey("HotelRoomId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("TravelPlanningSystem.Models.HotelRoom", "HotelRoom")
+                    .WithMany("Reservations")
+                    .HasForeignKey("HotelRoomId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("HotelRoom");
-                });
+                b.Navigation("HotelRoom");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.HotelReview", b =>
-                {
-                    b.HasOne("TravelPlanningSystem.Models.HotelReservation", "HotelReservation")
-                        .WithOne("Review")
-                        .HasForeignKey("TravelPlanningSystem.Models.HotelReview", "HotelReservationId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+            {
+                b.HasOne("TravelPlanningSystem.Models.HotelReservation", "HotelReservation")
+                    .WithOne("Review")
+                    .HasForeignKey("TravelPlanningSystem.Models.HotelReview", "HotelReservationId")
+                    .OnDelete(DeleteBehavior.NoAction)
+                    .IsRequired();
 
-                    b.HasOne("TravelPlanningSystem.Models.HotelRoom", "HotelRoom")
-                        .WithMany("Reviews")
-                        .HasForeignKey("HotelRoomId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.HasOne("TravelPlanningSystem.Models.HotelRoom", "HotelRoom")
+                    .WithMany("Reviews")
+                    .HasForeignKey("HotelRoomId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("HotelReservation");
+                b.Navigation("HotelReservation");
 
-                    b.Navigation("HotelRoom");
-                });
+                b.Navigation("HotelRoom");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.HotelRoomPhoto", b =>
-                {
-                    b.HasOne("TravelPlanningSystem.Models.HotelRoom", "HotelRoom")
-                        .WithMany("Photos")
-                        .HasForeignKey("HotelRoomId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("TravelPlanningSystem.Models.HotelRoom", "HotelRoom")
+                    .WithMany("Photos")
+                    .HasForeignKey("HotelRoomId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("HotelRoom");
-                });
+                b.Navigation("HotelRoom");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.StaffUser", b =>
-                {
-                    b.HasOne("TravelPlanningSystem.Models.StaffRole", "StaffRole")
-                        .WithMany("StaffUsers")
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("TravelPlanningSystem.Models.StaffRole", "StaffRole")
+                    .WithMany("StaffUsers")
+                    .HasForeignKey("RoleId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("StaffRole");
-                });
+                b.Navigation("StaffRole");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.Transportation.Seat", b =>
-                {
-                    b.HasOne("TravelPlanningSystem.Models.Transportation.Trip", "Trip")
-                        .WithMany("Seats")
-                        .HasForeignKey("TripId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("TravelPlanningSystem.Models.Transportation.Trip", "Trip")
+                    .WithMany("Seats")
+                    .HasForeignKey("TripId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Trip");
-                });
+                b.Navigation("Trip");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.Transportation.TransportationBooking", b =>
-                {
-                    b.HasOne("TravelPlanningSystem.Models.Transportation.Trip", "Trip")
-                        .WithMany()
-                        .HasForeignKey("TripId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("TravelPlanningSystem.Models.Transportation.Trip", "Trip")
+                    .WithMany()
+                    .HasForeignKey("TripId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("TravelPlanningSystem.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.HasOne("TravelPlanningSystem.Models.ApplicationUser", "User")
+                    .WithMany()
+                    .HasForeignKey("UserId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Trip");
+                b.Navigation("Trip");
 
-                    b.Navigation("User");
-                });
+                b.Navigation("User");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.Transportation.TransportationPassenger", b =>
-                {
-                    b.HasOne("TravelPlanningSystem.Models.Transportation.TransportationBooking", "Booking")
-                        .WithMany("Passengers")
-                        .HasForeignKey("BookingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("TravelPlanningSystem.Models.Transportation.TransportationBooking", "Booking")
+                    .WithMany("Passengers")
+                    .HasForeignKey("BookingId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("TravelPlanningSystem.Models.Transportation.Seat", "Seat")
-                        .WithMany()
-                        .HasForeignKey("SeatId");
+                b.HasOne("TravelPlanningSystem.Models.Transportation.Seat", "Seat")
+                    .WithMany()
+                    .HasForeignKey("SeatId");
 
-                    b.Navigation("Booking");
+                b.Navigation("Booking");
 
-                    b.Navigation("Seat");
-                });
+                b.Navigation("Seat");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.Transportation.TransportationReview", b =>
-                {
-                    b.HasOne("TravelPlanningSystem.Models.Transportation.Trip", "Trip")
-                        .WithMany("Reviews")
-                        .HasForeignKey("TripId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+            {
+                b.HasOne("TravelPlanningSystem.Models.Transportation.Trip", "Trip")
+                    .WithMany("Reviews")
+                    .HasForeignKey("TripId")
+                    .OnDelete(DeleteBehavior.NoAction)
+                    .IsRequired();
 
-                    b.HasOne("TravelPlanningSystem.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                b.HasOne("TravelPlanningSystem.Models.ApplicationUser", "User")
+                    .WithMany()
+                    .HasForeignKey("UserId")
+                    .OnDelete(DeleteBehavior.NoAction)
+                    .IsRequired();
 
-                    b.Navigation("Trip");
+                b.Navigation("Trip");
 
-                    b.Navigation("User");
-                });
+                b.Navigation("User");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.Transportation.Trip", b =>
-                {
-                    b.HasOne("TravelPlanningSystem.Models.Transportation.Route", "Route")
-                        .WithMany("Trips")
-                        .HasForeignKey("RouteId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+            {
+                b.HasOne("TravelPlanningSystem.Models.Transportation.Route", "Route")
+                    .WithMany("Trips")
+                    .HasForeignKey("RouteId")
+                    .OnDelete(DeleteBehavior.NoAction)
+                    .IsRequired();
 
-                    b.HasOne("TravelPlanningSystem.Models.Transportation.Vehicle", "Vehicle")
-                        .WithMany("Trips")
-                        .HasForeignKey("VehicleId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                b.HasOne("TravelPlanningSystem.Models.Transportation.Vehicle", "Vehicle")
+                    .WithMany("Trips")
+                    .HasForeignKey("VehicleId")
+                    .OnDelete(DeleteBehavior.NoAction)
+                    .IsRequired();
 
-                    b.Navigation("Route");
+                b.Navigation("Route");
 
-                    b.Navigation("Vehicle");
-                });
+                b.Navigation("Vehicle");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.Activity", b =>
-                {
-                    b.Navigation("Photos");
+            {
+                b.Navigation("Photos");
 
-                    b.Navigation("Reviews");
+                b.Navigation("Reviews");
 
-                    b.Navigation("Sessions");
-                });
+                b.Navigation("Sessions");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.ActivityBooking", b =>
-                {
-                    b.Navigation("Review");
-                });
+            {
+                b.Navigation("Review");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.ActivityCategory", b =>
-                {
-                    b.Navigation("Activities");
-                });
+            {
+                b.Navigation("Activities");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.ActivitySession", b =>
-                {
-                    b.Navigation("Bookings");
-                });
+            {
+                b.Navigation("Bookings");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.Airline", b =>
-                {
-                    b.Navigation("Flights");
-                });
+            {
+                b.Navigation("Flights");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.Flight", b =>
-                {
-                    b.Navigation("BookingSegments");
-                });
+            {
+                b.Navigation("BookingSegments");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.FlightBooking", b =>
-                {
-                    b.Navigation("Passengers");
+            {
+                b.Navigation("Passengers");
 
-                    b.Navigation("Segments");
-                });
+                b.Navigation("Segments");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.HotelReservation", b =>
-                {
-                    b.Navigation("Review");
-                });
+            {
+                b.Navigation("Review");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.HotelRoom", b =>
-                {
-                    b.Navigation("Photos");
+            {
+                b.Navigation("Photos");
 
-                    b.Navigation("Reservations");
+                b.Navigation("Reservations");
 
-                    b.Navigation("Reviews");
-                });
+                b.Navigation("Reviews");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.StaffRole", b =>
-                {
-                    b.Navigation("StaffUsers");
-                });
+            {
+                b.Navigation("StaffUsers");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.Transportation.Route", b =>
-                {
-                    b.Navigation("Trips");
-                });
+            {
+                b.Navigation("Trips");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.Transportation.TransportationBooking", b =>
-                {
-                    b.Navigation("Passengers");
-                });
+            {
+                b.Navigation("Passengers");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.Transportation.Trip", b =>
-                {
-                    b.Navigation("Reviews");
+            {
+                b.Navigation("Reviews");
 
-                    b.Navigation("Seats");
-                });
+                b.Navigation("Seats");
+            });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.Transportation.Vehicle", b =>
-                {
-                    b.Navigation("Trips");
-                });
+            {
+                b.Navigation("Trips");
+            });
 #pragma warning restore 612, 618
         }
     }
