@@ -9,6 +9,8 @@ namespace TravelPlanningSystem.Controllers;
 
 public class HotelReservationsController(AppDbContext context) : Controller
 {
+    private const decimal HotelSstRate = 0.10m;
+
     private Guid? CurrentAccountId =>
         Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId)
             ? userId
@@ -56,7 +58,7 @@ public class HotelReservationsController(AppDbContext context) : Controller
 
             contactName = $"{staff.FirstName} {staff.LastName}".Trim();
             contactEmail = staff.Email;
-            contactPhone = string.Empty;
+            contactPhone = staff.PhoneNumber ?? string.Empty;
         }
         else
         {
@@ -159,6 +161,7 @@ public class HotelReservationsController(AppDbContext context) : Controller
 
             accountName = $"{staff.FirstName} {staff.LastName}".Trim();
             accountEmail = staff.Email;
+            accountPhone = staff.PhoneNumber ?? string.Empty;
         }
         else
         {
@@ -329,19 +332,26 @@ public class HotelReservationsController(AppDbContext context) : Controller
             return RedirectToAction(nameof(Details), new { id });
         }
 
+        var nights = GetNights(reservation);
+        var subtotal = reservation.PricePerNight * nights;
+        var tax = Math.Round(subtotal * HotelSstRate, 2, MidpointRounding.AwayFromZero);
+
         return View(new HotelPaymentViewModel
         {
             HotelReservationId = reservation.HotelReservationId,
             ReservationReference = reservation.ReservationReference,
             HotelName = reservation.HotelRoom?.HotelName ?? "Hotel Reservation",
             RoomName = reservation.HotelRoom?.RoomName ?? string.Empty,
-            TotalAmount = reservation.TotalAmount
+            Nights = nights,
+            Subtotal = subtotal,
+            TaxAmount = tax,
+            TotalAmount = subtotal + tax
         });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Payment(HotelPaymentViewModel model)
+    public async Task<IActionResult> Payment(HotelPaymentViewModel model, string? action)
     {
         var allowedMethods = new[]
         {
@@ -371,15 +381,67 @@ public class HotelReservationsController(AppDbContext context) : Controller
             return RedirectToAction(nameof(Details), new { id = reservation.HotelReservationId });
         }
 
+        var nights = GetNights(reservation);
+        var subtotal = reservation.PricePerNight * nights;
+        var discount = GetVoucherDiscount(model.VoucherCode, subtotal, out var voucherError);
+        if (voucherError is not null)
+            ModelState.AddModelError(nameof(model.VoucherCode), voucherError);
+
+        var taxableAmount = Math.Max(0, subtotal - discount);
+        var tax = Math.Round(taxableAmount * HotelSstRate, 2, MidpointRounding.AwayFromZero);
+        var total = taxableAmount + tax;
+
+        var possibleReservations = await context.HotelReservations
+            .AsNoTracking()
+            .Where(b =>
+                b.HotelReservationId != reservation.HotelReservationId &&
+                b.HotelRoomId == reservation.HotelRoomId &&
+                b.ReservationStatus != HotelReservationStatus.Cancelled &&
+                b.CheckInDate <= reservation.CheckOutDate.Date &&
+                b.CheckOutDate >= reservation.CheckInDate.Date)
+            .ToListAsync();
+
+        var checkInAt = reservation.CheckInDate.Date.Add(reservation.CheckInTime);
+        var checkOutAt = reservation.CheckOutDate.Date.Add(reservation.CheckOutTime);
+        var occupied = possibleReservations.Count(b =>
+            b.CheckInDate.Date.Add(b.CheckInTime) < checkOutAt &&
+            b.CheckOutDate.Date.Add(b.CheckOutTime) > checkInAt);
+
+        if (occupied >= (reservation.HotelRoom?.TotalRooms ?? 0))
+            ModelState.AddModelError(string.Empty, "This room is no longer available for the selected dates.");
+
+        if (string.Equals(action, "apply", StringComparison.OrdinalIgnoreCase))
+        {
+            ModelState.Remove(nameof(model.PaymentMethod));
+        }
+
         if (!ModelState.IsValid)
         {
             model.ReservationReference = reservation.ReservationReference;
             model.HotelName = reservation.HotelRoom?.HotelName ?? "Hotel Reservation";
             model.RoomName = reservation.HotelRoom?.RoomName ?? string.Empty;
-            model.TotalAmount = reservation.TotalAmount;
+            model.Nights = nights;
+            model.Subtotal = subtotal;
+            model.DiscountAmount = discount;
+            model.TaxAmount = tax;
+            model.TotalAmount = total;
             return View(model);
         }
 
+        if (string.Equals(action, "apply", StringComparison.OrdinalIgnoreCase))
+        {
+            model.ReservationReference = reservation.ReservationReference;
+            model.HotelName = reservation.HotelRoom?.HotelName ?? "Hotel Reservation";
+            model.RoomName = reservation.HotelRoom?.RoomName ?? string.Empty;
+            model.Nights = nights;
+            model.Subtotal = subtotal;
+            model.DiscountAmount = discount;
+            model.TaxAmount = tax;
+            model.TotalAmount = total;
+            return View(model);
+        }
+
+        reservation.TotalAmount = total;
         reservation.PaymentStatus = "Paid";
         reservation.PaymentMethod = model.PaymentMethod;
         reservation.ReservationStatus = HotelReservationStatus.Confirmed;
@@ -387,6 +449,28 @@ public class HotelReservationsController(AppDbContext context) : Controller
         await context.SaveChangesAsync();
 
         return RedirectToAction(nameof(Details), new { id = reservation.HotelReservationId });
+    }
+
+    private static int GetNights(HotelReservation reservation)
+        => Math.Max(1, (int)Math.Ceiling((reservation.CheckOutDate.Date.Add(reservation.CheckOutTime) -
+            reservation.CheckInDate.Date.Add(reservation.CheckInTime)).TotalDays));
+
+    private static decimal GetVoucherDiscount(string? voucherCode, decimal subtotal, out string? error)
+    {
+        error = null;
+        var code = voucherCode?.Trim().ToUpperInvariant();
+
+        if (string.IsNullOrWhiteSpace(code))
+            return 0;
+
+        if (code == "TRAVEL2026")
+            return Math.Round(subtotal * 0.15m, 2, MidpointRounding.AwayFromZero);
+
+        if (code == "PROMO10" || code == "FLY50")
+            return Math.Min(subtotal, code == "PROMO10" ? 10m : 50m);
+
+        error = "The voucher code is not valid.";
+        return 0;
     }
 
     [HttpGet]

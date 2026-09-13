@@ -88,7 +88,7 @@ public class HotelReservationViewModel : IValidatableObject
     [Required, Display(Name = "Booking for")] public string BookingFor { get; set; } = BookForSelf;
     [Required, StringLength(100), Display(Name = "Contact name")] public string ContactName { get; set; } = string.Empty;
     [Required, EmailAddress, StringLength(120), Display(Name = "Contact email")] public string ContactEmail { get; set; } = string.Empty;
-    [Required, RegularExpression(@"^\+?[0-9][0-9\s().-]{6,28}[0-9]$", ErrorMessage = "Enter a valid phone number using digits only, with an optional country code."), StringLength(30), Display(Name = "Contact phone")] public string ContactPhone { get; set; } = string.Empty;
+    [RegularExpression(@"^\+?[0-9][0-9\s().-]{6,28}[0-9]$", ErrorMessage = "Enter a valid phone number using digits only, with an optional country code."), StringLength(30), Display(Name = "Contact phone")] public string ContactPhone { get; set; } = string.Empty;
 
     public DateTime CheckInDateTime => CheckInDate.Date.Add(CheckInTime);
     public DateTime CheckOutDateTime => CheckOutDate.Date.Add(CheckOutTime);
@@ -116,6 +116,11 @@ public class HotelPaymentViewModel
     public string ReservationReference { get; set; } = string.Empty;
     public string HotelName { get; set; } = string.Empty;
     public string RoomName { get; set; } = string.Empty;
+    public int Nights { get; set; }
+    public decimal Subtotal { get; set; }
+    public string? VoucherCode { get; set; }
+    public decimal DiscountAmount { get; set; }
+    public decimal TaxAmount { get; set; }
     public decimal TotalAmount { get; set; }
 
     [Required, Display(Name = "Payment Method")]
