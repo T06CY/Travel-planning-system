@@ -150,6 +150,7 @@ public class AdminUserManagementController(AppDbContext context) : Controller
             PasswordHash = PasswordHashing.Hash(model.Password!),
             FirstName = model.FirstName.Trim(),
             LastName = model.LastName.Trim(),
+            PhoneNumber = string.IsNullOrWhiteSpace(model.PhoneNumber) ? null : model.PhoneNumber.Trim(),
             Department = model.Department.Trim(),
             RoleId = model.RoleId,
             AccessLevel = model.AccessLevel,
@@ -175,6 +176,7 @@ public class AdminUserManagementController(AppDbContext context) : Controller
             Email = staff.Email,
             FirstName = staff.FirstName,
             LastName = staff.LastName,
+            PhoneNumber = staff.PhoneNumber,
             Department = staff.Department,
             RoleId = staff.RoleId,
             AccessLevel = staff.AccessLevel,
@@ -187,6 +189,12 @@ public class AdminUserManagementController(AppDbContext context) : Controller
     {
         var staff = await context.StaffUsers.FindAsync(model.StaffId);
         if (staff is null) return NotFound();
+
+        model.FirstName = model.FirstName?.Trim() ?? string.Empty;
+        model.LastName = model.LastName?.Trim() ?? string.Empty;
+        model.Email = model.Email?.Trim() ?? string.Empty;
+        model.Department = model.Department?.Trim() ?? string.Empty;
+        model.PhoneNumber = string.IsNullOrWhiteSpace(model.PhoneNumber) ? null : model.PhoneNumber.Trim();
 
         await ValidateEmailAsync(model.Email, null, model.StaffId);
         if (model.RoleId == Guid.Empty || !await context.StaffRoles.AnyAsync(r => r.RoleId == model.RoleId))
@@ -201,6 +209,7 @@ public class AdminUserManagementController(AppDbContext context) : Controller
         staff.Email = model.Email.Trim();
         staff.FirstName = model.FirstName.Trim();
         staff.LastName = model.LastName.Trim();
+        staff.PhoneNumber = string.IsNullOrWhiteSpace(model.PhoneNumber) ? null : model.PhoneNumber.Trim();
         staff.Department = model.Department.Trim();
         staff.RoleId = model.RoleId;
         staff.AccessLevel = model.AccessLevel;

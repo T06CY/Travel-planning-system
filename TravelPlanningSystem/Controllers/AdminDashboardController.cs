@@ -16,7 +16,7 @@ public class AdminDashboardController : Controller
         _context = context;
     }
 
-    [Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "Administrator,Support")]
     public async Task<IActionResult> Index()
     {
         var allAnalyticsFlights = await _context.Flights

@@ -209,7 +209,7 @@
                             </span>
 
 
-                            @if (User.IsInRole("Administrator"))
+                            @if (User.IsInRole("Administrator") || User.IsInRole("Support"))
                             {
                                 <a class="btn btn-outline-primary btn-sm"
                                    asp-controller="AdminDashboard"

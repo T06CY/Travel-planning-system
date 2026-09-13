@@ -98,6 +98,10 @@ TravelPlanningSystem/
 
 ## 🚀 Getting Started (5 Minutes)
 
+### Database setup for the team
+
+The EF Core migrations are the shared source of truth for the database schema. Each teammate should run the database setup commands in [`DATABASE_SETUP.md`](DATABASE_SETUP.md) to create the same tables and columns locally. The current LocalDB configuration creates a database on each developer's computer; it does not share data between teammates.
+
 ### Quick Setup:
 
 1. **Create Migration:**

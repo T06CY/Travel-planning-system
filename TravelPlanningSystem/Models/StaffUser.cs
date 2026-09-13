@@ -25,6 +25,9 @@ namespace TravelPlanningSystem.Models
         [Required, MaxLength(100)]
         public string LastName { get; set; } = string.Empty;
 
+        [RegularExpression(@"^\+?[0-9][0-9\s().-]{6,18}[0-9]$", ErrorMessage = "Enter a valid phone number using digits only, with an optional country code."), MaxLength(20)]
+        public string? PhoneNumber { get; set; }
+
         [Required, MaxLength(100)]
         public string Department { get; set; } = string.Empty;
 

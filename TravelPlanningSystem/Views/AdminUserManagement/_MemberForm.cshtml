@@ -1,15 +1,85 @@
 @model TravelPlanningSystem.ViewModels.MemberManagementInput
 
+@{
+    var storedPhone = Model.PhoneNumber?.Trim() ?? string.Empty;
+    var countryCodes = new[] { "+60", "+1", "+44", "+61", "+65", "+91" };
+    var selectedCountryCode = countryCodes.FirstOrDefault(code => storedPhone.StartsWith(code, StringComparison.Ordinal)) ?? "+60";
+    var localPhone = storedPhone.StartsWith(selectedCountryCode, StringComparison.Ordinal)
+        ? storedPhone[selectedCountryCode.Length..].TrimStart()
+        : storedPhone;
+}
+
 <div class="row g-3">
-    <div class="col-md-6"><label asp-for="FirstName" class="form-label"></label><input asp-for="FirstName" class="form-control" /><span asp-validation-for="FirstName" class="text-danger"></span></div>
-    <div class="col-md-6"><label asp-for="LastName" class="form-label"></label><input asp-for="LastName" class="form-control" /><span asp-validation-for="LastName" class="text-danger"></span></div>
-    <div class="col-md-6"><label asp-for="Email" class="form-label"></label><input asp-for="Email" class="form-control" /><span asp-validation-for="Email" class="text-danger"></span></div>
-    <div class="col-md-6"><label asp-for="PhoneNumber" class="form-label"></label><input asp-for="PhoneNumber" class="form-control" /><span asp-validation-for="PhoneNumber" class="text-danger"></span></div>
+    <div class="col-md-6"><label asp-for="FirstName" class="form-label"></label><input asp-for="FirstName" class="form-control" autocomplete="given-name" required maxlength="100" /><span asp-validation-for="FirstName" class="text-danger"></span></div>
+    <div class="col-md-6"><label asp-for="LastName" class="form-label"></label><input asp-for="LastName" class="form-control" autocomplete="family-name" required maxlength="100" /><span asp-validation-for="LastName" class="text-danger"></span></div>
+    <div class="col-md-6"><label asp-for="Email" class="form-label"></label><input asp-for="Email" type="email" class="form-control" autocomplete="email" required maxlength="150" /><span asp-validation-for="Email" class="text-danger"></span></div>
+    <div class="col-md-6">
+        <label asp-for="PhoneNumber" class="form-label"></label>
+        <div class="d-flex gap-2">
+            <select class="form-select member-country-code" style="max-width:150px;" aria-label="Phone country code">
+                <option value="+60" selected="@(selectedCountryCode == "+60")">+60 Malaysia</option>
+                <option value="+1" selected="@(selectedCountryCode == "+1")">+1 USA</option>
+                <option value="+44" selected="@(selectedCountryCode == "+44")">+44 UK</option>
+                <option value="+61" selected="@(selectedCountryCode == "+61")">+61 Australia</option>
+                <option value="+65" selected="@(selectedCountryCode == "+65")">+65 Singapore</option>
+                <option value="+91" selected="@(selectedCountryCode == "+91")">+91 India</option>
+            </select>
+            <input class="form-control member-local-phone" value="@localPhone" type="tel" autocomplete="tel-national" inputmode="tel" maxlength="19" pattern="[0-9\s().-]{7,19}" title="Enter a valid phone number using digits only." />
+        </div>
+        <input asp-for="PhoneNumber" class="member-phone-value" type="hidden" />
+        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+    </div>
     <div class="col-md-4"><label asp-for="DateOfBirth" class="form-label"></label><input asp-for="DateOfBirth" type="date" class="form-control" /></div>
-    <div class="col-md-4"><label asp-for="PreferredCurrency" class="form-label"></label><input asp-for="PreferredCurrency" class="form-control" /></div>
-    <div class="col-md-4"><label asp-for="PreferredLanguage" class="form-label"></label><input asp-for="PreferredLanguage" class="form-control" /></div>
+    <div class="col-md-4">
+        <label asp-for="PreferredCurrency" class="form-label"></label>
+        <select asp-for="PreferredCurrency" class="form-select" required>
+            <option value="USD">USD - US Dollar</option>
+            <option value="MYR">MYR - Malaysian Ringgit</option>
+            <option value="SGD">SGD - Singapore Dollar</option>
+            <option value="EUR">EUR - Euro</option>
+            <option value="GBP">GBP - British Pound</option>
+            <option value="AUD">AUD - Australian Dollar</option>
+            <option value="JPY">JPY - Japanese Yen</option>
+        </select>
+        <span asp-validation-for="PreferredCurrency" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="PreferredLanguage" class="form-label"></label>
+        <select asp-for="PreferredLanguage" class="form-select" required>
+            <option value="en-US">English (US)</option>
+            <option value="en-GB">English (UK)</option>
+            <option value="ms-MY">Malay</option>
+            <option value="zh-CN">Chinese (Simplified)</option>
+            <option value="zh-TW">Chinese (Traditional)</option>
+            <option value="ja-JP">Japanese</option>
+        </select>
+        <span asp-validation-for="PreferredLanguage" class="text-danger"></span>
+    </div>
     <div class="col-md-4"><label asp-for="LoyaltyTier" class="form-label"></label><select asp-for="LoyaltyTier" class="form-select"><option value="Member">Member</option><option value="VIP">VIP</option></select><span asp-validation-for="LoyaltyTier" class="text-danger"></span></div>
-    <div class="col-md-4"><label asp-for="RewardPoints" class="form-label"></label><input asp-for="RewardPoints" class="form-control" /></div>
-    <div class="col-md-4"><label asp-for="AccountStatus" class="form-label"></label><select asp-for="AccountStatus" class="form-select"><option>Active</option><option>Suspended</option><option>Inactive</option></select></div>
-    <div class="col-12"><label asp-for="Password" class="form-label"></label><input asp-for="Password" class="form-control" autocomplete="new-password" /><small class="text-muted">Leave blank when editing to keep the current password.</small><span asp-validation-for="Password" class="text-danger"></span></div>
+    <div class="col-md-4"><label asp-for="RewardPoints" class="form-label"></label><input asp-for="RewardPoints" type="number" class="form-control" min="0" required /></div>
+    <div class="col-md-4"><label asp-for="AccountStatus" class="form-label"></label><select asp-for="AccountStatus" class="form-select" required><option>Active</option><option>Suspended</option><option>Inactive</option></select><span asp-validation-for="AccountStatus" class="text-danger"></span></div>
+    <div class="col-12"><label asp-for="Password" class="form-label"></label><input asp-for="Password" class="form-control" type="password" autocomplete="new-password" minlength="8" /><small class="text-muted">Leave blank when editing to keep the current password.</small><span asp-validation-for="Password" class="text-danger"></span></div>
 </div>
+
+<script>
+    (() => {
+        const form = document.currentScript.closest('form');
+        const country = form?.querySelector('.member-country-code');
+        const local = form?.querySelector('.member-local-phone');
+        const value = form?.querySelector('.member-phone-value');
+        if (!form || !country || !local || !value) return;
+
+        form.addEventListener('submit', event => {
+            const digits = local.value.replace(/\D/g, '');
+            if (digits && (digits.length < 7 || digits.length > 19)) {
+                event.preventDefault();
+                local.setCustomValidity('Enter a valid phone number using digits only.');
+                local.reportValidity();
+                return;
+            }
+
+            local.setCustomValidity('');
+            value.value = digits ? `${country.value}${digits}` : '';
+        });
+    })();
+</script>

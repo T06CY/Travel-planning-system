@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TravelPlanningSystem.Data;
 
@@ -11,9 +12,11 @@ using TravelPlanningSystem.Data;
 namespace TravelPlanningSystem.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260913080145_AddApplicationUserToHotelReservations")]
+    partial class AddApplicationUserToHotelReservations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -845,9 +848,6 @@ namespace TravelPlanningSystem.Migrations
                     b.Property<bool>("RewardPointsAwarded")
                         .HasColumnType("bit");
 
-                    b.Property<Guid?>("StaffUserId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(12,2)");
 
@@ -859,8 +859,6 @@ namespace TravelPlanningSystem.Migrations
                     b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("HotelRoomId");
-
-                    b.HasIndex("StaffUserId");
 
                     b.ToTable("HotelReservations");
                 });
@@ -1075,10 +1073,6 @@ namespace TravelPlanningSystem.Migrations
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("ProfilePic")
                         .HasMaxLength(250)
@@ -1616,15 +1610,9 @@ namespace TravelPlanningSystem.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("TravelPlanningSystem.Models.StaffUser", "StaffUser")
-                        .WithMany()
-                        .HasForeignKey("StaffUserId");
-
                     b.Navigation("ApplicationUser");
 
                     b.Navigation("HotelRoom");
-
-                    b.Navigation("StaffUser");
                 });
 
             modelBuilder.Entity("TravelPlanningSystem.Models.HotelReview", b =>

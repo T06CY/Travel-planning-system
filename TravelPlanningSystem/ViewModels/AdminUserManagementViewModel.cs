@@ -17,13 +17,16 @@ public class MemberManagementInput
     [Required, EmailAddress, StringLength(150)]
     public string Email { get; set; } = string.Empty;
 
-    [Required, StringLength(100)]
+    [Required, StringLength(100, MinimumLength = 2, ErrorMessage = "First name must be between 2 and 100 characters.")]
+    [Display(Name = "First name")]
     public string FirstName { get; set; } = string.Empty;
 
-    [Required, StringLength(100)]
+    [Required, StringLength(100, MinimumLength = 2, ErrorMessage = "Last name must be between 2 and 100 characters.")]
+    [Display(Name = "Last name")]
     public string LastName { get; set; } = string.Empty;
 
-    [Phone, StringLength(20)]
+    [RegularExpression(@"^\+?[0-9][0-9\s().-]{6,18}[0-9]$", ErrorMessage = "Enter a valid phone number using digits only, with an optional country code."), StringLength(20)]
+    [Display(Name = "Phone number")]
     public string? PhoneNumber { get; set; }
 
     public DateTime? DateOfBirth { get; set; }
@@ -43,7 +46,7 @@ public class MemberManagementInput
     [Required, StringLength(20)]
     public string AccountStatus { get; set; } = "Active";
 
-    [DataType(DataType.Password)]
+    [DataType(DataType.Password), StringLength(100, MinimumLength = 8, ErrorMessage = "Password must be at least 8 characters.")]
     public string? Password { get; set; }
 }
 
@@ -54,24 +57,30 @@ public class StaffManagementInput
     [Required, EmailAddress, StringLength(150)]
     public string Email { get; set; } = string.Empty;
 
-    [Required, StringLength(100)]
+    [Required, StringLength(100, MinimumLength = 2, ErrorMessage = "First name must be between 2 and 100 characters.")]
+    [Display(Name = "First name")]
     public string FirstName { get; set; } = string.Empty;
 
-    [Required, StringLength(100)]
+    [Required, StringLength(100, MinimumLength = 2, ErrorMessage = "Last name must be between 2 and 100 characters.")]
+    [Display(Name = "Last name")]
     public string LastName { get; set; } = string.Empty;
 
-    [Required, StringLength(100)]
+    [RegularExpression(@"^\+?[0-9][0-9\s().-]{6,18}[0-9]$", ErrorMessage = "Enter a valid phone number using digits only, with an optional country code."), StringLength(20)]
+    [Display(Name = "Phone number")]
+    public string? PhoneNumber { get; set; }
+
+    [Required, StringLength(100, MinimumLength = 2, ErrorMessage = "Department must be between 2 and 100 characters.")]
     public string Department { get; set; } = string.Empty;
 
-    [Required]
+    [Required(ErrorMessage = "Select a staff role.")]
     public Guid RoleId { get; set; }
 
     [Range(1, 10)]
     public int AccessLevel { get; set; } = 1;
 
-    [Required, StringLength(20)]
+    [Required, RegularExpression("^(Active|Inactive|Suspended)$", ErrorMessage = "Select a valid account status."), StringLength(20)]
     public string Status { get; set; } = "Active";
 
-    [DataType(DataType.Password)]
+    [DataType(DataType.Password), StringLength(100, MinimumLength = 8, ErrorMessage = "Password must be at least 8 characters.")]
     public string? Password { get; set; }
 }

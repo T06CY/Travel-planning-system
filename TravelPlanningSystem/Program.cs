@@ -80,6 +80,26 @@ using (var scope = app.Services.CreateScope())
                         CONSTRAINT [DF_HotelReservations_RewardPointsAwarded] DEFAULT 0;
             END
 
+            IF OBJECT_ID(N'[dbo].[HotelReservations]', N'U') IS NOT NULL
+               AND COL_LENGTH(N'dbo.HotelReservations', N'ApplicationUserId') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[HotelReservations]
+                    ADD [ApplicationUserId] uniqueidentifier NULL;
+            END
+
+            IF OBJECT_ID(N'[dbo].[HotelReservations]', N'U') IS NOT NULL
+               AND COL_LENGTH(N'dbo.HotelReservations', N'StaffUserId') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[HotelReservations]
+                    ADD [StaffUserId] uniqueidentifier NULL;
+            END
+
+             IF OBJECT_ID(N'[dbo].[StaffUsers]', N'U') IS NOT NULL
+                AND COL_LENGTH(N'dbo.StaffUsers', N'PhoneNumber') IS NULL
+             BEGIN
+                 ALTER TABLE [dbo].[StaffUsers] ADD [PhoneNumber] nvarchar(20) NULL;
+             END
+
             IF OBJECT_ID(N'[dbo].[Flights]', N'U') IS NOT NULL
                AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Flights]') AND name = 'DiscountPercent')
             BEGIN

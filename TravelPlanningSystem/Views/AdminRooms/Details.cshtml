@@ -18,7 +18,7 @@
                 <i class="bi bi-images"></i> Photos (@Model.PhotoCount)
             </a>
             <a asp-action="Delete" asp-route-id="@Model.HotelRoomId" class="danger-flight-btn">
-                <i class="bi bi-trash"></i> Delete / deactivate
+                <i class="bi bi-trash"></i> Delete
             </a>
         </div>
     </div>
@@ -51,17 +51,19 @@
             </div>
             <div>
                 <span class="summary-label">Status</span>
-                @if (Model.IsActive)
-                {
-                    <strong class="text-success">Active</strong>
-                }
-                else
-                {
-                    <strong class="text-danger">Inactive</strong>
-                }
+                <form asp-action="ToggleActive" asp-route-id="@Model.HotelRoomId" method="post" class="room-status-form">
+                    @Html.AntiForgeryToken()
+                    @if (Model.IsActive)
+                    {
+                        <button type="submit" class="room-status-btn room-status-active">Active</button>
+                    }
+                    else
+                    {
+                        <button type="submit" class="room-status-btn room-status-inactive">Inactive</button>
+                    }
+                </form>
             </div>
         </div>
-        <p class="room-description">@Model.Description</p>
     </div>
 
     <form asp-action="Edit"
@@ -91,6 +93,10 @@
     .room-summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
     .room-summary-grid > div { padding: 14px 16px; border: 1px solid #e8eaf0; border-radius: 10px; background: #fafbfe; }
     .summary-label { display: block; margin-bottom: 5px; color: #7e8496; font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; }
+    .room-status-form { margin: 0; }
+    .room-status-btn { display: inline-block; padding: 6px 14px; border: 1px solid; border-radius: 999px; font: inherit; font-size: .85rem; font-weight: 600; line-height: 1.2; cursor: pointer; }
+    .room-status-active { color: #13795b; background: #d1fae5; border: 1px solid #a7f3d0; }
+    .room-status-inactive { color: #b42318; background: #fee4e2; border: 1px solid #fecdca; }
     .room-description { margin: 22px 0 0; color: #687386; line-height: 1.7; }
     .form-section-header { margin: 0 0 22px; }
     .form-section-header h2 { margin: 0; font-size: 24px; }

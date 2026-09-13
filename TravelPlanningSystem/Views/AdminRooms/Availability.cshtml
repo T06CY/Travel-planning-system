@@ -1,0 +1,237 @@
+@model TravelPlanningSystem.ViewModels.RoomAvailabilityViewModel
+
+@{
+    ViewData["Title"] = "Room Availability";
+}
+
+<link rel="stylesheet" href="~/css/flight.css" asp-append-version="true" />
+
+<div class="flight-admin-page">
+    <div class="admin-page-header">
+        <div>
+            <span class="flight-eyebrow">ROOM AVAILABILITY</span>
+            <h1>@Model.HotelName</h1>
+            <p>@Model.RoomName — date and time slots</p>
+        </div>
+        <a asp-action="Index" class="secondary-flight-btn">← Room list</a>
+    </div>
+
+    <div class="availability-card" id="availabilityCard">
+        <form method="get" asp-action="Availability" class="availability-date-form">
+            <input type="hidden" name="id" value="@Model.HotelRoomId" />
+            <label for="availabilityDate">Select date</label>
+            <input id="availabilityDate" type="date" name="date" value="@Model.SelectedDate.ToString("yyyy-MM-dd")" />
+        </form>
+
+        <div class="availability-summary">
+            <div>
+                <span>Selected date</span>
+                <strong>@Model.SelectedDate.ToString("dd MMM yyyy")</strong>
+            </div>
+            <div>
+                <span>Available</span>
+                <strong class="available-count">@Model.AvailableRooms / @Model.TotalRooms</strong>
+            </div>
+            <div>
+                <span>Occupied</span>
+                <strong class="occupied-count">@Model.OccupiedRooms / @Model.TotalRooms</strong>
+            </div>
+        </div>
+
+        <div class="availability-table-wrap">
+            <h2>Occupied time slots</h2>
+            @if (!Model.Slots.Any())
+            {
+                <div class="availability-empty">
+                    <i class="bi bi-check-circle"></i>
+                    <strong>No occupied slots</strong>
+                    <span>All @Model.TotalRooms room(s) are available on this date.</span>
+                </div>
+            }
+            else
+            {
+                <table class="availability-table">
+                    <thead>
+                        <tr>
+                            <th>Reservation</th>
+                            <th>Guest</th>
+                            <th>Check-in</th>
+                            <th>Check-out</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var slot in Model.Slots)
+                        {
+                            <tr>
+                                <td><strong>@slot.ReservationReference</strong></td>
+                                <td>@slot.ContactName</td>
+                                <td>@slot.CheckIn.ToString("dd MMM yyyy, HH:mm")</td>
+                                <td>@slot.CheckOut.ToString("dd MMM yyyy, HH:mm")</td>
+                                <td><span class="slot-status">@slot.Status</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .availability-card {
+        padding: 28px;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(28, 45, 90, .08);
+    }
+
+    .availability-date-form {
+        display: flex;
+        align-items: end;
+        gap: 12px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid #e4e8f0;
+    }
+
+    .availability-date-form label,
+    .availability-summary span {
+        display: block;
+        color: #61708b;
+        font-size: .85rem;
+        font-weight: 600;
+    }
+
+    .availability-date-form input {
+        min-height: 42px;
+        padding: 8px 12px;
+        border: 1px solid #d7deea;
+        border-radius: 8px;
+        color: #1e3157;
+    }
+
+    .availability-summary {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        padding: 24px 0;
+        border-bottom: 1px solid #e4e8f0;
+    }
+
+    .availability-summary strong {
+        display: block;
+        margin-top: 5px;
+        color: #102657;
+        font-size: 1.35rem;
+    }
+
+    .availability-summary .available-count { color: #147a43; }
+    .availability-summary .occupied-count { color: #b42332; }
+
+    .availability-table-wrap h2 {
+        margin: 24px 0 14px;
+        color: #102657;
+        font-size: 1.1rem;
+    }
+
+    .availability-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .availability-table th,
+    .availability-table td {
+        padding: 13px 10px;
+        border-bottom: 1px solid #edf0f5;
+        text-align: left;
+    }
+
+    .availability-table th {
+        color: #61708b;
+        font-size: .75rem;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+    }
+
+    .slot-status {
+        padding: 5px 9px;
+        border-radius: 999px;
+        background: #fff0f0;
+        color: #b42332;
+        font-size: .78rem;
+        font-weight: 700;
+    }
+
+    .availability-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 38px 16px;
+        color: #61708b;
+        text-align: center;
+    }
+
+    .availability-empty i {
+        color: #147a43;
+        font-size: 2rem;
+    }
+
+    .availability-empty strong { color: #102657; }
+
+    @@media (max-width: 760px) {
+        .availability-date-form,
+        .availability-summary {
+            grid-template-columns: 1fr;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .availability-table-wrap { overflow-x: auto; }
+        .availability-table { min-width: 720px; }
+    }
+</style>
+
+<script>
+    (function () {
+        function wireAvailabilityDate() {
+            var form = document.querySelector('.availability-date-form');
+            var dateInput = document.getElementById('availabilityDate');
+            if (!form || !dateInput || dateInput.dataset.ajaxBound === 'true') return;
+
+            dateInput.dataset.ajaxBound = 'true';
+            dateInput.addEventListener('change', async function () {
+                if (!dateInput.value) return;
+
+                var card = document.getElementById('availabilityCard');
+                var button = form.querySelector('button[type="submit"]');
+                var url = new URL(form.action, window.location.origin);
+                url.searchParams.set('id', form.elements.id.value);
+                url.searchParams.set('date', dateInput.value);
+
+                if (button) button.disabled = true;
+
+                try {
+                    var response = await fetch(url, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+
+                    if (!response.ok) throw new Error('Availability request failed.');
+
+                    var html = await response.text();
+                    var documentFragment = new DOMParser().parseFromString(html, 'text/html');
+                    var updatedCard = documentFragment.querySelector('#availabilityCard');
+
+                    if (!updatedCard) throw new Error('Availability content was not found.');
+
+                    card.replaceWith(updatedCard);
+                    wireAvailabilityDate();
+                } catch (error) {
+                    form.submit();
+                }
+            });
+        }
+
+        wireAvailabilityDate();
+    })();
+</script>

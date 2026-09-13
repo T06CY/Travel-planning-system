@@ -6,16 +6,20 @@ namespace TravelPlanningSystem.ViewModels.ProfileViewModel
 {
     public class ProfileViewModel
     {
+        [Required, StringLength(100, MinimumLength = 2, ErrorMessage = "First name must be between 2 and 100 characters.")]
         [Display(Name = "First name")]
         public string? FirstName { get; set; }
 
+        [Required, StringLength(100, MinimumLength = 2, ErrorMessage = "Last name must be between 2 and 100 characters.")]
         [Display(Name = "Last name")]
         public string? LastName { get; set; }
 
+        [Required, EmailAddress, StringLength(150)]
         [Display(Name = "Email")]
         public string? Email { get; set; }
 
-        [Phone]
+        [RegularExpression(@"^\+?[0-9][0-9\s().-]{6,18}[0-9]$", ErrorMessage = "Enter a valid phone number using digits only, with an optional country code.")]
+        [StringLength(20)]
         [Display(Name = "Phone number")]
         public string? PhoneNumber { get; set; }
 
@@ -28,6 +32,7 @@ namespace TravelPlanningSystem.ViewModels.ProfileViewModel
 
         public bool IsStaff { get; set; }
 
+        [StringLength(100, MinimumLength = 2, ErrorMessage = "Department must be between 2 and 100 characters.")]
         [Display(Name = "Department")]
         public string? Department { get; set; }
 

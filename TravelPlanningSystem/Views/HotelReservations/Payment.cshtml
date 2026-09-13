@@ -6,79 +6,110 @@
 
 <link rel="stylesheet" href="~/css/activities.css" />
 
-<div class="form-page">
-    <div class="container narrow-container">
+<div class="payment-page">
+    <div class="container payment-container">
         <div class="form-page-header">
             <a asp-action="Details" asp-route-id="@Model.HotelReservationId">
                 <i class="bi bi-arrow-left"></i> Back to reservation
             </a>
-            <h1>Complete your hotel payment</h1>
-            <p>Confirm your payment method to secure your stay.</p>
+            <div class="payment-heading">
+                <span class="payment-eyebrow"><i class="bi bi-shield-check"></i> SECURE CHECKOUT</span>
+                <h1>Complete your hotel payment</h1>
+                <p>Confirm your payment method to secure your stay.</p>
+            </div>
         </div>
 
-        <div class="checkout-layout">
-            <form asp-action="Payment" method="post" class="form-card">
+        <div class="payment-layout">
+            <form asp-action="Payment" method="post" class="payment-card">
                 <input asp-for="HotelReservationId" type="hidden" />
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                <div class="booking-card mb-4">
-                    <h3><i class="bi bi-building text-primary"></i> Reservation</h3>
-                    <div class="d-flex justify-content-between gap-3 mb-2">
-                        <span class="text-muted">Hotel</span>
-                        <strong class="text-end">@Model.HotelName</strong>
+                <section class="payment-section reservation-section">
+                    <div class="section-heading">
+                        <span class="section-icon"><i class="bi bi-building"></i></span>
+                        <div><span class="section-kicker">YOUR STAY</span><h2>Reservation</h2></div>
                     </div>
-                    <div class="d-flex justify-content-between gap-3">
-                        <span class="text-muted">Room</span>
-                        <strong class="text-end">@Model.RoomName</strong>
+                    <div class="reservation-details">
+                        <div><span>Hotel</span><strong>@Model.HotelName</strong></div>
+                        <div><span>Room</span><strong>@Model.RoomName</strong></div>
                     </div>
-                </div>
+                </section>
 
-                <div class="booking-card">
-                    <h3><i class="bi bi-credit-card-2-front-fill text-primary"></i> Payment Method</h3>
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <div class="form-check payment-option p-3 border rounded h-100">
-                                <input class="form-check-input" type="radio" asp-for="PaymentMethod" value="Online Banking (FPX)" id="hotelPayFpx" />
-                                <label class="form-check-label fw-bold" for="hotelPayFpx"><i class="bi bi-bank"></i> Online Banking (FPX)</label>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-check payment-option p-3 border rounded h-100">
-                                <input class="form-check-input" type="radio" asp-for="PaymentMethod" value="Credit / Debit Card" id="hotelPayCard" />
-                                <label class="form-check-label fw-bold" for="hotelPayCard"><i class="bi bi-credit-card"></i> Credit / Debit Card</label>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-check payment-option p-3 border rounded h-100">
-                                <input class="form-check-input" type="radio" asp-for="PaymentMethod" value="Touch 'n Go eWallet" id="hotelPayTng" />
-                                <label class="form-check-label fw-bold" for="hotelPayTng"><i class="bi bi-wallet2"></i> Touch 'n Go eWallet</label>
-                            </div>
-                        </div>
+                <section class="payment-section">
+                    <div class="section-heading">
+                        <span class="section-icon"><i class="bi bi-credit-card-2-front-fill"></i></span>
+                        <div><span class="section-kicker">CHOOSE ONE</span><h2>Payment method</h2></div>
+                    </div>
+                    <div class="payment-options">
+                        <label class="payment-option" for="hotelPayFpx"><input type="radio" asp-for="PaymentMethod" value="Online Banking (FPX)" id="hotelPayFpx" /><span class="option-icon"><i class="bi bi-bank"></i></span><span><strong>Online Banking</strong><small>FPX</small></span><i class="bi bi-check-circle-fill option-check"></i></label>
+                        <label class="payment-option" for="hotelPayCard"><input type="radio" asp-for="PaymentMethod" value="Credit / Debit Card" id="hotelPayCard" /><span class="option-icon"><i class="bi bi-credit-card"></i></span><span><strong>Credit / Debit Card</strong><small>Visa or Mastercard</small></span><i class="bi bi-check-circle-fill option-check"></i></label>
+                        <label class="payment-option" for="hotelPayTng"><input type="radio" asp-for="PaymentMethod" value="Touch 'n Go eWallet" id="hotelPayTng" /><span class="option-icon"><i class="bi bi-wallet2"></i></span><span><strong>Touch 'n Go</strong><small>eWallet</small></span><i class="bi bi-check-circle-fill option-check"></i></label>
                     </div>
                     <span asp-validation-for="PaymentMethod" class="text-danger small"></span>
-                </div>
+                </section>
 
-                <button type="submit" class="btn btn-primary w-100 mt-4 py-3 fw-bold">
-                    <i class="bi bi-shield-check me-2"></i>Pay RM @Model.TotalAmount.ToString("N2") Now
+                <button type="submit" class="pay-button">
+                    <span>Pay RM @Model.TotalAmount.ToString("N2") Now</span><i class="bi bi-arrow-right"></i>
                 </button>
-                <p class="text-center text-muted small mt-3 mb-0"><i class="bi bi-lock-fill me-1"></i> Safe &amp; secure 256-bit SSL checkout</p>
+                <p class="secure-note"><i class="bi bi-lock-fill"></i> Safe &amp; secure 256-bit SSL checkout</p>
             </form>
 
-            <aside class="summary-sidebar">
-                <h4 class="fw-bold mb-3">Payment Summary</h4>
-                <div class="summary-row"><span>Reservation</span><strong>@Model.ReservationReference</strong></div>
-                <div class="summary-row"><span>Hotel</span><strong class="text-end">@Model.HotelName</strong></div>
-                <hr />
-                <div class="summary-row total"><span>Total Amount</span><strong>RM @Model.TotalAmount.ToString("N2")</strong></div>
+            <aside class="payment-summary">
+                <span class="summary-eyebrow">ORDER SUMMARY</span>
+                <h2>Payment summary</h2>
+                <div class="summary-reference"><span>Reservation</span><strong>@Model.ReservationReference</strong></div>
+                <div class="summary-item"><span>Hotel</span><strong>@Model.HotelName</strong></div>
+                <div class="summary-item"><span>Room</span><strong>@Model.RoomName</strong></div>
+                <div class="summary-divider"></div>
+                <div class="summary-total"><span>Total amount</span><strong>RM @Model.TotalAmount.ToString("N2")</strong></div>
+                <div class="summary-badge"><i class="bi bi-shield-check"></i> Payment secured by TravelMate</div>
             </aside>
         </div>
     </div>
 </div>
 
 <style>
-    .payment-option { cursor: pointer; transition: border-color .2s ease, background .2s ease; }
-    .payment-option:has(input:checked) { border-color: #536dfe !important; background: #f1f4ff; }
-    .payment-option label { cursor: pointer; display: block; }
+    .payment-page { min-height: calc(100vh - 120px); padding: 34px 0 70px; background: linear-gradient(135deg, #f6f8fc 0%, #eef2ff 100%); }
+    .payment-container { max-width: 1100px; }
+    .payment-page .form-page-header { margin-bottom: 26px; }
+    .payment-page .form-page-header > a { color: #ff5b62; font-weight: 700; text-decoration: none; }
+    .payment-heading { margin-top: 25px; }
+    .payment-eyebrow, .summary-eyebrow, .section-kicker { color: #536dfe; font-size: .72rem; font-weight: 800; letter-spacing: .12em; }
+    .payment-heading h1 { margin: 8px 0 4px; color: #10254b; font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; }
+    .payment-heading p { color: #71809a; margin: 0; }
+    .payment-layout { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(280px, .85fr); gap: 26px; align-items: start; }
+    .payment-card, .payment-summary { border: 1px solid #e2e7f1; border-radius: 22px; background: rgba(255,255,255,.96); box-shadow: 0 18px 45px rgba(32, 54, 94, .09); }
+    .payment-card { padding: 28px; }
+    .payment-section + .payment-section { border-top: 1px solid #edf0f6; margin-top: 24px; padding-top: 24px; }
+    .section-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .section-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; color: #536dfe; background: #edf1ff; font-size: 1.25rem; }
+    .section-heading h2 { margin: 2px 0 0; color: #10254b; font-size: 1.35rem; }
+    .reservation-details { display: grid; gap: 12px; }
+    .reservation-details > div, .summary-item, .summary-reference { display: grid; grid-template-columns: minmax(82px, .55fr) minmax(0, 1.45fr); align-items: start; column-gap: 18px; color: #728099; font-size: .92rem; }
+    .reservation-details strong, .summary-item strong, .summary-reference strong { min-width: 0; color: #172b4d; text-align: left; overflow-wrap: anywhere; }
+    .payment-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .payment-option { position: relative; display: flex; align-items: flex-start; gap: 10px; min-height: 105px; padding: 16px 14px; border: 1px solid #dce2ed; border-radius: 13px; cursor: pointer; transition: .2s ease; }
+    .payment-option:hover, .payment-option:has(input:checked) { border-color: #536dfe; background: #f2f4ff; box-shadow: 0 5px 14px rgba(83,109,254,.12); }
+    .payment-option input { margin-top: 4px; accent-color: #536dfe; }
+    .option-icon { color: #536dfe; font-size: 1.1rem; }
+    .payment-option strong, .payment-option small { display: block; color: #1d3154; }
+    .payment-option small { margin-top: 4px; color: #8490a5; font-size: .75rem; }
+    .option-check { position: absolute; right: 12px; bottom: 12px; color: #536dfe; opacity: 0; }
+    .payment-option:has(input:checked) .option-check { opacity: 1; }
+    .pay-button { display: flex; justify-content: center; align-items: center; gap: 14px; width: 100%; margin-top: 28px; padding: 16px; border: 0; border-radius: 11px; background: linear-gradient(135deg, #536dfe, #3155eb); color: #fff; font-size: 1rem; font-weight: 800; box-shadow: 0 10px 20px rgba(49,85,235,.25); transition: .2s ease; }
+    .pay-button:hover { transform: translateY(-2px); box-shadow: 0 13px 25px rgba(49,85,235,.32); }
+    .secure-note { margin: 15px 0 0; color: #7c879a; text-align: center; font-size: .82rem; }
+    .secure-note i { color: #23a26d; margin-right: 5px; }
+    .payment-summary { padding: 28px; position: sticky; top: 24px; }
+    .payment-summary h2 { margin: 7px 0 24px; color: #10254b; font-size: 1.45rem; }
+    .summary-reference { align-items: center; padding: 12px; border-radius: 10px; background: #f5f7ff; }
+    .summary-item { padding: 13px 0; }
+    .summary-divider { height: 1px; margin: 7px 0 18px; background: #e4e8f0; }
+    .summary-total { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 16px; color: #526079; }
+    .summary-total strong { color: #10254b; font-size: 1.3rem; }
+    .summary-badge { margin-top: 25px; padding: 11px; border-radius: 9px; color: #287c5b; background: #eaf8f1; font-size: .76rem; text-align: center; }
+    @@media (max-width: 800px) { .payment-layout { grid-template-columns: 1fr; } .payment-summary { position: static; } }
+    @@media (max-width: 560px) { .payment-card, .payment-summary { padding: 20px; border-radius: 16px; } .payment-options { grid-template-columns: 1fr; } .payment-option { min-height: auto; } .reservation-details > div, .summary-item, .summary-reference { grid-template-columns: 1fr; row-gap: 4px; } .summary-total { grid-template-columns: 1fr; row-gap: 6px; } }
 </style>
 
 @section Scripts {

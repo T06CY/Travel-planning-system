@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using TravelPlanningSystem.Data;
 using TravelPlanningSystem.Models;
 using TravelPlanningSystem.ViewModels;
@@ -8,7 +9,12 @@ namespace TravelPlanningSystem.Controllers;
 
 public class HotelReservationsController(AppDbContext context) : Controller
 {
-    private int CurrentUserId => 1;
+    private Guid? CurrentAccountId =>
+        Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId)
+            ? userId
+            : null;
+
+    private bool CurrentAccountIsStaff => User.HasClaim("AccountType", "Staff");
 
     [HttpGet]
     public async Task<IActionResult> Create(
@@ -24,12 +30,47 @@ public class HotelReservationsController(AppDbContext context) : Controller
             return RedirectToAction("Login", "Account", new { returnUrl });
         }
 
+        var accountId = CurrentAccountId;
+        if (!accountId.HasValue)
+            return Challenge();
+
         var room = await context.HotelRooms
             .AsNoTracking()
             .FirstOrDefaultAsync(r => r.HotelRoomId == roomId && r.IsActive);
 
         if (room is null)
             return NotFound();
+
+        string contactName;
+        string contactEmail;
+        string contactPhone;
+
+        if (CurrentAccountIsStaff)
+        {
+            var staff = await context.StaffUsers
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.StaffId == accountId.Value && s.Status == "Active");
+
+            if (staff is null)
+                return Challenge();
+
+            contactName = $"{staff.FirstName} {staff.LastName}".Trim();
+            contactEmail = staff.Email;
+            contactPhone = string.Empty;
+        }
+        else
+        {
+            var account = await context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.UserId == accountId.Value);
+
+            if (account is null)
+                return Challenge();
+
+            contactName = $"{account.FirstName} {account.LastName}".Trim();
+            contactEmail = account.Email;
+            contactPhone = account.PhoneNumber ?? string.Empty;
+        }
 
         return View(new HotelReservationViewModel
         {
@@ -45,8 +86,31 @@ public class HotelReservationsController(AppDbContext context) : Controller
                 ? checkOut.Value.Date
                 : DateTime.Today.AddDays(2),
             CheckInTime = checkInTime ?? new TimeSpan(15, 0, 0),
-            CheckOutTime = checkOutTime ?? new TimeSpan(12, 0, 0)
+            CheckOutTime = checkOutTime ?? new TimeSpan(12, 0, 0),
+             BookingFor = HotelReservationViewModel.BookForSelf,
+            ContactName = contactName,
+            ContactEmail = contactEmail,
+            ContactPhone = contactPhone
         });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> CalculatePrice(int roomId, DateTime checkInDate, DateTime checkOutDate, TimeSpan checkInTime, TimeSpan checkOutTime)
+    {
+        if (checkOutDate.Date.Add(checkOutTime) <= checkInDate.Date.Add(checkInTime))
+            return BadRequest(new { message = "Check-out must be after check-in." });
+
+        var room = await context.HotelRooms
+            .AsNoTracking()
+            .Where(r => r.HotelRoomId == roomId && r.IsActive)
+            .Select(r => new { r.PricePerNight })
+            .FirstOrDefaultAsync();
+
+        if (room is null)
+            return NotFound();
+
+        var nights = Math.Max(1, (int)Math.Ceiling((checkOutDate.Date.Add(checkOutTime) - checkInDate.Date.Add(checkInTime)).TotalDays));
+        return Json(new { nights, pricePerNight = room.PricePerNight, totalAmount = room.PricePerNight * nights });
     }
 
     [HttpPost]
@@ -65,6 +129,10 @@ public class HotelReservationsController(AppDbContext context) : Controller
             return RedirectToAction("Login", "Account", new { returnUrl });
         }
 
+        var accountId = CurrentAccountId;
+        if (!accountId.HasValue)
+            return Challenge();
+
         var room = await context.HotelRooms
             .FirstOrDefaultAsync(r => r.HotelRoomId == model.HotelRoomId && r.IsActive);
 
@@ -75,6 +143,61 @@ public class HotelReservationsController(AppDbContext context) : Controller
         model.RoomName = room.RoomName;
         model.PricePerNight = room.PricePerNight;
         model.Capacity = room.Capacity;
+
+        var accountEmail = string.Empty;
+        var accountName = string.Empty;
+        var accountPhone = string.Empty;
+
+        if (CurrentAccountIsStaff)
+        {
+            var staff = await context.StaffUsers
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.StaffId == accountId.Value && s.Status == "Active");
+
+            if (staff is null)
+                return Challenge();
+
+            accountName = $"{staff.FirstName} {staff.LastName}".Trim();
+            accountEmail = staff.Email;
+        }
+        else
+        {
+            var account = await context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.UserId == accountId.Value);
+
+            if (account is null)
+                return Challenge();
+
+            accountName = $"{account.FirstName} {account.LastName}".Trim();
+            accountEmail = account.Email;
+            accountPhone = account.PhoneNumber ?? string.Empty;
+        }
+
+        if (model.BookingFor == HotelReservationViewModel.BookForSelf)
+        {
+            model.ContactName = accountName;
+            model.ContactEmail = accountEmail;
+            model.ContactPhone = accountPhone;
+        }
+        else if (model.BookingFor == HotelReservationViewModel.BookForOthers)
+        {
+            model.ContactEmail = accountEmail;
+        }
+        else
+        {
+            ModelState.AddModelError(nameof(model.BookingFor), "Choose whether you are booking for yourself or someone else.");
+        }
+
+        model.ContactName = model.ContactName?.Trim() ?? string.Empty;
+        model.ContactEmail = model.ContactEmail?.Trim() ?? string.Empty;
+        model.ContactPhone = model.ContactPhone?.Trim() ?? string.Empty;
+
+        if (model.BookingFor == HotelReservationViewModel.BookForOthers && string.IsNullOrWhiteSpace(model.ContactName))
+            ModelState.AddModelError(nameof(model.ContactName), "Enter the name of the person staying.");
+
+        if (string.IsNullOrWhiteSpace(model.ContactPhone))
+            ModelState.AddModelError(nameof(model.ContactPhone), "Enter a phone number.");
 
         var checkInAt = model.CheckInDate.Date.Add(model.CheckInTime);
         var checkOutAt = model.CheckOutDate.Date.Add(model.CheckOutTime);
@@ -143,7 +266,8 @@ public class HotelReservationsController(AppDbContext context) : Controller
         {
             ReservationReference =
                 $"HTL{DateTime.Now:yyMMdd}{Guid.NewGuid().ToString("N")[..6].ToUpperInvariant()}",
-            UserId = CurrentUserId,
+            ApplicationUserId = CurrentAccountIsStaff ? null : accountId.Value,
+            StaffUserId = CurrentAccountIsStaff ? accountId.Value : null,
             HotelRoomId = room.HotelRoomId,
             CheckInDate = model.CheckInDate.Date,
             CheckOutDate = model.CheckOutDate.Date,
@@ -163,7 +287,7 @@ public class HotelReservationsController(AppDbContext context) : Controller
         context.HotelReservations.Add(reservation);
         await context.SaveChangesAsync();
 
-        return RedirectToAction(nameof(Details), new { id = reservation.HotelReservationId });
+        return RedirectToAction(nameof(Payment), new { id = reservation.HotelReservationId });
     }
 
     public async Task<IActionResult> MyReservations(string? status)
@@ -172,7 +296,8 @@ public class HotelReservationsController(AppDbContext context) : Controller
             .AsNoTracking()
             .Include(b => b.HotelRoom)
             .ThenInclude(r => r!.Photos)
-            .Where(b => b.UserId == CurrentUserId);
+            .Where(b => (CurrentAccountIsStaff && b.StaffUserId == CurrentAccountId) ||
+                        (!CurrentAccountIsStaff && b.ApplicationUserId == CurrentAccountId));
 
         if (Enum.TryParse<HotelReservationStatus>(status, true, out var parsed))
             query = query.Where(b => b.ReservationStatus == parsed);
@@ -192,11 +317,16 @@ public class HotelReservationsController(AppDbContext context) : Controller
     {
         var reservation = await Owned(id);
 
-        if (reservation is null ||
-            reservation.ReservationStatus != HotelReservationStatus.Pending ||
-            reservation.PaymentStatus == "Paid")
+        if (reservation is null)
+            return NotFound();
+
+        if (reservation.PaymentStatus == "Paid" ||
+            reservation.ReservationStatus != HotelReservationStatus.Pending)
         {
-            return BadRequest();
+            TempData["Message"] = reservation.PaymentStatus == "Paid"
+                ? "This reservation has already been paid."
+                : "This reservation is not awaiting payment.";
+            return RedirectToAction(nameof(Details), new { id });
         }
 
         return View(new HotelPaymentViewModel
@@ -229,13 +359,16 @@ public class HotelReservationsController(AppDbContext context) : Controller
             .Include(r => r.HotelRoom)
             .FirstOrDefaultAsync(r =>
                 r.HotelReservationId == model.HotelReservationId &&
-                r.UserId == CurrentUserId);
+                ((CurrentAccountIsStaff && r.StaffUserId == CurrentAccountId) ||
+                 (!CurrentAccountIsStaff && r.ApplicationUserId == CurrentAccountId)));
 
-        if (reservation is null ||
-            reservation.ReservationStatus != HotelReservationStatus.Pending ||
-            reservation.PaymentStatus == "Paid")
+        if (reservation is null)
+            return NotFound();
+
+        if (reservation.PaymentStatus == "Paid" ||
+            reservation.ReservationStatus != HotelReservationStatus.Pending)
         {
-            return BadRequest();
+            return RedirectToAction(nameof(Details), new { id = reservation.HotelReservationId });
         }
 
         if (!ModelState.IsValid)
@@ -271,7 +404,9 @@ public class HotelReservationsController(AppDbContext context) : Controller
     public async Task<IActionResult> CancelConfirmed(int id, string cancellationReason)
     {
         var booking = await context.HotelReservations
-            .FirstOrDefaultAsync(b => b.HotelReservationId == id && b.UserId == CurrentUserId);
+            .FirstOrDefaultAsync(b => b.HotelReservationId == id &&
+                ((CurrentAccountIsStaff && b.StaffUserId == CurrentAccountId) ||
+                 (!CurrentAccountIsStaff && b.ApplicationUserId == CurrentAccountId)));
 
         if (booking is null ||
             (booking.ReservationStatus != HotelReservationStatus.Confirmed &&
@@ -325,7 +460,8 @@ public class HotelReservationsController(AppDbContext context) : Controller
             .Include(b => b.HotelRoom)
             .FirstOrDefaultAsync(b =>
                 b.HotelReservationId == model.HotelReservationId &&
-                b.UserId == CurrentUserId);
+                (CurrentAccountIsStaff && b.StaffUserId == CurrentAccountId) ||
+                (!CurrentAccountIsStaff && b.ApplicationUserId == CurrentAccountId));
 
         if (booking?.HotelRoom is null ||
             booking.ReservationStatus != HotelReservationStatus.Completed)
@@ -344,7 +480,7 @@ public class HotelReservationsController(AppDbContext context) : Controller
             {
                 HotelRoomId = booking.HotelRoomId,
                 HotelReservationId = booking.HotelReservationId,
-                UserId = CurrentUserId,
+                UserId = 1,
                 Rating = model.Rating,
                 Comment = model.Comment.Trim()
             });
@@ -368,5 +504,6 @@ public class HotelReservationsController(AppDbContext context) : Controller
             .Include(b => b.Review)
             .FirstOrDefaultAsync(b =>
                 b.HotelReservationId == id &&
-                b.UserId == CurrentUserId);
+                ((CurrentAccountIsStaff && b.StaffUserId == CurrentAccountId) ||
+                 (!CurrentAccountIsStaff && b.ApplicationUserId == CurrentAccountId)));
 }

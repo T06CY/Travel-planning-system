@@ -12,13 +12,62 @@ public class AdminRoomsController(AppDbContext context, IWebHostEnvironment envi
 {
     public async Task<IActionResult> Index(string? search, bool? active)
     {
-        var rooms = context.HotelRooms.AsNoTracking().Include(r => r.Photos).AsQueryable();
+        var rooms = context.HotelRooms
+            .AsNoTracking()
+            .Include(r => r.Photos)
+            .AsQueryable();
         if (!string.IsNullOrWhiteSpace(search)) rooms = rooms.Where(r => r.HotelName.Contains(search) || r.RoomName.Contains(search) || r.Destination.Contains(search));
         if (active.HasValue) rooms = rooms.Where(r => r.IsActive == active.Value);
         ViewBag.Search = search;
         ViewBag.Active = active;
         return View(await rooms.OrderBy(r => r.HotelName).ThenBy(r => r.RoomName).ToListAsync());
     }
+
+    [HttpGet]
+    public async Task<IActionResult> Availability(int id, DateTime? date)
+    {
+        var selectedDate = (date ?? DateTime.Today).Date;
+        var room = await context.HotelRooms
+            .AsNoTracking()
+            .Include(r => r.Reservations)
+            .FirstOrDefaultAsync(r => r.HotelRoomId == id);
+
+        if (room is null) return NotFound();
+
+        var dayStart = selectedDate;
+        var dayEnd = selectedDate.AddDays(1);
+        var slots = room.Reservations
+            .Where(r => r.ReservationStatus != HotelReservationStatus.Cancelled)
+            .Select(r => new
+            {
+                Reservation = r,
+                CheckIn = r.CheckInDate.Date.Add(r.CheckInTime),
+                CheckOut = r.CheckOutDate.Date.Add(r.CheckOutTime)
+            })
+            .Where(x => x.CheckIn < dayEnd && x.CheckOut > dayStart)
+            .OrderBy(x => x.CheckIn)
+            .Select(x => new RoomAvailabilitySlotViewModel
+            {
+                ReservationReference = x.Reservation.ReservationReference,
+                ContactName = x.Reservation.ContactName,
+                CheckIn = x.CheckIn,
+                CheckOut = x.CheckOut,
+                Status = x.Reservation.ReservationStatus.ToString()
+            })
+            .ToList();
+
+        return View(new RoomAvailabilityViewModel
+        {
+            HotelRoomId = room.HotelRoomId,
+            HotelName = room.HotelName,
+            RoomName = room.RoomName,
+            SelectedDate = selectedDate,
+            TotalRooms = room.TotalRooms,
+            OccupiedRooms = slots.Count,
+            Slots = slots
+        });
+    }
+
     public async Task<IActionResult> Details(int id)
     {
         var room = await context.HotelRooms
@@ -58,7 +107,7 @@ public class AdminRoomsController(AppDbContext context, IWebHostEnvironment envi
         var room = Map(new HotelRoom(), model);
         context.HotelRooms.Add(room);
         await context.SaveChangesAsync();
-        await SavePhotos(room.HotelRoomId, model.Photos);
+        await SavePhotos(room.HotelRoomId, model.Photos, addDefaultPhoto: true);
         TempData["Message"] = "Hotel room created successfully.";
         return RedirectToAction(nameof(Details), new { id = room.HotelRoomId });
     }
@@ -180,12 +229,33 @@ public class AdminRoomsController(AppDbContext context, IWebHostEnvironment envi
         model.ReservationCount = await context.HotelReservations.CountAsync(r => r.HotelRoomId == model.HotelRoomId);
         model.ReviewCount = await context.HotelReviews.CountAsync(r => r.HotelRoomId == model.HotelRoomId);
     }
-    private async Task SavePhotos(int roomId, IEnumerable<IFormFile> photos)
+    private async Task SavePhotos(int roomId, IEnumerable<IFormFile>? photos, bool addDefaultPhoto = false)
     {
-        var uploads = photos.Where(p => p.Length > 0).ToList(); if (uploads.Count == 0) return;
+        var uploads = photos?.Where(p => p.Length > 0).ToList() ?? [];
+        var validUploads = uploads
+            .Where(upload => new[] { ".jpg", ".jpeg", ".png", ".webp" }.Contains(Path.GetExtension(upload.FileName).ToLowerInvariant()) && upload.Length <= 5 * 1024 * 1024)
+            .ToList();
+
+        if (validUploads.Count == 0)
+        {
+            if (addDefaultPhoto)
+            {
+                context.HotelRoomPhotos.Add(new HotelRoomPhoto
+                {
+                    HotelRoomId = roomId,
+                    PhotoUrl = "/images/hotels/no_hotel_image.png",
+                    IsPrimary = true,
+                    DisplayOrder = 0
+                });
+                await context.SaveChangesAsync();
+            }
+
+            return;
+        }
+
         var folder = Path.Combine(environment.WebRootPath, "images", "hotels", "uploads"); Directory.CreateDirectory(folder);
         var primaryExists = await context.HotelRoomPhotos.AnyAsync(p => p.HotelRoomId == roomId && p.IsPrimary); var order = await context.HotelRoomPhotos.CountAsync(p => p.HotelRoomId == roomId);
-        foreach (var upload in uploads) { var ext = Path.GetExtension(upload.FileName).ToLowerInvariant(); if (!new[] { ".jpg", ".jpeg", ".png", ".webp" }.Contains(ext) || upload.Length > 5 * 1024 * 1024) continue; var name = $"{Guid.NewGuid():N}{ext}"; await using var stream = System.IO.File.Create(Path.Combine(folder, name)); await upload.CopyToAsync(stream); context.HotelRoomPhotos.Add(new HotelRoomPhoto { HotelRoomId = roomId, PhotoUrl = $"/images/hotels/uploads/{name}", Caption = Path.GetFileNameWithoutExtension(upload.FileName), IsPrimary = !primaryExists && order == 0, DisplayOrder = order++ }); }
+        foreach (var upload in validUploads) { var ext = Path.GetExtension(upload.FileName).ToLowerInvariant(); var name = $"{Guid.NewGuid():N}{ext}"; await using var stream = System.IO.File.Create(Path.Combine(folder, name)); await upload.CopyToAsync(stream); context.HotelRoomPhotos.Add(new HotelRoomPhoto { HotelRoomId = roomId, PhotoUrl = $"/images/hotels/uploads/{name}", Caption = Path.GetFileNameWithoutExtension(upload.FileName), IsPrimary = !primaryExists && order == 0, DisplayOrder = order++ }); }
         await context.SaveChangesAsync();
     }
 }

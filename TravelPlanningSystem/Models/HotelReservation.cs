@@ -7,6 +7,10 @@ public class HotelReservation
 {
     [Key] public int HotelReservationId { get; set; }
     [Required, StringLength(20)] public string ReservationReference { get; set; } = string.Empty;
+    public Guid? ApplicationUserId { get; set; }
+    public ApplicationUser? ApplicationUser { get; set; }
+    public Guid? StaffUserId { get; set; }
+    public StaffUser? StaffUser { get; set; }
     public int UserId { get; set; }
     public int HotelRoomId { get; set; }
     public HotelRoom? HotelRoom { get; set; }

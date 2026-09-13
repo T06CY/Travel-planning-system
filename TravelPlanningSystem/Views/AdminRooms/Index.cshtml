@@ -117,6 +117,7 @@
                             </td>
                             <td>
                                 <div class="table-actions">
+                                    <a asp-action="Availability" asp-route-id="@room.HotelRoomId" title="View availability"><i class="bi bi-info-circle"></i></a>
                                     <a asp-action="Edit" asp-route-id="@room.HotelRoomId" title="Edit"><i class="bi bi-pencil"></i></a>
                                     <a asp-action="Delete" asp-route-id="@room.HotelRoomId" class="danger" title="Delete"><i class="bi bi-trash"></i></a>
                                 </div>

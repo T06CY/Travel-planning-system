@@ -76,12 +76,15 @@
                     <span>Dashboard</span>
                 </a>
 
-                <a asp-controller="AdminUserManagement"
-                   asp-action="Index"
-                   class="@(isUserManagement ? "active" : "")">
-                    <i class="bi bi-people"></i>
-                    <span>User Management</span>
-                </a>
+                @if (User.IsInRole("Administrator"))
+                {
+                    <a asp-controller="AdminUserManagement"
+                       asp-action="Index"
+                       class="@(isUserManagement ? "active" : "")">
+                        <i class="bi bi-people"></i>
+                        <span>User Management</span>
+                    </a>
+                }
 
                 <!-- FLIGHT MANAGEMENT -->
                 <span class="admin-menu-title">FLIGHT MANAGEMENT</span>

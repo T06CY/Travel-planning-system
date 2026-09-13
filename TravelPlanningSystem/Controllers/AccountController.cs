@@ -84,6 +84,7 @@ namespace TravelPlanningSystem.Controllers
 
                 var claims = new List<Claim>
                 {
+                    new Claim(ClaimTypes.NameIdentifier, fullUser.UserId.ToString()),
                     new Claim(ClaimTypes.Name, $"{fullUser.FirstName} {fullUser.LastName}"),
                     new Claim(ClaimTypes.Email, fullUser.Email),
                     new Claim(ClaimTypes.Role, "User"),
@@ -150,6 +151,8 @@ namespace TravelPlanningSystem.Controllers
 
                     var claims = new List<Claim>
                     {
+                        new Claim(ClaimTypes.NameIdentifier, staff.StaffId.ToString()),
+                        new Claim("AccountType", "Staff"),
                         new Claim(ClaimTypes.Name, $"{staff.FirstName} {staff.LastName}"),
                         new Claim(ClaimTypes.Email, staff.Email),
                         new Claim(ClaimTypes.Role, staff.StaffRole?.RoleName ?? "Staff")
@@ -162,7 +165,8 @@ namespace TravelPlanningSystem.Controllers
                     if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                         return Redirect(returnUrl);
 
-                    if (string.Equals(staff.StaffRole?.RoleName, "Administrator", StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(staff.StaffRole?.RoleName, "Administrator", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(staff.StaffRole?.RoleName, "Support", StringComparison.OrdinalIgnoreCase))
                         return RedirectToAction("Index", "AdminDashboard");
 
                     return RedirectToAction("Index", "Home");
@@ -244,6 +248,8 @@ namespace TravelPlanningSystem.Controllers
 
                 var claims = new List<Claim>
                 {
+                        new Claim(ClaimTypes.NameIdentifier, fullUser.UserId.ToString()),
+                    new Claim("AccountType", "Customer"),
                     new Claim(ClaimTypes.Name, $"{fullUser.FirstName} {fullUser.LastName}"),
                     new Claim(ClaimTypes.Email, fullUser.Email),
                     new Claim(ClaimTypes.Role, "User"),
@@ -302,7 +308,7 @@ namespace TravelPlanningSystem.Controllers
             if (string.IsNullOrEmpty(email))
                 return RedirectToAction("Login");
 
-            if (User.IsInRole("Administrator"))
+            if (User.HasClaim("AccountType", "Staff"))
             {
                 var staff = await _context.StaffUsers
                     .Include(s => s.StaffRole)
@@ -316,6 +322,7 @@ namespace TravelPlanningSystem.Controllers
                     FirstName = staff.FirstName,
                     LastName = staff.LastName,
                     Email = staff.Email,
+                    PhoneNumber = staff.PhoneNumber,
                     IsStaff = true,
                     Department = staff.Department,
                     RoleName = staff.StaffRole?.RoleName,
@@ -348,7 +355,7 @@ namespace TravelPlanningSystem.Controllers
             if (string.IsNullOrEmpty(email))
                 return RedirectToAction("Login");
 
-            if (User.IsInRole("Administrator"))
+            if (User.HasClaim("AccountType", "Staff"))
             {
                 var staff = await _context.StaffUsers
                     .Include(s => s.StaffRole)
@@ -357,16 +364,26 @@ namespace TravelPlanningSystem.Controllers
                 if (staff == null)
                     return NotFound();
 
+                model.IsStaff = true;
+                model.Email = staff.Email;
+                ModelState.Remove(nameof(model.Email));
+
+                if (string.IsNullOrWhiteSpace(model.FirstName))
+                    ModelState.AddModelError(nameof(model.FirstName), "First name is required.");
+                if (string.IsNullOrWhiteSpace(model.LastName))
+                    ModelState.AddModelError(nameof(model.LastName), "Last name is required.");
+                if (string.IsNullOrWhiteSpace(model.Department))
+                    ModelState.AddModelError(nameof(model.Department), "Department is required.");
+
                 if (!ModelState.IsValid)
                 {
-                    model.IsStaff = true;
-                    model.Email = staff.Email;
                     model.RoleName = staff.StaffRole?.RoleName;
                     return View(model);
                 }
 
                 staff.FirstName = model.FirstName ?? staff.FirstName;
                 staff.LastName = model.LastName ?? staff.LastName;
+                staff.PhoneNumber = string.IsNullOrWhiteSpace(model.PhoneNumber) ? null : model.PhoneNumber.Trim();
                 staff.Department = model.Department ?? staff.Department;
 
                 if (model.Upload != null && model.Upload.Length > 0)
@@ -387,6 +404,8 @@ namespace TravelPlanningSystem.Controllers
 
                 var staffClaims = new List<Claim>
                 {
+                    new Claim(ClaimTypes.NameIdentifier, staff.StaffId.ToString()),
+                    new Claim("AccountType", "Staff"),
                     new Claim(ClaimTypes.Name, $"{staff.FirstName} {staff.LastName}"),
                     new Claim(ClaimTypes.Email, staff.Email),
                     new Claim(ClaimTypes.Role, staff.StaffRole?.RoleName ?? "Staff"),

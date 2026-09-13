@@ -96,7 +96,7 @@
         <div class="col-md-8">
             <h2>My Profile</h2>
 
-            <form asp-action="Profile" method="post" enctype="multipart/form-data">
+            <form id="profileForm" asp-action="Profile" method="post" enctype="multipart/form-data">
                 <div asp-validation-summary="All" class="text-danger"></div>
 
                 <div class="mb-3 text-center">
@@ -106,7 +106,7 @@
                              alt="Profile picture" />
                         <i class="bi bi-cloud-arrow-up-fill upload-picture-icon" aria-hidden="true"></i>
                     </label>
-                    <small class="d-block mt-2 text-muted">Click the photo to change it</small>
+                    <small class="d-block mt-2 text-muted">Click to change photo</small>
                 </div>
 
                 <div class="row">
@@ -127,12 +127,6 @@
                     <input asp-for="Email" class="form-control" readonly />
                 </div>
 
-                <div class="mb-3">
-                    <label asp-for="Upload" class="form-label"></label>
-                    <input asp-for="Upload" class="profile-picture-input" type="file" accept="image/jpeg,image/png,image/webp" />
-                    <span asp-validation-for="Upload" class="text-danger"></span>
-                </div>
-
                 @if (Model.IsStaff)
                 {
                     <div class="mb-3">
@@ -142,31 +136,23 @@
                     </div>
                 }
 
+                @{
+                    var storedPhone = Model.PhoneNumber?.Trim() ?? string.Empty;
+                    var profileCountryCode = "+60";
+                    var profileLocalPhone = storedPhone;
+                    var profileCodes = new[] { "+60", "+1", "+44", "+61", "+65", "+91" };
+                    var matchedCode = profileCodes.FirstOrDefault(code => storedPhone.StartsWith(code, StringComparison.Ordinal));
+                    if (matchedCode is not null)
+                    {
+                        profileCountryCode = matchedCode;
+                        profileLocalPhone = storedPhone[matchedCode.Length..].TrimStart();
+                    }
+                }
+
                 @if (Model.IsStaff)
                 {
                     <div class="mb-3">
-                        <label asp-for="Department" class="form-label"></label>
-                        <input asp-for="Department" class="form-control" />
-                        <span asp-validation-for="Department" class="text-danger"></span>
-                    </div>
-                }
-
-                else
-                {
-                    <div class="mb-3">
                         <label asp-for="PhoneNumber" class="form-label"></label>
-                        @{
-                            var storedPhone = Model.PhoneNumber?.Trim() ?? string.Empty;
-                            var profileCountryCode = "+60";
-                            var profileLocalPhone = storedPhone;
-                            var profileCodes = new[] { "+60", "+1", "+44", "+61", "+65", "+91" };
-                            var matchedCode = profileCodes.FirstOrDefault(code => storedPhone.StartsWith(code, StringComparison.Ordinal));
-                            if (matchedCode is not null)
-                            {
-                                profileCountryCode = matchedCode;
-                                profileLocalPhone = storedPhone[matchedCode.Length..].TrimStart();
-                            }
-                        }
                         <div class="d-flex gap-2">
                             <select id="profileCountryCode" class="form-select" style="max-width:150px;" aria-label="Country code">
                                 <option value="+60" selected="@(profileCountryCode == "+60")">+60 Malaysia</option>
@@ -176,7 +162,31 @@
                                 <option value="+65" selected="@(profileCountryCode == "+65")">+65 Singapore</option>
                                 <option value="+91" selected="@(profileCountryCode == "+91")">+91 India</option>
                             </select>
-                            <input id="profileLocalPhone" class="form-control" value="@profileLocalPhone" placeholder="123456789" inputmode="tel" autocomplete="tel-national" />
+                            <input id="profileLocalPhone" class="form-control" value="@profileLocalPhone" placeholder="123456789" inputmode="tel" autocomplete="tel-national" pattern="[0-9\s().-]{7,19}" title="Enter a valid phone number using digits only." />
+                        </div>
+                        <input asp-for="PhoneNumber" id="profilePhoneNumber" type="hidden" />
+                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Department" class="form-label"></label>
+                        <input asp-for="Department" class="form-control" maxlength="100" required />
+                        <span asp-validation-for="Department" class="text-danger"></span>
+                    </div>
+                }
+                else
+                {
+                    <div class="mb-3">
+                        <label asp-for="PhoneNumber" class="form-label"></label>
+                        <div class="d-flex gap-2">
+                            <select id="profileCountryCode" class="form-select" style="max-width:150px;" aria-label="Country code">
+                                <option value="+60" selected="@(profileCountryCode == "+60")">+60 Malaysia</option>
+                                <option value="+1" selected="@(profileCountryCode == "+1")">+1 USA</option>
+                                <option value="+44" selected="@(profileCountryCode == "+44")">+44 UK</option>
+                                <option value="+61" selected="@(profileCountryCode == "+61")">+61 Australia</option>
+                                <option value="+65" selected="@(profileCountryCode == "+65")">+65 Singapore</option>
+                                <option value="+91" selected="@(profileCountryCode == "+91")">+91 India</option>
+                            </select>
+                            <input id="profileLocalPhone" class="form-control" value="@profileLocalPhone" placeholder="123456789" inputmode="tel" autocomplete="tel-national" pattern="[0-9\s().-]{7,19}" title="Enter a valid phone number using digits only." />
                         </div>
                         <input asp-for="PhoneNumber" id="profilePhoneNumber" type="hidden" />
                         <span asp-validation-for="PhoneNumber" class="text-danger"></span>
@@ -301,7 +311,7 @@
                         }, 'image/jpeg', .9);
                     });
 
-                    var profileForm = document.querySelector('form[asp-action="Profile"]');
+                    var profileForm = document.getElementById('profileForm');
                     var profileCountryCode = document.getElementById('profileCountryCode');
                     var profileLocalPhone = document.getElementById('profileLocalPhone');
                     var profilePhoneNumber = document.getElementById('profilePhoneNumber');

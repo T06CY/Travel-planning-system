@@ -11,12 +11,12 @@
         <div>
             <span class="flight-eyebrow">ROOM MAINTENANCE</span>
             <h1>Edit @Model.HotelName / @Model.RoomName</h1>
-            <p>Update room details, pricing, inventory, visibility and photos.</p>
+            <p>Update room details, pricing, inventory and visibility.</p>
         </div>
         <a asp-action="Index" class="secondary-flight-btn">← Room list</a>
     </div>
 
-    <form method="post" enctype="multipart/form-data" class="admin-flight-card admin-form-card">
+    <form method="post" class="admin-flight-card admin-form-card">
         @Html.AntiForgeryToken()
         <input asp-for="HotelRoomId" type="hidden" />
         <partial name="_RoomForm" model="Model" />
@@ -29,5 +29,4 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script src="~/js/hotel-photo-processing.js" asp-append-version="true"></script>
 }

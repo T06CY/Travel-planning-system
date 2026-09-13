@@ -72,6 +72,9 @@ public class HotelSearchViewModel : IValidatableObject
 
 public class HotelReservationViewModel : IValidatableObject
 {
+    public const string BookForSelf = "Self";
+    public const string BookForOthers = "Others";
+
     public int HotelRoomId { get; set; }
     public string HotelName { get; set; } = string.Empty;
     public string RoomName { get; set; } = string.Empty;
@@ -82,9 +85,10 @@ public class HotelReservationViewModel : IValidatableObject
     [Required, DataType(DataType.Time), Display(Name = "Check-in time")] public TimeSpan CheckInTime { get; set; } = new TimeSpan(15, 0, 0);
     [Required, DataType(DataType.Time), Display(Name = "Check-out time")] public TimeSpan CheckOutTime { get; set; } = new TimeSpan(12, 0, 0);
     [Range(1, 20), Display(Name = "Guests")] public int GuestCount { get; set; } = 1;
+    [Required, Display(Name = "Booking for")] public string BookingFor { get; set; } = BookForSelf;
     [Required, StringLength(100), Display(Name = "Contact name")] public string ContactName { get; set; } = string.Empty;
     [Required, EmailAddress, StringLength(120), Display(Name = "Contact email")] public string ContactEmail { get; set; } = string.Empty;
-    [Required, Phone, StringLength(30), Display(Name = "Contact phone")] public string ContactPhone { get; set; } = string.Empty;
+    [Required, RegularExpression(@"^\+?[0-9][0-9\s().-]{6,28}[0-9]$", ErrorMessage = "Enter a valid phone number using digits only, with an optional country code."), StringLength(30), Display(Name = "Contact phone")] public string ContactPhone { get; set; } = string.Empty;
 
     public DateTime CheckInDateTime => CheckInDate.Date.Add(CheckInTime);
     public DateTime CheckOutDateTime => CheckOutDate.Date.Add(CheckOutTime);
