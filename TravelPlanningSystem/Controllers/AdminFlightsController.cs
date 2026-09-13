@@ -66,11 +66,48 @@ public class AdminFlightsController(
             .OrderBy(a => a.City)
             .ToListAsync();
 
+        ViewBag.Airlines = await context.Airlines.AsNoTracking()
+            .Where(a => a.IsActive)
+            .OrderBy(a => a.AirlineName)
+            .ToListAsync();
+
         return View(new AdminFlightIndexViewModel
         {
             Flights = flights,
             Airports = airports
         });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreatePopup(FlightFormViewModel model)
+    {
+        await ValidateFlightAsync(model, requireFlightImage: false);
+
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState.Values
+                .SelectMany(state => state.Errors)
+                .Select(error => string.IsNullOrWhiteSpace(error.ErrorMessage)
+                    ? "Enter a valid value."
+                    : error.ErrorMessage)
+                .Distinct()
+                .ToList();
+
+            return Json(new { success = false, errors });
+        }
+
+        var flight = new Flight
+        {
+            AvailableSeats = model.SeatCapacity,
+            CreatedAt = DateTime.UtcNow
+        };
+        MapFlight(flight, model);
+        context.Flights.Add(flight);
+        await context.SaveChangesAsync();
+        await SaveFlightImageAsync(flight, model.FlightImage);
+
+        TempData["Message"] = "Flight schedule created successfully.";
+        return Json(new { success = true });
     }
 
     [NonAction]
@@ -238,7 +275,10 @@ public class AdminFlightsController(
         return RedirectToAction(nameof(Index));
     }
 
-    private async Task ValidateFlightAsync(FlightFormViewModel model, int? existingId = null)
+    private async Task ValidateFlightAsync(
+        FlightFormViewModel model,
+        int? existingId = null,
+        bool requireFlightImage = true)
     {
         model.FlightNumber = (model.FlightNumber ?? string.Empty).Trim().ToUpperInvariant();
         model.From = (model.From ?? string.Empty).Trim();
@@ -276,7 +316,9 @@ public class AdminFlightsController(
                 ModelState.AddModelError(nameof(model.FlightImage), "Upload a JPG, PNG or WebP image no larger than 5 MB.");
         }
 
-        if (string.IsNullOrWhiteSpace(model.FlightImagePath) && (model.FlightImage is null || model.FlightImage.Length == 0))
+        if (requireFlightImage &&
+            string.IsNullOrWhiteSpace(model.FlightImagePath) &&
+            (model.FlightImage is null || model.FlightImage.Length == 0))
             ModelState.AddModelError(nameof(model.FlightImagePath), "Select or upload an image for this flight.");
     }
 
