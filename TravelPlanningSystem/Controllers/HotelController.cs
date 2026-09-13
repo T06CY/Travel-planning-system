@@ -128,7 +128,12 @@ public class HotelController(AppDbContext context) : Controller
             : View(model);
     }
 
-    public async Task<IActionResult> Details(int id)
+    public async Task<IActionResult> Details(
+        int id,
+        DateTime? checkIn,
+        DateTime? checkOut,
+        TimeSpan? checkInTime,
+        TimeSpan? checkOutTime)
     {
         var room = await context.HotelRooms
             .AsNoTracking()
@@ -138,7 +143,15 @@ public class HotelController(AppDbContext context) : Controller
             .ThenInclude(x => x.HotelReservation)
             .FirstOrDefaultAsync(r => r.HotelRoomId == id && r.IsActive);
 
-        return room is null ? NotFound() : View(room);
+        if (room is null)
+            return NotFound();
+
+        ViewData["CheckIn"] = checkIn;
+        ViewData["CheckOut"] = checkOut;
+        ViewData["CheckInTime"] = checkInTime;
+        ViewData["CheckOutTime"] = checkOutTime;
+
+        return View(room);
     }
 
     private static decimal CurrencyRate(string? currency)

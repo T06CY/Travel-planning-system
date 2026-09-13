@@ -713,6 +713,10 @@
                         <a asp-controller="HotelReservations"
                            asp-action="Create"
                            asp-route-roomId="@Model.HotelRoomId"
+                           asp-route-checkIn="@ViewData["CheckIn"]"
+                           asp-route-checkOut="@ViewData["CheckOut"]"
+                           asp-route-checkInTime="@ViewData["CheckInTime"]"
+                           asp-route-checkOutTime="@ViewData["CheckOutTime"]"
                            class="reserve-hotel-btn">
 
                             <i class="bi bi-calendar-check"></i>
@@ -725,7 +729,7 @@
                     {
                         <a asp-controller="Account"
                            asp-action="Login"
-                           asp-route-returnUrl="@Url.Action("Create", "HotelReservations", new { roomId = Model.HotelRoomId })"
+                           asp-route-returnUrl="@Url.Action("Create", "HotelReservations", new { roomId = Model.HotelRoomId, checkIn = ViewData["CheckIn"], checkOut = ViewData["CheckOut"], checkInTime = ViewData["CheckInTime"], checkOutTime = ViewData["CheckOutTime"] })"
                            class="reserve-hotel-btn">
 
                             <i class="bi bi-box-arrow-in-right"></i>

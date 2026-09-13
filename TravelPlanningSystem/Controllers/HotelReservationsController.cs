@@ -11,7 +11,12 @@ public class HotelReservationsController(AppDbContext context) : Controller
     private int CurrentUserId => 1;
 
     [HttpGet]
-    public async Task<IActionResult> Create(int roomId, DateTime? checkIn, DateTime? checkOut)
+    public async Task<IActionResult> Create(
+        int roomId,
+        DateTime? checkIn,
+        DateTime? checkOut,
+        TimeSpan? checkInTime,
+        TimeSpan? checkOutTime)
     {
         if (User.Identity?.IsAuthenticated != true)
         {
@@ -38,7 +43,9 @@ public class HotelReservationsController(AppDbContext context) : Controller
                 : DateTime.Today.AddDays(1),
             CheckOutDate = checkOut?.Date >= DateTime.Today
                 ? checkOut.Value.Date
-                : DateTime.Today.AddDays(2)
+                : DateTime.Today.AddDays(2),
+            CheckInTime = checkInTime ?? new TimeSpan(15, 0, 0),
+            CheckOutTime = checkOutTime ?? new TimeSpan(12, 0, 0)
         });
     }
 

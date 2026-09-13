@@ -105,6 +105,14 @@ using (var scope = app.Services.CreateScope())
             BEGIN
                 ALTER TABLE [dbo].[FlightBookings] ADD [DisruptionMessage] nvarchar(500) NULL;
             END
+
+            IF OBJECT_ID(N'[dbo].[FlightBookingSegments]', N'U') IS NOT NULL
+               AND COL_LENGTH(N'dbo.FlightBookingSegments', N'CabinClass') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[FlightBookingSegments]
+                    ADD [CabinClass] nvarchar(30) NOT NULL
+                        CONSTRAINT [DF_FlightBookingSegments_CabinClass] DEFAULT N'Economy';
+            END
         ");
 
         await SeedData.InitializeAsync(context);
