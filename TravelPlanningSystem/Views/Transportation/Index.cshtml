@@ -1,119 +1,457 @@
 @model TravelPlanningSystem.ViewModels.TransportationSearchViewModel
 
 @{
-    ViewData["Title"] = "Book Transportation";
+    ViewData["Title"] = "Search Coaches & VIP Vans - TravelMate";
 }
 
-<link rel="stylesheet"
-      href="~/css/transportation.css"
-      asp-append-version="true" />
+<link rel="stylesheet" href="~/css/transportation.css" asp-append-version="true" />
 
-<section class="transportation-hero">
-    <div class="container-fluid px-5">
-        <div class="hero-copy">
-            <span class="eyebrow">
-                <i class="bi bi-bus-front"></i>
-                Easy & Affordable
+<style>
+    .flight-style-hero {
+        background: radial-gradient(circle at 85% 20%, #1e3a8a 0%, #0a1931 55%, #050d1a 100%);
+        color: #fff;
+        padding: 60px 0 110px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hero-eyebrow {
+        color: #60a5fa;
+        font-size: 0.82rem;
+        font-weight: 800;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        display: block;
+        margin-bottom: 12px;
+    }
+    
+    .flight-style-hero h1 {
+        font-size: 2.8rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 12px;
+        letter-spacing: -0.5px;
+    }
+
+    .flight-style-hero p {
+        color: #94a3b8;
+        font-size: 1.05rem;
+        max-width: 520px;
+        line-height: 1.5;
+    }
+
+    /* ⭐ 右侧专属动画：动态穿梭轨迹与光圈 */
+    .hero-animation-box {
+        position: absolute;
+        right: 8%;
+        top: 25px;
+        width: 380px;
+        height: 180px;
+        pointer-events: none;
+    }
+    
+    .live-badge {
+        position: absolute;
+        top: 15px;
+        right: 25px;
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        color: #fff;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 5px 14px;
+        border-radius: 30px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .pulse-dot {
+        width: 8px;
+        height: 8px;
+        background: #22c55e;
+        border-radius: 50%;
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+        animation: pulse 1.8s infinite;
+    }
+    @@keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    }
+
+    .travel-arc {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+    }
+    .bus-moving-icon {
+        position: absolute;
+        font-size: 1.8rem;
+        color: #60a5fa;
+        filter: drop-shadow(0 0 12px rgba(96, 165, 250, 0.8));
+        animation: vehicleFloat 4s ease-in-out infinite;
+        top: 60px;
+        right: 120px;
+    }
+    @@keyframes vehicleFloat {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-10px) rotate(-3deg); }
+    }
+
+    .floating-search-card {
+        background: #ffffff;
+        border-radius: 24px;
+        box-shadow: 0 20px 50px rgba(6, 20, 59, 0.12);
+        padding: 32px 36px;
+        margin-top: -65px;
+        position: relative;
+        z-index: 10;
+        border: 1px solid #f1f5f9;
+    }
+
+    .search-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+        flex-wrap: gap;
+    }
+    .search-card-top h3 { font-size: 1.35rem; font-weight: 800; color: #06143b; margin: 0 0 4px; }
+    .search-card-top p { color: #64748b; font-size: 0.88rem; margin: 0; }
+    
+    .service-pill-tabs {
+        display: inline-flex;
+        background: #f1f5f9;
+        padding: 4px;
+        border-radius: 30px;
+        margin-bottom: 18px;
+        gap: 4px;
+    }
+    .pill-tab {
+        border: none;
+        background: transparent;
+        color: #64748b;
+        font-weight: 700;
+        font-size: 0.85rem;
+        padding: 7px 18px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .pill-tab.active {
+        background: #fff;
+        color: #2563eb;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .search-grid-layout {
+        display: grid;
+        grid-template-columns: 2fr 45px 2fr 1.6fr;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 18px;
+    }
+
+    .location-input-wrap {
+        position: relative;
+    }
+    .location-input-wrap label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+        display: block;
+    }
+    .location-field {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+    .location-field i {
+        position: absolute;
+        left: 14px;
+        color: #2563eb;
+        font-size: 1.1rem;
+    }
+    .location-field input {
+        width: 100%;
+        padding: 13px 14px 13px 40px;
+        border-radius: 12px;
+        border: 1.5px solid #cbd5e1;
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: #0f172a;
+        transition: all 0.2s ease;
+    }
+    .location-field input:focus {
+        border-color: #2563eb;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .autocomplete-list {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(6, 20, 59, 0.15);
+        border: 1px solid #e2e8f0;
+        margin-top: 6px;
+        z-index: 100;
+        max-height: 220px;
+        overflow-y: auto;
+        display: none;
+    }
+    .autocomplete-item {
+        padding: 10px 16px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #1e293b;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: background 0.15s ease;
+    }
+    .autocomplete-item:hover {
+        background: #f1f5f9;
+        color: #2563eb;
+    }
+
+    .swap-btn-wrap {
+        padding-top: 20px;
+        text-align: center;
+    }
+    .swap-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 1.5px solid #cbd5e1;
+        background: #fff;
+        color: #64748b;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .swap-btn:hover {
+        background: #eef2ff;
+        color: #2563eb;
+        border-color: #2563eb;
+        transform: rotate(180deg);
+    }
+
+    .bottom-search-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    .secondary-inputs {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+    .search-btn-primary {
+        background: #2563eb;
+        color: #fff;
+        border: none;
+        padding: 12px 34px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        transition: all 0.2s ease;
+    }
+    .search-btn-primary:hover {
+        background: #1d4ed8;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+    }
+
+    @@media (max-width: 992px) {
+        .search-grid-layout { grid-template-columns: 1fr; gap: 14px; }
+        .swap-btn-wrap { display: none; }
+        .hero-animation-box { display: none; }
+    }
+</style>
+
+<section class="flight-style-hero">
+    <div class="container-fluid px-5 position-relative">
+        <div>
+            <span class="hero-eyebrow">
+                <i class="bi bi-bus-front-fill me-1"></i> INTERCITY COACH &amp; VIP VAN EXPRESS
             </span>
-            <h1>
-                Book Your
-                <span>Journey</span>
-            </h1>
-            <p>
-                Find and book buses, coaches, and transportation options
-                that fit your budget and schedule.
-            </p>
+            <h1>Where will you travel next?</h1>
+            <p>Check live coach schedules, compare database ticket fares and reserve your seat instantly.</p>
+        </div>
+
+        <div class="hero-animation-box">
+            <div class="live-badge">
+                <span class="pulse-dot"></span>
+                <span>LIVE EXPRESS SEARCH</span>
+            </div>
+
+            <svg class="travel-arc" viewBox="0 0 380 180">
+                <path d="M 40 140 Q 200 30 340 70" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2.5" stroke-dasharray="6 6" />
+                <circle cx="40" cy="140" r="4" fill="#60a5fa" />
+                <circle cx="340" cy="70" r="5" fill="#22c55e" />
+            </svg>
+
+            <div class="bus-moving-icon">
+                <i class="bi bi-bus-front-fill"></i>
+            </div>
         </div>
     </div>
 </section>
 
-<section class="search-wrapper">
-    <div class="container-fluid px-5">
-        <form id="transportationSearchForm"
-              class="search-box"
-              method="get"
-              asp-controller="Transportation"
-              asp-action="Index">
-
-            <!-- Map Icon Section -->
-            <div class="map-icon">
-                <i class="bi bi-geo-alt-fill"></i>
+<div class="container-fluid px-5">
+    <div class="floating-search-card">
+        
+        <div class="search-card-top">
+            <div>
+                <span class="text-uppercase fw-bold text-muted small" style="letter-spacing: 1px;">PLAN YOUR JOURNEY</span>
+                <h3>Search and compare intercity bus &amp; coach</h3>
+                <p>Choose your destination and we will check live schedules with local seat availability.</p>
             </div>
-
-            <!-- Origin -->
-            <div class="search-item">
-                <label asp-for="Origin">Where from?</label>
-                <div>
-                    <i class="bi bi-geo-alt"></i>
-                    <select asp-for="Origin"
-                            class="form-select"
-                            asp-items="@(new SelectList(Model.Origins))">
-                        <option value="">Select origin</option>
-                    </select>
-                </div>
+            <div class="d-flex gap-2">
+                <span class="badge bg-light text-dark border px-3 py-2 rounded-pill"><i class="bi bi-broadcast text-success me-1"></i> Live status</span>
+                <span class="badge bg-light text-dark border px-3 py-2 rounded-pill"><i class="bi bi-shield-check text-primary me-1"></i> Secure booking</span>
             </div>
+        </div>
 
-            <!-- Destination -->
-            <div class="search-item">
-                <label asp-for="Destination">Where to?</label>
-                <div>
-                    <i class="bi bi-geo-alt"></i>
-                    <select asp-for="Destination"
-                            class="form-select"
-                            asp-items="@(new SelectList(Model.Destinations))">
-                        <option value="">Select destination</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Departure Date -->
-            <div class="search-item">
-                <label asp-for="DepartureDate">Departure</label>
-                <div>
-                    <i class="bi bi-calendar3"></i>
-                    <input asp-for="DepartureDate"
-                           type="date"
-                           class="form-control"
-                           min="@DateTime.Today.ToString("yyyy-MM-dd")" />
-                </div>
-            </div>
-
-            <!-- Search Button -->
-            <button class="search-btn" type="submit">
-                <i class="bi bi-search"></i>
+        <div class="service-pill-tabs">
+            <button type="button" 
+                    class="pill-tab @(string.IsNullOrEmpty(Model.VehicleType) ? "active" : "")" 
+                    onclick="filterByVehicle('')">
+                <i class="bi bi-grid-fill me-1"></i> All Services
             </button>
-        </form>
-    </div>
-</section>
+            <button type="button" 
+                    class="pill-tab @(Model.VehicleType == "VIP Van" ? "active" : "")" 
+                    onclick="filterByVehicle('VIP Van')">
+                <i class="bi bi-star-fill text-warning me-1"></i> VIP Van Luxury
+            </button>
+            <button type="button" 
+                    class="pill-tab @(Model.VehicleType == "Luxury Coach" ? "active" : "")" 
+                    onclick="filterByVehicle('Luxury Coach')">
+                <i class="bi bi-bus-front me-1"></i> Luxury Coach
+            </button>
+            <button type="button" 
+                    class="pill-tab @(Model.VehicleType == "Express Bus" ? "active" : "")" 
+                    onclick="filterByVehicle('Express Bus')">
+                <i class="bi bi-lightning-charge-fill text-primary me-1"></i> Express Bus
+            </button>
+        </div>
 
-<section class="results-section">
+        <form id="mainSearchForm" method="get" asp-controller="Transportation" asp-action="Index">
+            <input type="hidden" asp-for="Page" value="1" />
+            <input type="hidden" id="filterVehicleTypeHidden" asp-for="VehicleType" />
+
+            <div class="search-grid-layout">
+                
+                <div class="location-input-wrap">
+                    <label>Leaving from</label>
+                    <div class="location-field">
+                        <i class="bi bi-geo-alt-fill"></i>
+                        <input type="text" asp-for="Origin" id="originInput" placeholder="Type city (e.g. Kuala Lumpur)" autocomplete="off" />
+                    </div>
+                    <div class="autocomplete-list" id="originDropdown">
+                        @foreach (var o in Model.Origins)
+                        {
+                            <div class="autocomplete-item" onclick="selectOrigin('@o')">
+                                <i class="bi bi-pin-map text-primary"></i> <span>@o</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="swap-btn-wrap">
+                    <button type="button" class="swap-btn" id="swapLocationBtn" title="Swap Origin & Destination">
+                        <i class="bi bi-arrow-left-right"></i>
+                    </button>
+                </div>
+
+                <div class="location-input-wrap">
+                    <label>Going to</label>
+                    <div class="location-field">
+                        <i class="bi bi-compass-fill"></i>
+                        <input type="text" asp-for="Destination" id="destinationInput" placeholder="Type destination (e.g. Penang, Genting)" autocomplete="off" />
+                    </div>
+                    <div class="autocomplete-list" id="destinationDropdown">
+                        @foreach (var d in Model.Destinations)
+                        {
+                            <div class="autocomplete-item" onclick="selectDestination('@d')">
+                                <i class="bi bi-geo-alt text-danger"></i> <span>@d</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="location-input-wrap">
+                    <label>Departure Date</label>
+                    <div class="location-field">
+                        <i class="bi bi-calendar3"></i>
+                        <input type="date" asp-for="DepartureDate" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="bottom-search-row">
+                <div class="secondary-inputs">
+                    <div>
+                        <select asp-for="SortBy" class="form-select form-select-sm border-secondary-subtle">
+                            <option value="departure">Sort: Earliest departure</option>
+                            <option value="price-low">Price: Low to High</option>
+                            <option value="price-high">Price: High to Low</option>
+                            <option value="duration">Fastest duration</option>
+                        </select>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" asp-for="OnlyAvailableSeats" class="form-check-input" id="onlySeatsChk" />
+                        <label class="form-check-label small fw-bold text-muted" for="onlySeatsChk">
+                            Only available seats
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="search-btn-primary">
+                    <i class="bi bi-search"></i> Search live coaches
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<section class="results-section mt-5">
     <div class="container-fluid px-5">
         <div class="results-container">
 
-            <!-- Sidebar Filters -->
             <aside class="filter-sidebar">
                 <div class="filter-header">
                     <h3>Filters</h3>
                     @if (Model.HasFiltersApplied)
                     {
-                        <a href="@Url.Action("Index", "Transportation")" class="clear-filters">
-                            Clear all
-                        </a>
+                        <a href="@Url.Action("Index", "Transportation")" class="clear-filters">Clear all</a>
                     }
                 </div>
 
-                <form id="advancedFilterForm"
-                      method="get"
-                      asp-controller="Transportation"
-                      asp-action="Index">
-
-                    <!-- Keep search parameters -->
+                <form id="advancedFilterForm" method="get" asp-controller="Transportation" asp-action="Index">
                     <input type="hidden" asp-for="Origin" />
                     <input type="hidden" asp-for="Destination" />
                     <input type="hidden" asp-for="DepartureDate" />
                     <input type="hidden" asp-for="Page" value="1" />
 
-                    <!-- Price Range (带 min="0" 与后端错误红字提示) -->
                     <div class="filter-group">
                         <h4>Price Range (RM)</h4>
                         <div class="price-inputs">
@@ -125,17 +463,13 @@
                         <span asp-validation-for="MaxPrice" class="text-danger small d-block mt-1"></span>
                     </div>
 
-                    <!-- Vehicle Type -->
                     <div class="filter-group">
                         <h4>Vehicle Type</h4>
-                        <select asp-for="VehicleType"
-                                class="form-select"
-                                asp-items="@(new SelectList(Model.VehicleTypes))">
+                        <select asp-for="VehicleType" class="form-select" asp-items="@(new SelectList(Model.VehicleTypes))">
                             <option value="">All types</option>
                         </select>
                     </div>
 
-                    <!-- Minimum Rating -->
                     <div class="filter-group">
                         <h4>Minimum Rating</h4>
                         <select asp-for="MinimumRating" class="form-select">
@@ -144,42 +478,25 @@
                             <option value="2">2+ Stars</option>
                             <option value="3">3+ Stars</option>
                             <option value="4">4+ Stars</option>
-                            <option value="5">5 Stars</option>
                         </select>
                     </div>
 
-                    <!-- Available Seats Only -->
                     <div class="filter-group">
                         <div class="form-check">
                             <input type="checkbox" asp-for="OnlyAvailableSeats" class="form-check-input" />
-                            <label class="form-check-label" asp-for="OnlyAvailableSeats">
-                                Only available seats
-                            </label>
+                            <label class="form-check-label" asp-for="OnlyAvailableSeats">Only available seats</label>
                         </div>
-                    </div>
-
-                    <!-- Sorting -->
-                    <div class="filter-group">
-                        <h4>Sort By</h4>
-                        <select asp-for="SortBy" class="form-select">
-                            <option value="departure">Departure Time</option>
-                            <option value="price-low">Price: Low to High</option>
-                            <option value="price-high">Price: High to Low</option>
-                            <option value="rating">Rating</option>
-                            <option value="duration">Duration</option>
-                        </select>
                     </div>
 
                     <button type="submit" class="btn btn-filter">Apply Filters</button>
                 </form>
             </aside>
 
-            <!-- Results -->
             <main class="results-main">
                 @if (Model.Trips.Any())
                 {
                     <div class="results-header">
-                        <h2>Available Trips</h2>
+                        <h2>Available Coach &amp; Van Schedules</h2>
                         <p class="results-count">Showing @Model.Trips.Count() of @Model.TotalCount results</p>
                     </div>
 
@@ -190,21 +507,16 @@
                             var discountedPrice = trip.BaseFare * (1 - trip.DiscountPercentage / 100);
 
                             <div class="trip-card">
-                                <!-- Header -->
                                 <div class="trip-header">
                                     <div class="route-info">
                                         <span class="origin">@trip.Route?.Origin</span>
-                                        <div class="arrow">
-                                            <i class="bi bi-arrow-right"></i>
-                                        </div>
+                                        <div class="arrow"><i class="bi bi-arrow-right"></i></div>
                                         <span class="destination">@trip.Route?.Destination</span>
                                     </div>
                                     <span class="trip-date">@trip.DepartureTime.ToString("ddd, MMM d")</span>
                                 </div>
 
-                                <!-- Body -->
                                 <div class="trip-body">
-                                    <!-- Timing -->
                                     <div class="timing-section">
                                         <div class="time-box">
                                             <span class="label">Depart</span>
@@ -219,13 +531,11 @@
                                         </div>
                                     </div>
 
-                                    <!-- Vehicle Info -->
                                     <div class="vehicle-info">
                                         <span class="vehicle-type">@trip.Vehicle?.VehicleType</span>
                                         <span class="vehicle-model">@trip.Vehicle?.VehicleModel</span>
                                     </div>
 
-                                    <!-- Status & Seats -->
                                     <div class="availability-section">
                                         <div class="status">
                                             <span class="status-badge @trip.Status.ToLower()">@trip.Status</span>
@@ -244,27 +554,22 @@
                                     </div>
                                 </div>
 
-                                <!-- Footer -->
                                 <div class="trip-footer">
-                                    <!-- Rating -->
                                     <div class="rating-section">
                                         @if (trip.Reviews.Any())
                                         {
                                             <div class="rating">
                                                 <i class="bi bi-star-fill"></i>
                                                 <span class="rating-value">@avgRating</span>
-                                                <span class="review-count">(@trip.Reviews.Count() reviews)</span>
+                                                <span class="review-count">(@trip.Reviews.Count())</span>
                                             </div>
                                         }
                                         else
                                         {
-                                            <div class="rating">
-                                                <span class="no-rating">No ratings yet</span>
-                                            </div>
+                                            <span class="no-rating text-muted small">No ratings yet</span>
                                         }
                                     </div>
 
-                                    <!-- Price & Action -->
                                     <div class="price-section">
                                         <div class="price-box">
                                             @if (trip.DiscountPercentage > 0)
@@ -274,12 +579,8 @@
                                             }
                                             <span class="price">RM @discountedPrice.ToString("F2")</span>
                                         </div>
-                                        <a asp-controller="Transportation"
-                                           asp-action="Details"
-                                           asp-route-id="@trip.TripId"
-                                           class="btn btn-select">
-                                            View Details
-                                            <i class="bi bi-arrow-right"></i>
+                                        <a asp-controller="Transportation" asp-action="Details" asp-route-id="@trip.TripId" class="btn btn-select">
+                                            View Details <i class="bi bi-arrow-right"></i>
                                         </a>
                                     </div>
                                 </div>
@@ -287,74 +588,19 @@
                         }
                     </div>
 
-                    <!-- Pagination (保留所有已有筛选条件) -->
                     @if (Model.TotalPages > 1)
                     {
                         <nav class="pagination-nav">
                             <ul class="pagination">
-                                @if (Model.Page > 1)
-                                {
-                                    <li>
-                                        <a asp-action="Index"
-                                           asp-route-origin="@Model.Origin"
-                                           asp-route-destination="@Model.Destination"
-                                           asp-route-departureDate="@Model.DepartureDate?.ToString("yyyy-MM-dd")"
-                                           asp-route-minPrice="@Model.MinPrice"
-                                           asp-route-maxPrice="@Model.MaxPrice"
-                                           asp-route-vehicleType="@Model.VehicleType"
-                                           asp-route-onlyAvailableSeats="@Model.OnlyAvailableSeats"
-                                           asp-route-sortBy="@Model.SortBy"
-                                           asp-route-page="@(Model.Page - 1)"
-                                           class="page-link prev">
-                                            <i class="bi bi-chevron-left"></i> Previous
-                                        </a>
-                                    </li>
-                                }
-
                                 @for (int i = 1; i <= Model.TotalPages; i++)
                                 {
-                                    @if (i == Model.Page)
-                                    {
-                                        <li><span class="page-link active">@i</span></li>
-                                    }
-                                    else if ((i >= Model.Page - 2 && i <= Model.Page + 2) || i == 1 || i == Model.TotalPages)
-                                    {
-                                        <li>
-                                            <a asp-action="Index"
-                                               asp-route-origin="@Model.Origin"
-                                               asp-route-destination="@Model.Destination"
-                                               asp-route-departureDate="@Model.DepartureDate?.ToString("yyyy-MM-dd")"
-                                               asp-route-minPrice="@Model.MinPrice"
-                                               asp-route-maxPrice="@Model.MaxPrice"
-                                               asp-route-vehicleType="@Model.VehicleType"
-                                               asp-route-onlyAvailableSeats="@Model.OnlyAvailableSeats"
-                                               asp-route-sortBy="@Model.SortBy"
-                                               asp-route-page="@i"
-                                               class="page-link">@i</a>
-                                        </li>
-                                    }
-                                    else if (i == Model.Page - 3 || i == Model.Page + 3)
-                                    {
-                                        <li><span class="page-link">...</span></li>
-                                    }
-                                }
-
-                                @if (Model.Page < Model.TotalPages)
-                                {
-                                    <li>
+                                    <li class="page-item @(i == Model.Page ? "active" : "")">
                                         <a asp-action="Index"
                                            asp-route-origin="@Model.Origin"
                                            asp-route-destination="@Model.Destination"
                                            asp-route-departureDate="@Model.DepartureDate?.ToString("yyyy-MM-dd")"
-                                           asp-route-minPrice="@Model.MinPrice"
-                                           asp-route-maxPrice="@Model.MaxPrice"
-                                           asp-route-vehicleType="@Model.VehicleType"
-                                           asp-route-onlyAvailableSeats="@Model.OnlyAvailableSeats"
-                                           asp-route-sortBy="@Model.SortBy"
-                                           asp-route-page="@(Model.Page + 1)"
-                                           class="page-link next">
-                                            Next <i class="bi bi-chevron-right"></i>
-                                        </a>
+                                           asp-route-page="@i"
+                                           class="page-link">@i</a>
                                     </li>
                                 }
                             </ul>
@@ -364,14 +610,10 @@
                 else
                 {
                     <div class="no-results">
-                        <div class="no-results-icon">
-                            <i class="bi bi-search"></i>
-                        </div>
-                        <h3>No trips found</h3>
-                        <p>Try adjusting your search criteria or filters to find available trips.</p>
-                        <a href="@Url.Action("Index", "Transportation")" class="btn btn-primary">
-                            Clear filters
-                        </a>
+                        <i class="bi bi-search display-4 text-muted mb-3 d-block"></i>
+                        <h3>No coach schedules found</h3>
+                        <p>Try adjusting your destination or departure date to find available trips.</p>
+                        <a href="@Url.Action("Index", "Transportation")" class="btn btn-primary">Clear all filters</a>
                     </div>
                 }
             </main>
@@ -379,22 +621,75 @@
     </div>
 </section>
 
-<!-- 客户端即时提示脚本 -->
 <script>
-    document.getElementById('advancedFilterForm')?.addEventListener('submit', function (e) {
-        const minVal = parseFloat(document.querySelector('input[name="MinPrice"]')?.value);
-        const maxVal = parseFloat(document.querySelector('input[name="MaxPrice"]')?.value);
+    // 地点打字实时联想与下拉交互
+    setupAutocomplete('originInput', 'originDropdown');
+    setupAutocomplete('destinationInput', 'destinationDropdown');
 
-        if (!isNaN(minVal) && minVal < 0) {
-            alert("Minimum price cannot be less than 0.");
-            e.preventDefault();
-            return;
-        }
+    function setupAutocomplete(inputId, dropdownId) {
+        const input = document.getElementById(inputId);
+        const dropdown = document.getElementById(dropdownId);
+        if (!input || !dropdown) return;
 
-        if (!isNaN(minVal) && !isNaN(maxVal) && maxVal < minVal) {
-            alert("Maximum price cannot be less than minimum price.");
-            e.preventDefault();
-            return;
-        }
+        input.addEventListener('input', function () {
+            const query = this.value.trim().toLowerCase();
+            const items = dropdown.querySelectorAll('.autocomplete-item');
+            let hasMatch = false;
+
+            items.forEach(item => {
+                const text = item.innerText.toLowerCase();
+                if (query === '' || text.includes(query)) {
+                    item.style.display = 'flex';
+                    hasMatch = true;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            dropdown.style.display = hasMatch ? 'block' : 'none';
+        });
+
+        input.addEventListener('focus', function () {
+            dropdown.style.display = 'block';
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+    }
+
+    function selectOrigin(val) {
+        document.getElementById('originInput').value = val;
+        document.getElementById('originDropdown').style.display = 'none';
+    }
+
+    function selectDestination(val) {
+        document.getElementById('destinationInput').value = val;
+        document.getElementById('destinationDropdown').style.display = 'none';
+    }
+
+    document.getElementById('swapLocationBtn')?.addEventListener('click', function () {
+        const originEl = document.getElementById('originInput');
+        const destEl = document.getElementById('destinationInput');
+        
+        const temp = originEl.value;
+        originEl.value = destEl.value;
+        destEl.value = temp;
+
+        this.style.transform = 'rotate(180deg)';
+        setTimeout(() => { this.style.transform = 'none'; }, 300);
     });
+
+
+    function filterByVehicle(type) {
+        const hiddenInput = document.getElementById('filterVehicleTypeHidden');
+        const form = document.getElementById('mainSearchForm');
+        
+        if (hiddenInput && form) {
+            hiddenInput.value = type;
+            form.submit();
+        }
+    }
 </script>
