@@ -303,6 +303,12 @@ public class TransportationController(AppDbContext context) : Controller
             return RedirectToAction("Login", "Account");
         }
 
+        // Enforce maximum seat selection limit (Max 5 seats per reservation)
+        if (model.SelectedSeatNumbers != null && model.SelectedSeatNumbers.Count > 5)
+        {
+            ModelState.AddModelError("", "You can select a maximum of 5 seats per reservation.");
+        }
+
         // Lock contact name and email to verified user account
         model.ContactName = $"{currentUser.FirstName} {currentUser.LastName}".Trim();
         if (string.IsNullOrEmpty(model.ContactName)) model.ContactName = currentUser.FirstName;
