@@ -75,9 +75,6 @@ public class StaffManagementInput
     [Required(ErrorMessage = "Select a staff role.")]
     public Guid RoleId { get; set; }
 
-    [Range(1, 10)]
-    public int AccessLevel { get; set; } = 1;
-
     [Required, RegularExpression("^(Active|Inactive|Suspended)$", ErrorMessage = "Select a valid account status."), StringLength(20)]
     public string Status { get; set; } = "Active";
 

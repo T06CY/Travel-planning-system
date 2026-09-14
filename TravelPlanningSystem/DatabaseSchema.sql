@@ -253,7 +253,6 @@ BEGIN
         [LastName] nvarchar(100) NOT NULL,
         [Department] nvarchar(100) NOT NULL,
         [ManagedPropertyId] uniqueidentifier NULL,
-        [AccessLevel] int NOT NULL,
         [LastLoginIp] nvarchar(45) NULL,
         [Status] nvarchar(20) NOT NULL,
         [CreatedAt] datetime2 NOT NULL,

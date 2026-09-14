@@ -151,7 +151,6 @@ public static class SeedData
                     LastName = "Admin",
                     Department = "Operations",
                     RoleId = adminRole.RoleId,
-                    AccessLevel = 10,
                     Status = "Active",
                     CreatedAt = DateTime.UtcNow
                 },
@@ -166,7 +165,6 @@ public static class SeedData
                     LastName = "Agent",
                     Department = "Customer Support",
                     RoleId = supportRole.RoleId,
-                    AccessLevel = 2,
                     Status = "Active",
                     CreatedAt = DateTime.UtcNow
                 }

@@ -31,9 +31,8 @@
         <span asp-validation-for="PhoneNumber" class="text-danger"></span>
     </div>
     <div class="col-md-6"><label asp-for="Department" class="form-label"></label><input asp-for="Department" class="form-control" required maxlength="100" /><span asp-validation-for="Department" class="text-danger"></span></div>
-    <div class="col-md-4"><label asp-for="RoleId" class="form-label">Role</label><select asp-for="RoleId" class="form-select" required><option value="">Select role</option>@foreach (var role in roles) { <option value="@role.RoleId">@role.RoleName</option> }</select><span asp-validation-for="RoleId" class="text-danger"></span></div>
-    <div class="col-md-4"><label asp-for="AccessLevel" class="form-label"></label><input asp-for="AccessLevel" type="number" class="form-control" min="1" max="10" required /><span asp-validation-for="AccessLevel" class="text-danger"></span></div>
-    <div class="col-md-4"><label asp-for="Status" class="form-label"></label><select asp-for="Status" class="form-select" required><option value="">Select status</option><option>Active</option><option>Inactive</option><option>Suspended</option></select><span asp-validation-for="Status" class="text-danger"></span></div>
+    <div class="col-md-6"><label asp-for="RoleId" class="form-label">Role</label><select asp-for="RoleId" class="form-select" required><option value="">Select role</option>@foreach (var role in roles) { <option value="@role.RoleId">@role.RoleName</option> }</select><span asp-validation-for="RoleId" class="text-danger"></span></div>
+    <div class="col-md-6"><label asp-for="Status" class="form-label"></label><select asp-for="Status" class="form-select" required><option value="">Select status</option><option>Active</option><option>Inactive</option><option>Suspended</option></select><span asp-validation-for="Status" class="text-danger"></span></div>
     @if (ViewContext.RouteData.Values["action"]?.ToString() == "CreateStaff")
     {
         <div class="col-12"><label asp-for="Password" class="form-label"></label><input asp-for="Password" class="form-control" type="password" autocomplete="new-password" minlength="8" required /><small class="text-muted">Use at least 8 characters.</small><span asp-validation-for="Password" class="text-danger"></span></div>

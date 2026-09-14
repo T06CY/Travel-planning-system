@@ -288,6 +288,55 @@ namespace TravelPlanningSystem.Controllers
         }
 
         [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View(new ForgotPasswordViewModel());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var email = model.Email.Trim();
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
+
+            if (user is not null)
+            {
+                var challenge = _otpService.CreateChallenge(user.Email, "password reset");
+                _otpService.StorePending(challenge.ChallengeId, new PendingPasswordReset
+                {
+                    UserId = user.UserId
+                });
+
+                TempData["OtpChallengeId"] = challenge.ChallengeId;
+                TempData["OtpPurpose"] = "reset-password";
+                TempData["OtpEmail"] = user.Email;
+
+                try
+                {
+                    await _emailSender.SendOtpAsync(user.Email, challenge.Code!, "password reset");
+                    return RedirectToAction(nameof(VerifyOtp));
+                }
+                catch (Exception)
+                {
+                    _otpService.RemovePending(challenge.ChallengeId);
+                    TempData.Remove("OtpChallengeId");
+                    TempData.Remove("OtpPurpose");
+                    TempData.Remove("OtpEmail");
+                    ModelState.AddModelError(string.Empty, "The reset email could not be sent. Check the email configuration and try again.");
+                    return View(model);
+                }
+            }
+
+            TempData["ForgotPasswordMessage"] = "If an account uses that email, a password reset code has been sent.";
+            return RedirectToAction(nameof(ForgotPassword));
+        }
+
+        [HttpGet]
         public IActionResult VerifyOtp()
         {
             var challengeId = TempData.Peek("OtpChallengeId") as string;
@@ -319,6 +368,15 @@ namespace TravelPlanningSystem.Controllers
                 ViewData["OtpEmail"] = email;
                 model.Purpose = purpose;
                 return View(model);
+            }
+
+            if (string.Equals(purpose, "reset-password", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!_otpService.TryGetPending<PendingPasswordReset>(challengeId, out var reset) || reset is null)
+                    return RedirectToAction(nameof(ForgotPassword));
+
+                TempData["PasswordResetChallengeId"] = challengeId;
+                return RedirectToAction(nameof(ResetPassword));
             }
 
             if (string.Equals(purpose, "register", StringComparison.OrdinalIgnoreCase))
@@ -365,6 +423,50 @@ namespace TravelPlanningSystem.Controllers
                 return Redirect(login.ReturnUrl);
 
             return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public IActionResult ResetPassword()
+        {
+            var challengeId = TempData.Peek("PasswordResetChallengeId") as string;
+            if (string.IsNullOrWhiteSpace(challengeId) ||
+                !_otpService.TryGetPending<PendingPasswordReset>(challengeId, out var reset) || reset is null)
+            {
+                return RedirectToAction(nameof(ForgotPassword));
+            }
+
+            return View(new ResetPasswordViewModel());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            var challengeId = TempData.Peek("PasswordResetChallengeId") as string;
+            if (string.IsNullOrWhiteSpace(challengeId) ||
+                !_otpService.TryGetPending<PendingPasswordReset>(challengeId, out var reset) || reset is null)
+            {
+                return RedirectToAction(nameof(ForgotPassword));
+            }
+
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == reset.UserId);
+            if (user is null)
+                return RedirectToAction(nameof(ForgotPassword));
+
+            user.PasswordHash = PasswordHashing.Hash(model.NewPassword);
+            await _context.SaveChangesAsync();
+
+            _otpService.RemovePending(challengeId);
+            TempData.Remove("PasswordResetChallengeId");
+            TempData.Remove("OtpChallengeId");
+            TempData.Remove("OtpPurpose");
+            TempData.Remove("OtpEmail");
+            TempData["PasswordResetMessage"] = "Your password has been reset. You can now log in.";
+
+            return RedirectToAction(nameof(Login));
         }
 
         [HttpGet]
@@ -621,6 +723,11 @@ namespace TravelPlanningSystem.Controllers
             public Guid UserId { get; set; }
             public string? ReturnUrl { get; set; }
             public bool RememberMe { get; set; }
+        }
+
+        private sealed class PendingPasswordReset
+        {
+            public Guid UserId { get; set; }
         }
 
         private sealed class PendingRegistration

@@ -153,7 +153,6 @@ public class AdminUserManagementController(AppDbContext context) : Controller
             PhoneNumber = string.IsNullOrWhiteSpace(model.PhoneNumber) ? null : model.PhoneNumber.Trim(),
             Department = model.Department.Trim(),
             RoleId = model.RoleId,
-            AccessLevel = model.AccessLevel,
             Status = model.Status,
             CreatedAt = DateTime.UtcNow
         });
@@ -179,7 +178,6 @@ public class AdminUserManagementController(AppDbContext context) : Controller
             PhoneNumber = staff.PhoneNumber,
             Department = staff.Department,
             RoleId = staff.RoleId,
-            AccessLevel = staff.AccessLevel,
             Status = staff.Status
         });
     }
@@ -212,7 +210,6 @@ public class AdminUserManagementController(AppDbContext context) : Controller
         staff.PhoneNumber = string.IsNullOrWhiteSpace(model.PhoneNumber) ? null : model.PhoneNumber.Trim();
         staff.Department = model.Department.Trim();
         staff.RoleId = model.RoleId;
-        staff.AccessLevel = model.AccessLevel;
         staff.Status = model.Status;
         if (!string.IsNullOrWhiteSpace(model.Password))
             staff.PasswordHash = PasswordHashing.Hash(model.Password);

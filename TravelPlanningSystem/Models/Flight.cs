@@ -46,6 +46,7 @@ public class Flight
     [Range(0.01, 999999)]
     public decimal Price { get; set; }
 
+    [Column(TypeName = "decimal(5,2)")]
     [Range(0, 100)]
     public decimal DiscountPercent { get; set; }
 

@@ -33,8 +33,6 @@ namespace TravelPlanningSystem.Models
 
         public Guid? ManagedPropertyId { get; set; }
 
-        public int AccessLevel { get; set; } = 1;
-
         [MaxLength(45)]
         public string? LastLoginIp { get; set; }
 

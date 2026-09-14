@@ -245,8 +245,8 @@ public class AdminDashboardController : Controller
         model.StaffUsers = await _context.StaffUsers
             .AsNoTracking()
             .Include(s => s.StaffRole)
-            .OrderByDescending(s => s.AccessLevel)
-            .ThenBy(s => s.LastName)
+            .OrderBy(s => s.LastName)
+            .ThenBy(s => s.FirstName)
             .Take(10)
             .ToListAsync();
 
