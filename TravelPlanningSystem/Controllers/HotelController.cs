@@ -141,10 +141,39 @@ public class HotelController(AppDbContext context) : Controller
             .Include(r => r.Photos)
             .Include(r => r.Reviews.Where(x => x.IsVisible))
             .ThenInclude(x => x.HotelReservation)
+            .ThenInclude(x => x!.ApplicationUser)
             .FirstOrDefaultAsync(r => r.HotelRoomId == id && r.IsActive);
 
         if (room is null)
             return NotFound();
+
+        // Older demo reservations were created before ApplicationUserId was populated.
+        // Resolve those reviews by the reservation contact email so they can still show
+        // the member's name and profile picture.
+        var guestEmails = room.Reviews
+            .Where(r => r.HotelReservation?.ApplicationUser is null)
+            .Select(r => r.HotelReservation?.ContactEmail)
+            .Where(email => !string.IsNullOrWhiteSpace(email))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (guestEmails.Count > 0)
+        {
+            var guestUsers = await context.Users
+                .AsNoTracking()
+                .Where(u => guestEmails.Contains(u.Email))
+                .ToListAsync();
+
+            foreach (var review in room.Reviews)
+            {
+                var reservation = review.HotelReservation;
+                if (reservation?.ApplicationUser is null)
+                {
+                    reservation!.ApplicationUser = guestUsers.FirstOrDefault(u =>
+                        string.Equals(u.Email, reservation.ContactEmail, StringComparison.OrdinalIgnoreCase));
+                }
+            }
+        }
 
         ViewData["CheckIn"] = checkIn;
         ViewData["CheckOut"] = checkOut;

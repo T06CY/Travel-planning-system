@@ -478,7 +478,7 @@ public class HotelReservationsController(AppDbContext context) : Controller
         => await Owned(id) is { } booking &&
            (booking.ReservationStatus == HotelReservationStatus.Confirmed ||
             booking.ReservationStatus == HotelReservationStatus.Pending) &&
-           booking.CheckInDate > DateTime.Today
+            booking.CheckInDate.Date.Add(booking.CheckInTime) > DateTime.Now
             ? View(booking)
             : BadRequest();
 
@@ -495,7 +495,7 @@ public class HotelReservationsController(AppDbContext context) : Controller
         if (booking is null ||
             (booking.ReservationStatus != HotelReservationStatus.Confirmed &&
              booking.ReservationStatus != HotelReservationStatus.Pending) ||
-            booking.CheckInDate <= DateTime.Today)
+            booking.CheckInDate.Date.Add(booking.CheckInTime) <= DateTime.Now)
         {
             return BadRequest();
         }
@@ -564,10 +564,11 @@ public class HotelReservationsController(AppDbContext context) : Controller
             {
                 HotelRoomId = booking.HotelRoomId,
                 HotelReservationId = booking.HotelReservationId,
-                UserId = 1,
+                UserId = 1, // Retained for compatibility with the legacy schema.
                 Rating = model.Rating,
                 Comment = model.Comment.Trim()
             });
+
         }
         else
         {
@@ -585,6 +586,8 @@ public class HotelReservationsController(AppDbContext context) : Controller
             .AsNoTracking()
             .Include(b => b.HotelRoom)
             .ThenInclude(r => r!.Photos)
+            .Include(b => b.ApplicationUser)
+            .Include(b => b.StaffUser)
             .Include(b => b.Review)
             .FirstOrDefaultAsync(b =>
                 b.HotelReservationId == id &&

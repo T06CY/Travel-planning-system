@@ -32,129 +32,149 @@
         <div class="reservation-grid">
 
             <!-- MAIN TICKET CARD -->
-            <div class="card ticket-card">
+            <div class="main-column">
+                <div class="card ticket-card">
 
-                <div class="ticket-section hotel-info">
-                    <div class="hotel-icon">
-                        <i class="bi bi-building"></i>
-                    </div>
-                    <div class="hotel-details">
-                        <span class="label">Your Destination</span>
-                        <h2>@Model.HotelRoom?.HotelName</h2>
-                        <p>@Model.HotelRoom?.RoomName</p>
-                    </div>
-                </div>
-
-                <div class="ticket-section date-grid">
-                    <div class="date-box">
-                        <i class="bi bi-calendar2-check text-primary"></i>
-                        <span class="label">Check-in</span>
-                        <strong>@Model.CheckInDate.ToString("dd MMM yyyy")</strong>
-                        <small>@Model.CheckInTime</small>
-                    </div>
-
-                    <div class="date-divider">
-                        <div class="line"></div>
-                        <i class="bi bi-moon-stars text-muted"></i>
-                        <div class="line"></div>
-                    </div>
-
-                    <div class="date-box">
-                        <i class="bi bi-calendar2-x text-danger"></i>
-                        <span class="label">Check-out</span>
-                        <strong>@Model.CheckOutDate.ToString("dd MMM yyyy")</strong>
-                        <small>@Model.CheckOutTime</small>
-                    </div>
-                </div>
-
-                <div class="ticket-section amenities-grid">
-                    <div class="amenity">
-                        <i class="bi bi-people"></i>
-                        <div>
-                            <span class="label">Guests</span>
-                            <strong>@Model.GuestCount</strong>
+                    <div class="ticket-section hotel-info">
+                        <div class="hotel-icon">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <div class="hotel-details">
+                            <span class="label">Your Destination</span>
+                            <h2>@Model.HotelRoom?.HotelName</h2>
+                            <p>@Model.HotelRoom?.RoomName</p>
                         </div>
                     </div>
-                    <div class="amenity">
-                        <i class="bi bi-door-open"></i>
-                        <div>
-                            <span class="label">Room Type</span>
-                            <strong>@Model.HotelRoom?.RoomType</strong>
-                        </div>
-                    </div>
-                    <div class="amenity">
-                        <i class="bi bi-geo-alt"></i>
-                        <div>
-                            <span class="label">Location</span>
-                            <strong>@Model.HotelRoom?.Destination</strong>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- ACTIONS -->
-                @if (Model.ReservationStatus == TravelPlanningSystem.Models.HotelReservationStatus.Confirmed ||
-                     Model.ReservationStatus == TravelPlanningSystem.Models.HotelReservationStatus.Pending)
-                {
-                    <div class="ticket-section action-section">
-                        @if (Model.ReservationStatus == TravelPlanningSystem.Models.HotelReservationStatus.Pending)
-                        {
-                            <a asp-action="Payment" asp-route-id="@Model.HotelReservationId" class="btn btn-primary">
-                                <i class="bi bi-credit-card"></i> Pay Now
+                    <div class="ticket-section date-grid">
+                        <div class="date-box">
+                            <div class="date-icon-wrapper check-in">
+                                <i class="bi bi-calendar2-check"></i>
+                            </div>
+                            <div>
+                                <span class="label">Check-in</span>
+                                <strong>@Model.CheckInDate.ToString("dd MMM yyyy")</strong>
+                                <small>@Model.CheckInTime</small>
+                            </div>
+                        </div>
+
+                        <div class="date-divider">
+                            <div class="line"></div>
+                            <div class="duration-pill">
+                                <i class="bi bi-moon-stars"></i>
+                            </div>
+                            <div class="line"></div>
+                        </div>
+
+                        <div class="date-box text-end">
+                            <div>
+                                <span class="label">Check-out</span>
+                                <strong>@Model.CheckOutDate.ToString("dd MMM yyyy")</strong>
+                                <small>@Model.CheckOutTime</small>
+                            </div>
+                            <div class="date-icon-wrapper check-out">
+                                <i class="bi bi-calendar2-x"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ticket-section amenities-grid">
+                        <div class="amenity-box">
+                            <div class="amenity-icon"><i class="bi bi-people"></i></div>
+                            <div class="amenity-info">
+                                <span class="label">Guests</span>
+                                <strong>@Model.GuestCount</strong>
+                            </div>
+                        </div>
+                        <div class="amenity-box">
+                            <div class="amenity-icon"><i class="bi bi-door-open"></i></div>
+                            <div class="amenity-info">
+                                <span class="label">Room Type</span>
+                                <strong>@Model.HotelRoom?.RoomType</strong>
+                            </div>
+                        </div>
+                        <div class="amenity-box">
+                            <div class="amenity-icon"><i class="bi bi-geo-alt"></i></div>
+                            <div class="amenity-info">
+                                <span class="label">Location</span>
+                                <strong>@Model.HotelRoom?.Destination</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ACTIONS -->
+                    @if (Model.ReservationStatus == TravelPlanningSystem.Models.HotelReservationStatus.Confirmed ||
+                         Model.ReservationStatus == TravelPlanningSystem.Models.HotelReservationStatus.Pending)
+                    {
+                        <div class="ticket-section action-section">
+                            @if (Model.ReservationStatus == TravelPlanningSystem.Models.HotelReservationStatus.Pending)
+                            {
+                                <a asp-action="Payment" asp-route-id="@Model.HotelReservationId" class="btn btn-primary">
+                                    <i class="bi bi-credit-card"></i> Pay Now
+                                </a>
+                            }
+                            <a asp-action="Cancel" asp-route-id="@Model.HotelReservationId" class="cancel-action-btn">
+                                <i class="bi bi-calendar-x"></i>
+                                <span>
+                                    <strong>Cancel reservation</strong>
+                                    <small>Release this room booking</small>
+                                </span>
+                                <i class="bi bi-chevron-right cancel-action-arrow"></i>
                             </a>
-                        }
-                        <a asp-action="Cancel" asp-route-id="@Model.HotelReservationId" class="btn btn-outline-danger">
-                            <i class="bi bi-x-lg"></i> Cancel
-                        </a>
-                    </div>
-                }
-                else if (Model.ReservationStatus == TravelPlanningSystem.Models.HotelReservationStatus.Completed)
-                {
-                    <div class="ticket-section action-section">
-                        <a asp-action="Review" asp-route-reservationId="@Model.HotelReservationId" class="btn btn-warning">
-                            <i class="bi bi-star-fill"></i> @(Model.Review is null ? "Write a Review" : "Edit Review")
-                        </a>
-                    </div>
-                }
+                        </div>
+                    }
+                    else if (Model.ReservationStatus == TravelPlanningSystem.Models.HotelReservationStatus.Completed)
+                    {
+                        <div class="ticket-section action-section">
+                            <a asp-action="Review" asp-route-reservationId="@Model.HotelReservationId" class="btn btn-warning">
+                                <i class="bi bi-star-fill"></i> @(Model.Review is null ? "Write a Review" : "Edit Review")
+                            </a>
+                        </div>
+                    }
 
-                <!-- BARCODE (Only if confirmed/completed) -->
-                @if (Model.ReservationStatus == TravelPlanningSystem.Models.HotelReservationStatus.Confirmed ||
-                     Model.ReservationStatus == TravelPlanningSystem.Models.HotelReservationStatus.Completed)
-                {
-                    <div class="ticket-cutout"></div>
-                    <div class="ticket-section barcode-section">
-                        <span class="label">Scan at Front Desk</span>
-                        <svg id="bookingBarcode" role="img" aria-label="Barcode for reservation @Model.ReservationReference"></svg>
-                        <strong class="barcode-text">@Model.ReservationReference</strong>
-                    </div>
+                    <!-- BARCODE -->
+                    @if (Model.ReservationStatus == TravelPlanningSystem.Models.HotelReservationStatus.Confirmed ||
+                         Model.ReservationStatus == TravelPlanningSystem.Models.HotelReservationStatus.Completed)
+                    {
+                        <div class="ticket-cutout"></div>
+                        <div class="ticket-section barcode-section">
+                            <span class="label">Scan at Front Desk</span>
+                            <svg id="bookingBarcode" role="img" aria-label="Barcode for reservation @Model.ReservationReference"></svg>
+                            <strong class="barcode-text">@Model.ReservationReference</strong>
+                        </div>
 
-                    <script>
-                                        (() => {
-                                            const svg = document.getElementById('bookingBarcode');
-                                            if (!svg) return;
-                                            const value = '@Model.ReservationReference';
-                                            const pattern = `101${Array.from(value).flatMap(char =>
-                                                (char.charCodeAt(0) % 2 ? '1101001' : '1011011').split('')).join('')}101`;
-                                            let x = 4;
-                                            for (const bit of pattern) {
-                                                if (bit === '1') {
-                                                    const bar = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-                                                    bar.setAttribute('x', x);
-                                                    bar.setAttribute('y', 4);
-                                                    bar.setAttribute('width', 2);
-                                                    bar.setAttribute('height', 50);
-                                                    bar.setAttribute('fill', '#1a1f36');
-                                                    svg.appendChild(bar);
-                                                }
-                                                x += 2;
-                                            }
-                                            svg.setAttribute('viewBox', `0 0 ${x + 4} 58`);
-                                        })();
-                    </script>
-                }
+                        <script>
+                            (() => {
+                                const svg = document.getElementById('bookingBarcode');
+                                if (!svg) return;
+                                const value = '@Model.ReservationReference';
+                                const pattern = `101${Array.from(value).flatMap(char =>
+                                    (char.charCodeAt(0) % 2 ? '1101001' : '1011011').split('')).join('')}101`;
+                                let x = 4;
+                                for (const bit of pattern) {
+                                    if (bit === '1') {
+                                        const bar = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                                        bar.setAttribute('x', x);
+                                        bar.setAttribute('y', 4);
+                                        bar.setAttribute('width', 2.5);
+                                        bar.setAttribute('height', 56);
+                                        bar.setAttribute('fill', '#0f172a');
+                                        bar.setAttribute('rx', '1');
+                                        svg.appendChild(bar);
+                                    }
+                                    x += 2.5;
+                                }
+                                svg.setAttribute('viewBox', `0 0 ${x + 4} 64`);
+                            })();
+                        </script>
+                    }
+                </div>
             </div>
 
-            <!-- PRICE SUMMARY CARD -->
-            <div class="side-column">
+            <!-- SIDEBAR -->
+            <aside class="side-column">
+                
+                <!-- PRICE SUMMARY CARD -->
                 <div class="card price-card">
                     <div class="price-header">
                         <span class="label">Total Amount</span>
@@ -193,7 +213,35 @@
                         </div>
                     </div>
                 </div>
-            </div>
+
+                <!-- CONTACT CARD -->
+                <div class="card contact-card">
+                    <span class="label">CONTACT DETAILS</span>
+                    <h3>Guest Information</h3>
+                    <div class="contact-row">
+                        <div class="contact-icon"><i class="bi bi-person"></i></div>
+                        <div class="contact-info">
+                            <span class="text-muted small">Primary Guest</span>
+                            <strong>@Model.ContactName</strong>
+                        </div>
+                    </div>
+                    <div class="contact-row">
+                        <div class="contact-icon"><i class="bi bi-envelope"></i></div>
+                        <div class="contact-info">
+                            <span class="text-muted small">Email Address</span>
+                            <strong>@Model.ContactEmail</strong>
+                        </div>
+                    </div>
+                    <div class="contact-row">
+                        <div class="contact-icon"><i class="bi bi-telephone"></i></div>
+                        <div class="contact-info">
+                            <span class="text-muted small">Phone</span>
+                            <strong>@Model.ContactPhone</strong>
+                        </div>
+                    </div>
+                </div>
+
+            </aside>
 
         </div>
     </div>
@@ -204,14 +252,14 @@
     :root {
         --primary: #4f46e5;
         --primary-hover: #4338ca;
-        --bg-color: #f3f4f6;
+        --bg-color: #f8fafc;
         --card-bg: #ffffff;
-        --text-main: #111827;
-        --text-muted: #6b7280;
-        --border-color: #e5e7eb;
+        --text-main: #0f172a;
+        --text-muted: #64748b;
+        --border-color: #e2e8f0;
         --radius: 20px;
         --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+        --shadow-lg: 0 20px 40px -10px rgba(15, 23, 42, 0.08);
     }
 
     .reservation-page-wrapper {
@@ -228,8 +276,8 @@
         top: 0;
         left: 0;
         width: 100%;
-        height: 320px;
-        background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 100%);
+        height: 340px;
+        background: linear-gradient(135deg, #0f172a 0%, #4338ca 100%);
         z-index: 0;
         border-bottom-left-radius: 40px;
         border-bottom-right-radius: 40px;
@@ -243,28 +291,21 @@
         padding: 40px 24px;
     }
 
-    /* Typography & Utilities */
+    /* Typography Utilities */
     .label {
         display: block;
-        font-size: 12px;
+        font-size: 11px;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.1em;
         color: var(--text-muted);
-        font-weight: 600;
+        font-weight: 700;
         margin-bottom: 4px;
     }
 
-    .text-primary {
-        color: var(--primary) !important;
-    }
-
-    .text-danger {
-        color: #ef4444 !important;
-    }
-
-    .text-muted {
-        color: var(--text-muted) !important;
-    }
+    .text-primary { color: var(--primary) !important; }
+    .text-danger { color: #ef4444 !important; }
+    .text-muted { color: var(--text-muted) !important; }
+    .text-end { text-align: right; }
 
     /* Header Section */
     .reservation-back {
@@ -275,12 +316,12 @@
         text-decoration: none;
         font-weight: 500;
         margin-bottom: 30px;
-        transition: color 0.2s;
+        transition: color 0.2s, transform 0.2s;
     }
-
-        .reservation-back:hover {
-            color: #fff;
-        }
+    .reservation-back:hover {
+        color: #fff;
+        transform: translateX(-4px);
+    }
 
     .reservation-header {
         display: flex;
@@ -292,13 +333,13 @@
 
     .reservation-eyebrow {
         color: #a5b4fc;
-        font-size: 13px;
-        font-weight: 700;
+        font-size: 12px;
+        font-weight: 800;
         letter-spacing: 2px;
     }
 
     .reservation-header h1 {
-        font-size: 40px;
+        font-size: 42px;
         font-weight: 800;
         margin: 8px 0;
         letter-spacing: -1px;
@@ -325,33 +366,25 @@
         border: 1px solid rgba(255,255,255,0.2);
     }
 
-    .status-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-    }
-
-    .status-confirmed .status-dot {
-        background: #34d399;
-        box-shadow: 0 0 10px #34d399;
-    }
-
-    .status-completed .status-dot {
-        background: #60a5fa;
-        box-shadow: 0 0 10px #60a5fa;
-    }
-
-    .status-cancelled .status-dot {
-        background: #f87171;
-        box-shadow: 0 0 10px #f87171;
-    }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .status-confirmed .status-dot { background: #34d399; box-shadow: 0 0 10px #34d399; }
+    .status-completed .status-dot { background: #60a5fa; box-shadow: 0 0 10px #60a5fa; }
+    .status-cancelled .status-dot { background: #f87171; box-shadow: 0 0 10px #f87171; }
 
     /* Layout */
     .reservation-grid {
         display: grid;
-        grid-template-columns: 1fr 380px;
+        grid-template-columns: minmax(0, 1fr) 380px;
         gap: 30px;
         align-items: start;
+    }
+
+    .side-column {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        position: sticky;
+        top: 30px;
     }
 
     .card {
@@ -362,19 +395,11 @@
     }
 
     /* Ticket Card Styling */
-    .ticket-card {
-        display: flex;
-        flex-direction: column;
-    }
-
     .ticket-section {
         padding: 32px;
         border-bottom: 1px dashed var(--border-color);
     }
-
-        .ticket-section:last-child {
-            border-bottom: none;
-        }
+    .ticket-section:last-child { border-bottom: none; }
 
     .hotel-info {
         display: flex;
@@ -383,200 +408,184 @@
     }
 
     .hotel-icon {
-        width: 64px;
-        height: 64px;
-        border-radius: 16px;
+        width: 68px;
+        height: 68px;
+        border-radius: 18px;
         background: #eef2ff;
         color: var(--primary);
-        font-size: 28px;
+        font-size: 30px;
         display: grid;
         place-items: center;
     }
 
-    .hotel-details h2 {
-        margin: 0 0 4px;
-        font-size: 24px;
-        color: var(--text-main);
-        font-weight: 700;
-    }
+    .hotel-details h2 { margin: 0 0 4px; font-size: 24px; color: var(--text-main); font-weight: 800; }
+    .hotel-details p { margin: 0; color: var(--text-muted); font-size: 15px; }
 
-    .hotel-details p {
-        margin: 0;
-        color: var(--text-muted);
-        font-size: 15px;
-    }
-
+    /* Redesigned Date Grid */
     .date-grid {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background: #f9fafb;
+        background: #f8fafc;
+        padding: 24px 32px;
     }
 
     .date-box {
+        display: flex;
+        align-items: center;
+        gap: 16px;
         flex: 1;
     }
 
-        .date-box i {
-            font-size: 24px;
-            margin-bottom: 12px;
-            display: block;
-        }
+    .date-icon-wrapper {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        font-size: 20px;
+    }
+    .check-in { background: #e0e7ff; color: var(--primary); }
+    .check-out { background: #fee2e2; color: #ef4444; }
 
-        .date-box strong {
-            display: block;
-            font-size: 18px;
-            color: var(--text-main);
-            margin-bottom: 4px;
-        }
-
-        .date-box small {
-            color: var(--text-muted);
-            font-size: 14px;
-        }
+    .date-box strong { display: block; font-size: 18px; color: var(--text-main); margin-bottom: 2px; }
+    .date-box small { color: var(--text-muted); font-size: 13px; font-weight: 500; }
 
     .date-divider {
         display: flex;
         align-items: center;
-        gap: 15px;
-        flex: 1;
-        justify-content: center;
+        flex: 0.5;
+        padding: 0 15px;
+    }
+    .date-divider .line { height: 2px; flex: 1; background: var(--border-color); }
+    .duration-pill {
+        padding: 6px 12px;
+        border-radius: 20px;
+        border: 1px solid var(--border-color);
+        color: var(--text-muted);
+        font-size: 12px;
+        background: white;
     }
 
-        .date-divider .line {
-            height: 2px;
-            width: 40px;
-            background: var(--border-color);
-        }
-
+    /* Amenities */
     .amenities-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 20px;
     }
-
-    .amenity {
+    .amenity-box {
         display: flex;
         align-items: flex-start;
         gap: 12px;
+        padding: 16px;
+        border-radius: 14px;
+        background: #f8fafc;
+        transition: transform 0.2s;
     }
-
-        .amenity i {
-            font-size: 20px;
-            color: #9ca3af;
-        }
-
-        .amenity strong {
-            display: block;
-            color: var(--text-main);
-            font-size: 15px;
-            margin-top: 2px;
-        }
+    .amenity-box:hover { transform: translateY(-2px); }
+    .amenity-icon { font-size: 20px; color: #94a3b8; margin-top: 2px; }
+    .amenity-info strong { display: block; color: var(--text-main); font-size: 15px; margin-top: 4px; }
 
     /* Action Buttons */
     .action-section {
         display: flex;
-        gap: 15px;
-        background: #f9fafb;
+        gap: 16px;
     }
-
     .btn {
         flex: 1;
         display: inline-flex;
         justify-content: center;
         align-items: center;
         gap: 8px;
-        padding: 14px 24px;
-        border-radius: 12px;
-        font-weight: 600;
+        padding: 16px 24px;
+        border-radius: 14px;
+        font-weight: 700;
         font-size: 15px;
         text-decoration: none;
-        transition: all 0.2s ease;
-        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         border: none;
+        cursor: pointer;
+    }
+    .btn-primary { background: var(--primary); color: white; box-shadow: 0 8px 16px rgba(79, 70, 229, 0.2); }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-3px); box-shadow: 0 12px 20px rgba(79, 70, 229, 0.3); }
+    .btn-outline-danger { background: white; border: 2px solid #fecaca; color: #ef4444; }
+    .btn-outline-danger:hover { background: #fef2f2; border-color: #f87171; transform: translateY(-3px); }
+
+    .cancel-action-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+        border: 1px solid #fecdd3;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #fff7f7, #fff1f2);
+        color: #be123c;
+        text-decoration: none;
+        transition: .2s ease;
     }
 
-    .btn-primary {
-        background: var(--primary);
-        color: white;
-        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    .cancel-action-btn > i:first-child {
+        font-size: 1.25rem;
     }
 
-        .btn-primary:hover {
-            background: var(--primary-hover);
-            transform: translateY(-2px);
-        }
-
-    .btn-outline-danger {
-        background: transparent;
-        border: 2px solid #fee2e2;
-        color: #ef4444;
+    .cancel-action-btn span {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
     }
 
-        .btn-outline-danger:hover {
-            background: #fef2f2;
-            border-color: #f87171;
-        }
-
-    .btn-warning {
-        background: #f59e0b;
-        color: white;
-        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    .cancel-action-btn small {
+        color: #9f1239;
+        font-size: .75rem;
     }
 
-        .btn-warning:hover {
-            background: #d97706;
-            transform: translateY(-2px);
-        }
+    .cancel-action-btn:hover {
+        border-color: #fb7185;
+        background: #ffe4e6;
+        color: #9f1239;
+        transform: translateY(-2px);
+    }
 
-    /* Barcode Section with Cutout Effect */
+    .cancel-action-arrow {
+        color: #fb7185;
+    }
+    .btn-warning { background: #f59e0b; color: white; box-shadow: 0 8px 16px rgba(245, 158, 11, 0.2); }
+    .btn-warning:hover { background: #d97706; transform: translateY(-3px); }
+
+    /* Enhanced Ticket Cutout */
     .ticket-cutout {
-        height: 30px;
-        background: radial-gradient(circle at 0 15px, transparent 15px, var(--card-bg) 16px) left, radial-gradient(circle at 100% 15px, transparent 15px, var(--card-bg) 16px) right;
+        height: 32px;
+        background: 
+            radial-gradient(circle at 0 16px, transparent 16px, var(--card-bg) 17px) left,
+            radial-gradient(circle at 100% 16px, transparent 16px, var(--card-bg) 17px) right;
         background-size: 51% 100%;
         background-repeat: no-repeat;
-        border-top: 1px dashed var(--border-color);
-        margin-top: -1px;
+        position: relative;
     }
-
+    .ticket-cutout::after {
+        content: '';
+        position: absolute;
+        top: 15px;
+        left: 24px;
+        right: 24px;
+        border-top: 2px dashed var(--border-color);
+    }
     .barcode-section {
         text-align: center;
-        padding-top: 10px;
+        padding-top: 8px;
         padding-bottom: 40px;
     }
+    #bookingBarcode { width: 100%; max-width: 320px; height: auto; margin: 16px auto; display: block; }
+    .barcode-text { font-family: 'Courier New', monospace; font-size: 18px; letter-spacing: 5px; color: var(--text-main); font-weight: 700; }
 
-    #bookingBarcode {
-        width: 100%;
-        max-width: 300px;
-        height: auto;
-        margin: 15px auto;
-        display: block;
-    }
-
-    .barcode-text {
-        font-family: monospace;
-        font-size: 18px;
-        letter-spacing: 4px;
-        color: var(--text-main);
-    }
-
-    /* Price Card Sidebar */
-    .price-card {
-        padding: 32px;
-        position: sticky;
-        top: 30px;
-    }
-
-    .price-header {
-        margin-bottom: 30px;
-    }
-
-    .total-price {
-        font-size: 36px;
-        font-weight: 800;
-        color: var(--primary);
-        margin: 5px 0 0;
-    }
+    /* Sidebar Cards */
+    .price-card, .contact-card { padding: 32px; }
+    
+    .price-header { margin-bottom: 30px; }
+    .total-price { font-size: 38px; font-weight: 800; color: var(--primary); margin: 4px 0 0; letter-spacing: -1px; }
 
     .receipt-lines {
         display: flex;
@@ -585,86 +594,58 @@
         padding-bottom: 24px;
         border-bottom: 1px solid var(--border-color);
     }
-
-    .receipt-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 15px;
-    }
-
-    .badge {
-        padding: 6px 12px;
-        border-radius: 8px;
-        font-size: 12px;
-        font-weight: 700;
-        text-transform: uppercase;
-    }
-
-    .badge-success {
-        background: #d1fae5;
-        color: #059669;
-    }
-
-    .badge-warning {
-        background: #fef3c7;
-        color: #d97706;
-    }
+    .receipt-row { display: flex; justify-content: space-between; align-items: center; font-size: 15px; }
+    
+    .badge { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+    .badge-success { background: #dcfce7; color: #166534; }
+    .badge-warning { background: #fef3c7; color: #b45309; }
 
     .reference-box {
         background: #f8fafc;
         border: 1px solid #e2e8f0;
-        border-radius: 12px;
+        border-radius: 14px;
         padding: 16px;
         display: flex;
         align-items: center;
         gap: 16px;
     }
+    .reference-box i { font-size: 24px; color: #64748b; }
+    .reference-box strong { font-family: monospace; font-size: 16px; color: var(--text-main); }
 
-        .reference-box i {
-            font-size: 24px;
-            color: #64748b;
-        }
-
-        .reference-box strong {
-            font-family: monospace;
-            font-size: 16px;
-            color: var(--text-main);
-        }
+    /* Polished Contact Card */
+    .contact-card h3 { margin: 8px 0 24px; color: var(--text-main); font-size: 20px; font-weight: 800; }
+    .contact-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 0;
+        border-top: 1px solid var(--border-color);
+    }
+    .contact-row:last-child { padding-bottom: 0; }
+    .contact-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #f1f5f9;
+        display: grid;
+        place-items: center;
+        color: var(--primary);
+        font-size: 18px;
+    }
+    .contact-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .contact-info strong { overflow-wrap: anywhere; color: var(--text-main); font-size: 15px; }
 
     /* Responsive */
     @@media (max-width: 900px) {
-        .reservation-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .page-header-bg {
-            height: 280px;
-        }
-
-        .reservation-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 20px;
-        }
-
-        .amenities-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .date-grid {
-            flex-direction: column;
-            text-align: center;
-            gap: 20px;
-        }
-
-        .date-divider {
-            transform: rotate(90deg);
-            margin: 20px 0;
-        }
-
-        .action-section {
-            flex-direction: column;
-        }
+        .reservation-grid { grid-template-columns: 1fr; }
+        .page-header-bg { height: 280px; }
+        .reservation-header { flex-direction: column; align-items: flex-start; gap: 20px; }
+        .amenities-grid { grid-template-columns: 1fr; }
+        .date-grid { flex-direction: column; gap: 24px; padding: 24px; }
+        .date-box { width: 100%; }
+        .date-box.text-end { flex-direction: row-reverse; }
+        .date-divider { transform: rotate(90deg); margin: 10px 0; }
+        .action-section { flex-direction: column; }
+        .side-column { position: static; }
     }
 </style>

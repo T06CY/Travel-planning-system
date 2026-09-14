@@ -8,6 +8,8 @@ using TravelPlanningSystem.Data;
 using TravelPlanningSystem.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using TravelPlanningSystem.Services;
+using TravelPlanningSystem.ViewModels;
 
 namespace TravelPlanningSystem.Controllers
 {
@@ -15,11 +17,15 @@ namespace TravelPlanningSystem.Controllers
     {
     private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _environment;
+        private readonly OtpService _otpService;
+        private readonly IEmailSender _emailSender;
 
-        public AccountController(AppDbContext context, IWebHostEnvironment environment)
+        public AccountController(AppDbContext context, IWebHostEnvironment environment, OtpService otpService, IEmailSender emailSender)
         {
             _context = context;
             _environment = environment;
+            _otpService = otpService;
+            _emailSender = emailSender;
         }
 
         [HttpGet]
@@ -82,24 +88,11 @@ namespace TravelPlanningSystem.Controllers
                 ResetLoginFailures(fullUser);
                 await _context.SaveChangesAsync();
 
-                var claims = new List<Claim>
+                return await BeginOtpAsync(fullUser.Email, "login", new PendingLogin
                 {
-                    new Claim(ClaimTypes.NameIdentifier, fullUser.UserId.ToString()),
-                    new Claim(ClaimTypes.Name, $"{fullUser.FirstName} {fullUser.LastName}"),
-                    new Claim(ClaimTypes.Email, fullUser.Email),
-                    new Claim(ClaimTypes.Role, "User"),
-                    new Claim("ProfilePictureUrl", fullUser.ProfilePictureUrl ?? string.Empty),
-                    new Claim("ProfilePic", fullUser.ProfilePic ?? string.Empty)
-                };
-
-                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                var principal = new ClaimsPrincipal(identity);
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
-
-                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-                    return Redirect(returnUrl);
-
-                return RedirectToAction("Index", "Home");
+                    UserId = fullUser.UserId,
+                    ReturnUrl = returnUrl
+                }, model);
             }
 
             if (user != null)
@@ -160,7 +153,13 @@ namespace TravelPlanningSystem.Controllers
 
                     var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                     var principal = new ClaimsPrincipal(identity);
-                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+                    await HttpContext.SignInAsync(
+                        CookieAuthenticationDefaults.AuthenticationScheme,
+                        principal,
+                        new AuthenticationProperties
+                        {
+                            IsPersistent = model.RememberMe
+                        });
 
                     if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                         return Redirect(returnUrl);
@@ -246,25 +245,12 @@ namespace TravelPlanningSystem.Controllers
                 ResetLoginFailures(fullUser);
                 await _context.SaveChangesAsync();
 
-                var claims = new List<Claim>
+                return await BeginOtpAsync(fullUser.Email, "login", new PendingLogin
                 {
-                        new Claim(ClaimTypes.NameIdentifier, fullUser.UserId.ToString()),
-                    new Claim("AccountType", "Customer"),
-                    new Claim(ClaimTypes.Name, $"{fullUser.FirstName} {fullUser.LastName}"),
-                    new Claim(ClaimTypes.Email, fullUser.Email),
-                    new Claim(ClaimTypes.Role, "User"),
-                    new Claim("ProfilePictureUrl", fullUser.ProfilePictureUrl ?? string.Empty),
-                    new Claim("ProfilePic", fullUser.ProfilePic ?? string.Empty)
-                };
-
-                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                var principal = new ClaimsPrincipal(identity);
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
-
-                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-                    return Redirect(returnUrl);
-
-                return RedirectToAction("Index", "Home");
+                    UserId = fullUser.UserId,
+                    ReturnUrl = returnUrl,
+                    RememberMe = model.RememberMe
+                }, model);
             }
 
             if (user != null)
@@ -299,6 +285,86 @@ namespace TravelPlanningSystem.Controllers
         public IActionResult Register()
         {
             return View(new RegisterViewModel());
+        }
+
+        [HttpGet]
+        public IActionResult VerifyOtp()
+        {
+            var challengeId = TempData.Peek("OtpChallengeId") as string;
+            var email = TempData.Peek("OtpEmail") as string;
+            if (string.IsNullOrWhiteSpace(challengeId) || string.IsNullOrWhiteSpace(email))
+                return RedirectToAction("Login");
+
+            ViewData["OtpEmail"] = email;
+            return View(new VerifyOtpViewModel
+            {
+                Purpose = TempData.Peek("OtpPurpose") as string ?? string.Empty
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> VerifyOtp(VerifyOtpViewModel model)
+        {
+            var challengeId = TempData.Peek("OtpChallengeId") as string;
+            var purpose = TempData.Peek("OtpPurpose") as string;
+            var email = TempData.Peek("OtpEmail") as string;
+
+            if (string.IsNullOrWhiteSpace(challengeId) || string.IsNullOrWhiteSpace(purpose) || string.IsNullOrWhiteSpace(email))
+                return RedirectToAction("Login");
+
+            if (!ModelState.IsValid || !_otpService.Verify(challengeId, model.Code))
+            {
+                ModelState.AddModelError(nameof(model.Code), "The verification code is invalid or has expired.");
+                ViewData["OtpEmail"] = email;
+                model.Purpose = purpose;
+                return View(model);
+            }
+
+            if (string.Equals(purpose, "register", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!_otpService.TryGetPending<PendingRegistration>(challengeId, out var pending) || pending is null)
+                    return RedirectToAction("Register");
+
+                if (await _context.Users.AnyAsync(u => u.Email == pending.Email))
+                    return RedirectToAction("Login");
+
+                var user = new ApplicationUser
+                {
+                    Email = pending.Email,
+                    PasswordHash = pending.PasswordHash,
+                    FirstName = pending.FirstName,
+                    LastName = pending.LastName,
+                    PhoneNumber = pending.PhoneNumber,
+                    DateOfBirth = pending.DateOfBirth,
+                    PreferredCurrency = pending.PreferredCurrency,
+                    PreferredLanguage = pending.PreferredLanguage,
+                    ProfilePictureUrl = "/images/profiles/pfpicon.png",
+                    ProfilePic = "/images/profiles/pfpicon.png",
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+                _otpService.RemovePending(challengeId);
+                await SignInCustomerAsync(user, rememberMe: false);
+                return RedirectToAction("Index", "Home");
+            }
+
+            if (!_otpService.TryGetPending<PendingLogin>(challengeId, out var login) || login is null)
+                return RedirectToAction("Login");
+
+            var userToSignIn = await _context.Users.FirstOrDefaultAsync(u => u.UserId == login.UserId);
+            if (userToSignIn is null)
+                return RedirectToAction("Login");
+
+            _otpService.RemovePending(challengeId);
+            await SignInCustomerAsync(userToSignIn, login.RememberMe);
+
+            if (!string.IsNullOrEmpty(login.ReturnUrl) && Url.IsLocalUrl(login.ReturnUrl))
+                return Redirect(login.ReturnUrl);
+
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpGet]
@@ -487,7 +553,7 @@ namespace TravelPlanningSystem.Controllers
                 return View(model);
             }
 
-            var user = new ApplicationUser
+            var pending = new PendingRegistration
             {
                 Email = model.Email,
                 PasswordHash = PasswordHashing.Hash(model.Password),
@@ -497,28 +563,76 @@ namespace TravelPlanningSystem.Controllers
                 DateOfBirth = model.DateOfBirth,
                 PreferredCurrency = model.PreferredCurrency ?? "USD",
                 PreferredLanguage = model.PreferredLanguage ?? "en-US",
-                ProfilePictureUrl = "/images/profiles/pfpicon.png",
-                ProfilePic = "/images/profiles/pfpicon.png",
-                CreatedAt = DateTime.UtcNow
             };
 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            return await BeginOtpAsync(model.Email, "register", pending, model);
+        }
 
-            // Auto-sign in after register
+        private async Task<IActionResult> BeginOtpAsync<T>(string email, string purpose, T pending, object errorModel)
+        {
+            var challenge = _otpService.CreateChallenge(email, purpose);
+            _otpService.StorePending(challenge.ChallengeId, pending);
+            TempData["OtpChallengeId"] = challenge.ChallengeId;
+            TempData["OtpPurpose"] = purpose;
+            TempData["OtpEmail"] = email;
+
+            try
+            {
+                await _emailSender.SendOtpAsync(email, challenge.Code!, purpose);
+            }
+            catch (Exception)
+            {
+                _otpService.RemovePending(challenge.ChallengeId);
+                TempData.Remove("OtpChallengeId");
+                TempData.Remove("OtpPurpose");
+                TempData.Remove("OtpEmail");
+                ModelState.AddModelError(string.Empty, "The verification email could not be sent. Check the email configuration and try again.");
+                return purpose == "register" ? View("Register", errorModel) : View("Login", errorModel);
+            }
+
+            return RedirectToAction("VerifyOtp");
+        }
+
+        private async Task SignInCustomerAsync(ApplicationUser user, bool rememberMe)
+        {
             var claims = new List<Claim>
             {
+                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                new Claim("AccountType", "Customer"),
                 new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
                 new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, "User"),
                 new Claim("ProfilePictureUrl", user.ProfilePictureUrl ?? string.Empty),
                 new Claim("ProfilePic", user.ProfilePic ?? string.Empty)
             };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var principal = new ClaimsPrincipal(identity);
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(identity),
+                new AuthenticationProperties
+                {
+                    IsPersistent = rememberMe
+                });
+        }
 
-            return RedirectToAction("Index", "Home");
+        private sealed class PendingLogin
+        {
+            public Guid UserId { get; set; }
+            public string? ReturnUrl { get; set; }
+            public bool RememberMe { get; set; }
+        }
+
+        private sealed class PendingRegistration
+        {
+            public string Email { get; set; } = string.Empty;
+            public string PasswordHash { get; set; } = string.Empty;
+            public string FirstName { get; set; } = string.Empty;
+            public string LastName { get; set; } = string.Empty;
+            public string? PhoneNumber { get; set; }
+            public DateTime? DateOfBirth { get; set; }
+            public string PreferredCurrency { get; set; } = "USD";
+            public string PreferredLanguage { get; set; } = "en-US";
         }
 
         private static string NormalizePhone(string? p)

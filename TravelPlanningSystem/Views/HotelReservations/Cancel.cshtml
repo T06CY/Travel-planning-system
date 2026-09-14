@@ -1,2 +1,151 @@
 @model TravelPlanningSystem.Models.HotelReservation
-<div class="container py-5"><h1>Cancel reservation</h1><p>Cancel @Model.HotelRoom?.HotelName — @Model.HotelRoom?.RoomName?</p><form asp-action="Cancel" method="post"><div class="mb-3"><label for="cancellationReason" class="form-label">Reason</label><textarea id="cancellationReason" name="cancellationReason" class="form-control" required maxlength="400"></textarea><span class="text-danger" asp-validation-for="CancellationReason"></span></div><button class="btn btn-danger">Confirm cancellation</button> <a asp-action="Details" asp-route-id="@Model.HotelReservationId" class="btn btn-outline-secondary">Keep reservation</a></form></div>
+
+<div class="cancel-page">
+    <div class="cancel-card">
+        <div class="cancel-icon"><i class="bi bi-exclamation-triangle"></i></div>
+        <span class="cancel-eyebrow">CANCEL RESERVATION</span>
+        <h1>Are you sure?</h1>
+        <p class="cancel-description">
+            You are cancelling your reservation at <strong>@Model.HotelRoom?.HotelName</strong>
+            for <strong>@Model.HotelRoom?.RoomName</strong>.
+        </p>
+        <div class="no-refund-warning">
+            <i class="bi bi-exclamation-circle-fill"></i>
+            <span><strong>Important:</strong> After cancellation, there is no refund.</span>
+        </div>
+
+        <form asp-action="Cancel" asp-route-id="@Model.HotelReservationId" method="post">
+            @Html.AntiForgeryToken()
+            <div class="mb-4 text-start">
+                <label for="cancellationReason" class="form-label">Why are you cancelling?</label>
+                <textarea id="cancellationReason" name="cancellationReason" class="form-control" required maxlength="400" rows="4" placeholder="Enter a cancellation reason"></textarea>
+                <span class="text-danger" asp-validation-for="CancellationReason"></span>
+            </div>
+
+            <div class="cancel-actions">
+                <a asp-action="Details" asp-route-id="@Model.HotelReservationId" class="keep-reservation-btn">
+                    Keep reservation
+                </a>
+                <button type="submit" class="confirm-cancel-btn">
+                    <i class="bi bi-x-circle"></i> Cancel reservation
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .cancel-page {
+        min-height: calc(100vh - 120px);
+        display: grid;
+        place-items: center;
+        padding: 48px 20px;
+        background: #f6f7fb;
+    }
+
+    .cancel-card {
+        width: min(100%, 560px);
+        padding: 38px;
+        border: 1px solid #fee2e2;
+        border-radius: 20px;
+        background: #fff;
+        box-shadow: 0 18px 45px rgba(31, 41, 55, .1);
+        text-align: center;
+    }
+
+    .cancel-icon {
+        width: 58px;
+        height: 58px;
+        display: grid;
+        place-items: center;
+        margin: 0 auto 18px;
+        border-radius: 16px;
+        background: #fff1f2;
+        color: #e11d48;
+        font-size: 1.5rem;
+    }
+
+    .cancel-eyebrow {
+        color: #e11d48;
+        font-size: .72rem;
+        font-weight: 800;
+        letter-spacing: .12em;
+    }
+
+    .cancel-card h1 {
+        margin: 8px 0;
+        color: #1f2937;
+    }
+
+    .cancel-description {
+        margin-bottom: 28px;
+        color: #6b7280;
+        line-height: 1.6;
+    }
+
+    .no-refund-warning {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin: -10px 0 24px;
+        padding: 13px 15px;
+        border: 1px solid #fbbf24;
+        border-radius: 10px;
+        background: #fffbeb;
+        color: #92400e;
+        font-size: .9rem;
+        line-height: 1.45;
+        text-align: left;
+    }
+
+    .no-refund-warning i {
+        margin-top: 2px;
+        color: #d97706;
+    }
+
+    .cancel-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+    }
+
+    .keep-reservation-btn,
+    .confirm-cancel-btn {
+        flex: 1;
+        min-height: 46px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border-radius: 10px;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .keep-reservation-btn {
+        border: 1px solid #dbe1ea;
+        color: #374151;
+        background: #fff;
+    }
+
+    .confirm-cancel-btn {
+        border: 0;
+        color: #fff;
+        background: #e11d48;
+        box-shadow: 0 8px 18px rgba(225, 29, 72, .2);
+    }
+
+    .confirm-cancel-btn:hover {
+        background: #be123c;
+    }
+
+    @@media (max-width: 520px) {
+        .cancel-card { padding: 28px 20px; }
+        .cancel-actions { flex-direction: column-reverse; }
+    }
+</style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -12,6 +12,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddMemoryCache();
+builder.Services.Configure<EmailOptions>(
+    builder.Configuration.GetSection(EmailOptions.SectionName));
+builder.Services.AddSingleton<IEmailSender, GmailEmailSender>();
+builder.Services.AddSingleton<OtpService>();
 builder.Services.Configure<RealTimeFlightOptions>(
     builder.Configuration.GetSection(RealTimeFlightOptions.SectionName));
 builder.Services.AddHttpClient<IRealTimeFlightService, AeroDataBoxFlightService>(client =>
@@ -29,6 +33,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     {
         options.LoginPath = "/Account/Login";
         options.AccessDeniedPath = "/Account/Login";
+         options.ExpireTimeSpan = TimeSpan.FromDays(30);
+         options.SlidingExpiration = true;
     });
 
 builder.Services.AddAuthorization();

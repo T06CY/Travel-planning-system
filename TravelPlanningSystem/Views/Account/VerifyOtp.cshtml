@@ -1,0 +1,31 @@
+@model TravelPlanningSystem.ViewModels.VerifyOtpViewModel
+
+@{
+    ViewData["Title"] = "Verify email";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h2>Verify your email</h2>
+            <p>Enter the six-digit code sent to <strong>@ViewData["OtpEmail"]</strong>.</p>
+            <p class="text-muted">The code expires in five minutes.</p>
+
+            <form asp-action="VerifyOtp" method="post">
+                <input type="hidden" asp-for="Purpose" />
+                <div asp-validation-summary="All" class="text-danger"></div>
+                <div class="mb-3">
+                    <label asp-for="Code" class="form-label"></label>
+                    <input asp-for="Code" class="form-control" inputmode="numeric" autocomplete="one-time-code" maxlength="6" autofocus />
+                    <span asp-validation-for="Code" class="text-danger"></span>
+                </div>
+                <button type="submit" class="btn btn-primary">Verify</button>
+                <a class="btn btn-outline-secondary" asp-action="Login">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
