@@ -1,28 +1,29 @@
 ﻿using TravelPlanningSystem.Models.Transportation;
-
-// ⭐ 消除歧义：使用别名指定交通路线模型
 using TransportRoute = TravelPlanningSystem.Models.Transportation.Route;
 
 namespace TravelPlanningSystem.ViewModels;
 
 public class AdminTransportationViewModel
 {
-    // 1. 运营核心指标 (KPI Stats)
+    // 1. KPI & Operational Metrics
     public int TotalVehicles { get; set; }
     public int TotalRoutes { get; set; }
     public int ActiveTripsCount { get; set; }
     public int TotalTicketsSold { get; set; }
     public decimal TotalRevenue { get; set; }
 
-    // 2. 列表数据
+    // 2. Operations & Inventory Collections
     public List<Vehicle> Vehicles { get; set; } = new();
 
-    // ⭐ 使用别名 TransportRoute
+    // Using TransportRoute alias to avoid conflict with ASP.NET Core Routing.Route
     public List<TransportRoute> Routes { get; set; } = new();
     public List<Trip> Trips { get; set; } = new();
     public List<TransportationBooking> RecentBookings { get; set; } = new();
 
-    // 3. 表单绑定模型 (用于后台快速添加)
+    // Passenger reviews collection for administrative moderation stream
+    public List<TransportationReview> Reviews { get; set; } = new();
+
+    // 3. Modal Form Binding Models (For quick creation in admin hub)
     public VehicleFormModel NewVehicle { get; set; } = new();
     public RouteFormModel NewRoute { get; set; } = new();
     public TripFormModel NewTrip { get; set; } = new();

@@ -42,6 +42,13 @@ public class AdminTransportationController(AppDbContext context, IMemoryCache ca
                 .Include(b => b.Passengers)
                 .OrderByDescending(b => b.BookingDate)
                 .Take(10)
+                .ToListAsync(),
+
+            // Retrieve all passenger reviews for moderation stream
+            Reviews = await context.TransportationReviews
+                .Include(r => r.Trip).ThenInclude(t => t!.Route)
+                .Include(r => r.User)
+                .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync()
         };
 
@@ -49,8 +56,27 @@ public class AdminTransportationController(AppDbContext context, IMemoryCache ca
     }
 
     // =========================================================================
+    // Core Module 3: Review Moderation - Toggle Review Visibility (POST)
+    // =========================================================================
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ToggleReviewVisibility(int reviewId)
+    {
+        var review = await context.TransportationReviews.FindAsync(reviewId);
+        if (review == null)
+            return NotFound("Review not found.");
+
+        // Invert visibility flag (Hide / Show)
+        review.IsVisible = !review.IsVisible;
+        review.UpdatedAt = DateTime.UtcNow;
+        await context.SaveChangesAsync();
+
+        TempData["SuccessMessage"] = $"Review #{review.ReviewId} visibility set to {(review.IsVisible ? "Visible" : "Hidden (Moderated)")}!";
+        return RedirectToAction(nameof(Index), new { tab = "reviews" });
+    }
+
+    // =========================================================================
     // Core Module 3: Fleet Management - Register New Vehicle (POST)
-    // Includes Cache Invalidation to refresh public dropdowns instantly
     // =========================================================================
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -73,7 +99,7 @@ public class AdminTransportationController(AppDbContext context, IMemoryCache ca
             context.Vehicles.Add(vehicle);
             await context.SaveChangesAsync();
 
-            // Cache Invalidation: Evict cached vehicle types to ensure fresh data
+            // Evict cached vehicle types to ensure fresh data
             cache.Remove(CacheKeyVehicleTypes);
 
             TempData["SuccessMessage"] = $"Vehicle '{vehicle.LicensePlate} - {vehicle.VehicleModel}' added to fleet successfully!";
@@ -84,7 +110,6 @@ public class AdminTransportationController(AppDbContext context, IMemoryCache ca
 
     // =========================================================================
     // Core Module 3: Route Network - Establish New Route (POST)
-    // Includes Cache Invalidation to refresh public dropdowns instantly
     // =========================================================================
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -106,7 +131,7 @@ public class AdminTransportationController(AppDbContext context, IMemoryCache ca
             context.Routes.Add(route);
             await context.SaveChangesAsync();
 
-            // Cache Invalidation: Evict cached routes to ensure fresh data
+            // Evict cached routes to ensure fresh data
             cache.Remove(CacheKeyRoutes);
 
             TempData["SuccessMessage"] = $"New Route '{route.Origin} → {route.Destination}' established!";

@@ -3,7 +3,7 @@
 @{
     ViewData["Title"] = "Transportation Operations - Admin Hub";
     
-    // ⭐ 读取 URL 传递过来的选项卡参数 (纯原生，无 JS 闪烁)
+    // Read URL tab query parameter for automatic active tab selection
     var activeTab = Context.Request.Query["tab"].ToString().ToLower();
     if (string.IsNullOrEmpty(activeTab)) activeTab = "schedules";
 }
@@ -27,7 +27,7 @@
     .table th { background: #f8fafc; font-size: 0.85rem; color: #6d7895; text-transform: uppercase; }
     .table td { vertical-align: middle; }
 
-    /* 原生柱状图 */
+    /* Native Bar Chart */
     .native-bar-chart { display: flex; justify-content: space-around; align-items: flex-end; height: 180px; padding-top: 25px; border-bottom: 2px solid #e2e8f0; position: relative; }
     .bar-group { display: flex; flex-direction: column; align-items: center; width: 65px; height: 100%; justify-content: flex-end; }
     .bar-pillar { width: 34px; background: linear-gradient(180deg, #4158ff, #2746d8); border-radius: 8px 8px 0 0; transition: all 0.3s ease; position: relative; }
@@ -35,7 +35,7 @@
     .bar-val { font-size: 0.75rem; font-weight: 700; color: #4158ff; margin-bottom: 5px; }
     .bar-name { font-size: 0.78rem; font-weight: 600; color: #6d7895; margin-top: 10px; text-align: center; }
 
-    /* 原生 SVG 环形图 */
+    /* Native SVG Donut Chart */
     .donut-wrapper { display: flex; align-items: center; justify-content: space-around; gap: 20px; height: 180px; }
     .donut-svg { width: 130px; height: 130px; transform: rotate(-90deg); border-radius: 50%; }
     .donut-circle-bg { fill: none; stroke: #f1f5f9; stroke-width: 3.8; }
@@ -48,12 +48,12 @@
 <div class="admin-wrapper">
     <div class="container-fluid px-5">
 
-        <!-- 顶部标题与操作栏 -->
+        <!-- Top Header and Operations Actions -->
         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
             <div>
                 <span class="badge bg-primary px-3 py-2 rounded-pill mb-2">Operations Portal</span>
                 <h2 class="fw-bold" style="color: #06143b;">Transportation Operations</h2>
-                <p class="text-muted mb-0">Manage vehicle fleet, orchestrate schedules, view visual analytics and export manifests.</p>
+                <p class="text-muted mb-0">Manage vehicle fleet, orchestrate schedules, moderate reviews and export manifests.</p>
             </div>
             <div class="d-flex gap-2">
                 <a asp-action="ExportRevenueReport" class="btn btn-outline-success fw-bold">
@@ -73,13 +73,21 @@
 
         @if (TempData["SuccessMessage"] != null)
         {
-            <div class="alert alert-success alert-dismissible fade show">
-                <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
+            <div class="alert alert-success alert-dismissible fade show shadow-sm">
+                <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         }
 
-        <!-- 1. KPI 运营指标卡片 -->
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <!-- 1. Operations KPI Cards -->
         <div class="row g-4 mb-4">
             <div class="col-md-3">
                 <div class="kpi-card">
@@ -119,9 +127,9 @@
             </div>
         </div>
 
-        <!-- 2. 原生现代化矢量数据可视化图表 -->
+        <!-- 2. Visual Analytics Charts -->
         <div class="row g-4 mb-4">
-            <!-- 柱状图 -->
+            <!-- Top Routes Revenue Bar Chart -->
             <div class="col-lg-8">
                 <div class="admin-card mb-0 h-100">
                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -161,7 +169,7 @@
                 </div>
             </div>
 
-            <!-- 环形图 -->
+            <!-- Fleet Distribution Donut Chart -->
             <div class="col-lg-4">
                 <div class="admin-card mb-0 h-100">
                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -209,12 +217,12 @@
             </div>
         </div>
 
-        <!-- 3. 选项卡管理面板 (⭐ 动态接收 activeTab 激活) -->
+        <!-- 3. Operations Management Tabs -->
         <div class="admin-card">
             <ul class="nav nav-pills mb-4" id="adminTabs" role="tablist">
                 <li class="nav-item">
                     <button class="nav-link @(activeTab == "schedules" ? "active" : "")" id="schedules-tab" data-bs-toggle="pill" data-bs-target="#schedulesTab">
-                        <i class="bi bi-calendar-week"></i> Trip Schedules & Manifest (@Model.Trips.Count)
+                        <i class="bi bi-calendar-week"></i> Trip Schedules &amp; Manifest (@Model.Trips.Count)
                     </button>
                 </li>
                 <li class="nav-item">
@@ -227,11 +235,17 @@
                         <i class="bi bi-signpost-split"></i> Routes Network (@Model.Routes.Count)
                     </button>
                 </li>
+                <!-- ⭐ Tab 4: Passenger Reviews Moderation Stream -->
+                <li class="nav-item">
+                    <button class="nav-link @(activeTab == "reviews" ? "active" : "")" id="reviews-tab" data-bs-toggle="pill" data-bs-target="#reviewsTab">
+                        <i class="bi bi-star-fill text-warning me-1"></i> Reviews Moderation (@Model.Reviews.Count)
+                    </button>
+                </li>
             </ul>
 
             <div class="tab-content" id="adminTabsContent">
                 
-                <!-- Tab 1: 排班与登车名单 -->
+                <!-- Tab 1: Schedules and Boarding Manifests -->
                 <div class="tab-pane fade @(activeTab == "schedules" ? "show active" : "")" id="schedulesTab">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
@@ -292,7 +306,7 @@
                     </div>
                 </div>
 
-                <!-- Tab 2: 车队管理 (Fleet) -->
+                <!-- Tab 2: Fleet Management -->
                 <div class="tab-pane fade @(activeTab == "fleet" ? "show active" : "")" id="fleetTab">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
@@ -323,7 +337,7 @@
                     </div>
                 </div>
 
-                <!-- Tab 3: 路线管理 (Routes) -->
+                <!-- Tab 3: Routes Network -->
                 <div class="tab-pane fade @(activeTab == "routes" ? "show active" : "")" id="routesTab">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
@@ -354,13 +368,117 @@
                     </div>
                 </div>
 
+                <!-- ⭐ Tab 4: Passenger Reviews Moderation Stream -->
+                <div class="tab-pane fade @(activeTab == "reviews" ? "show active" : "")" id="reviewsTab">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="fw-bold mb-1" style="color: #06143b;">Passenger Feedback &amp; Moderation Stream</h5>
+                            <p class="text-muted small mb-0">Review ratings, verify customer experiences and toggle visibility for moderation.</p>
+                        </div>
+                        <span class="badge bg-light text-muted border">@Model.Reviews.Count Total Reviews</span>
+                    </div>
+
+                    @if (!Model.Reviews.Any())
+                    {
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-chat-square-text display-4 d-block mb-3"></i>
+                            <h6>No passenger reviews submitted yet.</h6>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Trip Route</th>
+                                        <th>Passenger</th>
+                                        <th>Rating</th>
+                                        <th>Feedback Content</th>
+                                        <th>Submitted</th>
+                                        <th>Status</th>
+                                        <th class="text-end">Moderation Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var rev in Model.Reviews)
+                                    {
+                                        <tr>
+                                            <td class="fw-bold font-monospace text-muted">#@rev.ReviewId</td>
+                                            <td>
+                                                <strong class="d-block">@rev.Trip?.Route?.Origin → @rev.Trip?.Route?.Destination</strong>
+                                                <small class="text-muted font-monospace">Trip #@rev.TripId</small>
+                                            </td>
+                                            <td>
+                                                <strong>@rev.User?.FirstName @rev.User?.LastName</strong>
+                                                <small class="d-block text-muted">@rev.User?.Email</small>
+                                            </td>
+                                            <td>
+                                                <div class="text-warning small" style="white-space: nowrap;">
+                                                    @for (int s = 1; s <= 5; s++)
+                                                    {
+                                                        <i class="bi @(s <= rev.Rating ? "bi-star-fill" : "bi-star")"></i>
+                                                    }
+                                                    <span class="text-dark fw-bold ms-1">(@rev.Rating)</span>
+                                                </div>
+                                            </td>
+                                            <td style="max-width: 280px;">
+                                                @if (!string.IsNullOrWhiteSpace(rev.Title))
+                                                {
+                                                    <strong class="d-block text-dark small">@rev.Title</strong>
+                                                }
+                                                <span class="small text-muted" style="line-height: 1.35;">@rev.Comment</span>
+                                            </td>
+                                            <td class="small text-muted" style="white-space: nowrap;">
+                                                @rev.CreatedAt.ToString("dd MMM yyyy")
+                                            </td>
+                                            <td>
+                                                @if (rev.IsVisible)
+                                                {
+                                                    <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                                        <i class="bi bi-check-circle me-1"></i> Visible
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                                                        <i class="bi bi-eye-slash me-1"></i> Hidden
+                                                    </span>
+                                                }
+                                            </td>
+                                            <td class="text-end" style="white-space: nowrap;">
+                                                <form asp-action="ToggleReviewVisibility" asp-route-reviewId="@rev.ReviewId" method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    @if (rev.IsVisible)
+                                                    {
+                                                        <button type="submit" class="btn btn-sm btn-outline-warning fw-bold" title="Hide this review from public trip page">
+                                                            <i class="bi bi-eye-slash"></i> Hide
+                                                        </button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <button type="submit" class="btn btn-sm btn-outline-success fw-bold" title="Restore this review to public trip page">
+                                                            <i class="bi bi-eye"></i> Show
+                                                        </button>
+                                                    }
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+
             </div>
         </div>
 
     </div>
 </div>
 
-<!-- Modal 1: 录入新车 -->
+<!-- Modal 1: Add Vehicle -->
 <div class="modal fade" id="newVehicleModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -407,7 +525,7 @@
     </div>
 </div>
 
-<!-- Modal 2: 添加新路线 -->
+<!-- Modal 2: Add Route -->
 <div class="modal fade" id="newRouteModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -451,7 +569,7 @@
     </div>
 </div>
 
-<!-- Modal 3: 排班发布新车次 -->
+<!-- Modal 3: Schedule Trip -->
 <div class="modal fade" id="newTripModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -481,7 +599,7 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Departure Date & Time</label>
+                        <label class="form-label small fw-bold">Departure Date &amp; Time</label>
                         <input asp-for="NewTrip.DepartureTime" type="datetime-local" class="form-control" required />
                     </div>
                     <div class="row g-2">
@@ -508,13 +626,23 @@
         const urlParams = new URLSearchParams(window.location.search);
         const tab = urlParams.get('tab');
 
-        // 只要带有 tab 参数，浏览器自动平滑滚动聚焦到表格顶部
-        if (tab) {
-            const targetEl = document.getElementById('adminTabs');
-            if (targetEl) {
-                setTimeout(function () {
-                    targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 80);
+        if (tab === 'fleet') {
+            const fleetBtn = document.getElementById('fleet-tab');
+            if (fleetBtn) {
+                bootstrap.Tab.getOrCreateInstance(fleetBtn).show();
+                fleetBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        } else if (tab === 'schedules') {
+            const schedBtn = document.getElementById('schedules-tab');
+            if (schedBtn) {
+                bootstrap.Tab.getOrCreateInstance(schedBtn).show();
+                schedBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        } else if (tab === 'reviews') {
+            const reviewsBtn = document.getElementById('reviews-tab');
+            if (reviewsBtn) {
+                bootstrap.Tab.getOrCreateInstance(reviewsBtn).show();
+                reviewsBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }
     });
