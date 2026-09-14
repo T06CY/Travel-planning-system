@@ -11,9 +11,10 @@ namespace TravelPlanningSystem.Controllers;
 [Authorize]
 public class AdminTransportationController(AppDbContext context) : Controller
 {
-    // ==========================================
-    // 后台管理主看板 (Dashboard & Management Hub)
-    // ==========================================
+    // =========================================================================
+    // Core Module 3: Transportation Operations Dashboard & KPI Hub
+    // =========================================================================
+    [HttpGet]
     public async Task<IActionResult> Index()
     {
         var model = new AdminTransportationViewModel
@@ -43,9 +44,9 @@ public class AdminTransportationController(AppDbContext context) : Controller
         return View(model);
     }
 
-    // ==========================================
-    // 1. 车队管理：录入新车辆 (POST)
-    // ==========================================
+    // =========================================================================
+    // Core Module 3: Fleet Management - Register New Vehicle (POST)
+    // =========================================================================
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateVehicle(AdminTransportationViewModel vm)
@@ -63,16 +64,18 @@ public class AdminTransportationController(AppDbContext context) : Controller
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
+
             context.Vehicles.Add(vehicle);
             await context.SaveChangesAsync();
             TempData["SuccessMessage"] = $"Vehicle '{vehicle.LicensePlate} - {vehicle.VehicleModel}' added to fleet successfully!";
         }
+
         return RedirectToAction(nameof(Index));
     }
 
-    // ==========================================
-    // 2. 路线调度：创建新路线 (POST)
-    // ==========================================
+    // =========================================================================
+    // Core Module 3: Route Network - Establish New Route (POST)
+    // =========================================================================
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateRoute(AdminTransportationViewModel vm)
@@ -83,24 +86,26 @@ public class AdminTransportationController(AppDbContext context) : Controller
             {
                 Origin = vm.NewRoute.Origin.Trim(),
                 Destination = vm.NewRoute.Destination.Trim(),
-                // ⭐ DistanceKm 是 decimal，进行 (decimal) 转换
+                // DistanceKm is of type decimal in the entity model
                 DistanceKm = (decimal)(vm.NewRoute.DistanceKm > 0 ? vm.NewRoute.DistanceKm : 100),
-                // ⭐ EstimatedDurationHours 是 double，进行 (double) 转换
+                // EstimatedDurationHours is of type double in the entity model
                 EstimatedDurationHours = (double)(vm.NewRoute.EstimatedDurationHours > 0 ? vm.NewRoute.EstimatedDurationHours : 2.0),
                 Stops = string.IsNullOrWhiteSpace(vm.NewRoute.Stops) ? "Direct" : vm.NewRoute.Stops.Trim(),
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
+
             context.Routes.Add(route);
             await context.SaveChangesAsync();
             TempData["SuccessMessage"] = $"New Route '{route.Origin} → {route.Destination}' established!";
         }
+
         return RedirectToAction(nameof(Index));
     }
 
-    // ==========================================
-    // 3. 排班调度：发布新车次 (POST)
-    // ==========================================
+    // =========================================================================
+    // Core Module 3: Schedule Orchestration - Publish New Trip & Seats (POST)
+    // =========================================================================
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateTrip(AdminTransportationViewModel vm)
@@ -111,7 +116,6 @@ public class AdminTransportationController(AppDbContext context) : Controller
         if (route != null && vehicle != null)
         {
             var depTime = vm.NewTrip.DepartureTime;
-            // EstimatedDurationHours 原生就是 double，直接传给 AddHours
             var arrTime = depTime.AddHours(Math.Max(1.0, route.EstimatedDurationHours));
 
             var trip = new Trip
@@ -129,7 +133,7 @@ public class AdminTransportationController(AppDbContext context) : Controller
                 CreatedAt = DateTime.UtcNow
             };
 
-            // 自动为新发布的车次铺设座位表
+            // Automatically generate the visual seat map for the scheduled trip
             for (int i = 1; i <= vehicle.SeatingCapacity; i++)
             {
                 int row = (i - 1) / 3 + 1;
@@ -149,11 +153,13 @@ public class AdminTransportationController(AppDbContext context) : Controller
             await context.SaveChangesAsync();
             TempData["SuccessMessage"] = $"Trip for {route.Origin} → {route.Destination} ({depTime:HH:mm, dd MMM}) published successfully!";
         }
+
         return RedirectToAction(nameof(Index));
     }
-    // ==========================================
-    // 4. 乘客登车名单 (Passenger Manifest)
-    // ==========================================
+
+    // =========================================================================
+    // Core Module 3: Dispatch Operations - Passenger Boarding Manifest (GET)
+    // =========================================================================
     [HttpGet]
     public async Task<IActionResult> Manifest(int tripId)
     {
@@ -168,16 +174,82 @@ public class AdminTransportationController(AppDbContext context) : Controller
 
         var bookings = await context.TransportationBookings
             .Include(b => b.Passengers)
-            .Where(b => b.TripId == tripId && b.BookingStatus == "Confirmed")
+            .Where(b => b.TripId == tripId)
             .ToListAsync();
 
         ViewBag.Trip = trip;
         return View(bookings);
     }
 
-    // ==========================================
-    // 5. 取消/下架车次 (POST)
-    // ==========================================
+    // =========================================================================
+    // Core Module 3: Administrative Ticket Cancellation with Audit Reason (POST)
+    // =========================================================================
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CancelBooking(int bookingId, string cancellationReason, int? returnTripId = null)
+    {
+        // 1. Validate that the administrator provided a valid cancellation explanation
+        if (string.IsNullOrWhiteSpace(cancellationReason) || cancellationReason.Trim().Length < 5)
+        {
+            TempData["ErrorMessage"] = "Please provide an administrative cancellation reason (minimum 5 characters).";
+            return returnTripId.HasValue
+                ? RedirectToAction(nameof(Manifest), new { tripId = returnTripId.Value })
+                : RedirectToAction(nameof(Index));
+        }
+
+        // 2. Fetch target booking with associated trip seats and passengers
+        var booking = await context.TransportationBookings
+            .Include(b => b.Trip).ThenInclude(t => t!.Seats)
+            .Include(b => b.Passengers)
+            .FirstOrDefaultAsync(b => b.BookingId == bookingId);
+
+        if (booking == null)
+            return NotFound("Transportation booking not found.");
+
+        if (booking.BookingStatus == "Cancelled")
+        {
+            TempData["ErrorMessage"] = $"Booking {booking.BookingReference} has already been cancelled.";
+            return returnTripId.HasValue
+                ? RedirectToAction(nameof(Manifest), new { tripId = returnTripId.Value })
+                : RedirectToAction(nameof(Index));
+        }
+
+        // 3. Mark booking as cancelled and record administrative audit details
+        var adminName = User.Identity?.Name ?? "Administrator";
+        booking.BookingStatus = "Cancelled";
+        booking.PaymentStatus = "Refunded";
+        booking.CancellationReason = $"[Admin Cancelled by {adminName}]: {cancellationReason.Trim()}";
+        booking.CancelledAt = DateTime.UtcNow;
+        booking.UpdatedAt = DateTime.UtcNow;
+
+        // 4. Release physical seats back to active inventory
+        if (booking.Trip != null)
+        {
+            var seatNumbers = booking.Passengers.Select(p => p.SeatNumber).ToList();
+            var seatsToRelease = booking.Trip.Seats
+                .Where(s => seatNumbers.Contains(s.SeatNumber))
+                .ToList();
+
+            foreach (var seat in seatsToRelease)
+            {
+                seat.IsAvailable = true;
+                seat.Status = "Available";
+            }
+
+            booking.Trip.AvailableSeats += booking.Passengers.Count;
+        }
+
+        await context.SaveChangesAsync();
+        TempData["SuccessMessage"] = $"Ticket {booking.BookingReference} has been cancelled by Administrator. Reserved seats have been released.";
+
+        return returnTripId.HasValue
+            ? RedirectToAction(nameof(Manifest), new { tripId = returnTripId.Value })
+            : RedirectToAction(nameof(Index));
+    }
+
+    // =========================================================================
+    // Core Module 3: Toggle Trip Status (Schedule / Cancel Whole Trip) (POST)
+    // =========================================================================
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleTripStatus(int id)
@@ -192,9 +264,9 @@ public class AdminTransportationController(AppDbContext context) : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    // ==========================================
-    // 导出功能 1：导出指定班次的乘客登车清单 (CSV)
-    // ==========================================
+    // =========================================================================
+    // Core Module 3: Data Export 1 - Passenger Boarding Manifest (CSV)
+    // =========================================================================
     [HttpGet]
     public async Task<IActionResult> ExportManifest(int tripId)
     {
@@ -211,7 +283,7 @@ public class AdminTransportationController(AppDbContext context) : Controller
             .ToListAsync();
 
         var builder = new System.Text.StringBuilder();
-        // UTF-8 BOM 确保 Excel 打开不乱码
+        // UTF-8 BOM ensures that Microsoft Excel displays characters correctly without encoding issues
         builder.AppendLine("Seat,Passenger Name,IC/Passport,Type,Baggage,Insurance,Booking Reference,Contact Phone");
 
         foreach (var b in bookings)
@@ -228,9 +300,9 @@ public class AdminTransportationController(AppDbContext context) : Controller
         return File(buffer, "text/csv", filename);
     }
 
-    // ==========================================
-    // 导出功能 2：导出全站交通营收与预订总表 (CSV)
-    // ==========================================
+    // =========================================================================
+    // Core Module 3: Data Export 2 - Operations Revenue & Booking Summary (CSV)
+    // =========================================================================
     [HttpGet]
     public async Task<IActionResult> ExportRevenueReport()
     {
@@ -253,9 +325,9 @@ public class AdminTransportationController(AppDbContext context) : Controller
         return File(buffer, "text/csv", $"Transportation_Revenue_Summary_{DateTime.UtcNow:yyyyMMdd}.csv");
     }
 
-    // ==========================================
-    // 实时保存乘客登车状态 (AJAX POST)
-    // ==========================================
+    // =========================================================================
+    // Core Module 3: Real-time Check-in Boarding Status (AJAX POST)
+    // =========================================================================
     [HttpPost]
     public async Task<IActionResult> ToggleBoarding(int passengerId, bool isBoarded)
     {

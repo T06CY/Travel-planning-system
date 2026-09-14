@@ -1,136 +1,400 @@
 ﻿@model IEnumerable<TravelPlanningSystem.Models.Transportation.TransportationBooking>
 
 @{
-    ViewData["Title"] = "My Tickets & Bookings - TravelMate";
+    ViewData["Title"] = "My Transportation Bookings - TravelMate";
 }
 
 <link rel="stylesheet" href="~/css/transportation.css" asp-append-version="true" />
 
 <style>
-    .my-bookings-wrapper { background: #f3f5fb; padding: 40px 0; min-height: 85vh; }
-    .booking-item-card { background: #fff; border-radius: 16px; padding: 25px; box-shadow: 0 8px 25px rgba(6,20,59,0.06); margin-bottom: 20px; border: 1px solid #e2e8f0; transition: all 0.2s ease; }
-    .booking-item-card:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(6,20,59,0.1); }
-    .booking-meta { font-size: 0.85rem; color: #6d7895; display: flex; gap: 15px; margin-bottom: 12px; }
-    .booking-meta span { display: flex; align-items: center; gap: 5px; }
-    .status-badge.confirmed { background: #dcfce7; color: #15803d; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; }
-    .status-badge.cancelled { background: #fee2e2; color: #b91c1c; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; }
+    .my-bookings-page { background: #f3f5fb; padding: 45px 0 80px; min-height: 85vh; }
+    
+    .booking-history-card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        box-shadow: 0 4px 20px rgba(6, 20, 59, 0.05);
+        padding: 24px 28px;
+        margin-bottom: 22px;
+        transition: all 0.25s ease;
+    }
+    .booking-history-card:hover {
+        box-shadow: 0 12px 30px rgba(6, 20, 59, 0.09);
+        border-color: #cbd5e1;
+    }
+
+    .booking-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 18px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #f1f5f9;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .booking-ref-badge {
+        font-family: monospace;
+        font-weight: 800;
+        font-size: 1.1rem;
+        color: #2563eb;
+    }
+    
+    .status-badge {
+        font-weight: 800;
+        font-size: 0.78rem;
+        padding: 5px 14px;
+        border-radius: 30px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .status-badge.confirmed { background: #dcfce7; color: #16a34a; }
+    .status-badge.cancelled { background: #fee2e2; color: #dc2626; }
+    .status-badge.completed { background: #eff6ff; color: #2563eb; }
+
+    .route-display {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #06143b;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .route-display i { color: #2563eb; font-size: 1rem; }
+
+    .booking-meta-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 18px;
+        font-size: 0.88rem;
+    }
+    .booking-meta-grid .label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        display: block;
+        margin-bottom: 2px;
+    }
+    .booking-meta-grid .val {
+        font-weight: 800;
+        color: #0f172a;
+    }
+
+    /* Cancellation reason box */
+    .cancellation-reason-alert {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 12px;
+        padding: 12px 18px;
+        color: #991b1b;
+        font-size: 0.85rem;
+        margin-bottom: 16px;
+    }
+    .cancellation-reason-alert strong { color: #7f1d1d; }
+
+    .booking-actions-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px dashed #e2e8f0;
+        padding-top: 16px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .total-price-tag {
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: #06143b;
+    }
+
+    @@media (max-width: 768px) {
+        .booking-meta-grid { grid-template-columns: 1fr 1fr; }
+    }
 </style>
 
-<div class="my-bookings-wrapper">
+<div class="my-bookings-page">
     <div class="container">
         
-        <!-- 页面标题 -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <!-- Header and Breadcrumb -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
             <div>
-                <h2 class="fw-bold" style="color: #06143b;">My Transportation Tickets</h2>
-                <p class="text-muted mb-0">View, print and manage all your bus and coach bookings.</p>
+                <a asp-action="Index" class="text-decoration-none text-muted small fw-bold">
+                    <i class="bi bi-arrow-left"></i> Back to Transport Search
+                </a>
+                <h2 class="fw-bold mt-1" style="color: #06143b;">My Transportation Tickets</h2>
+                <p class="text-muted mb-0">View your active boarding passes, e-tickets, and cancellation records.</p>
             </div>
-            <a asp-action="Index" class="btn btn-primary fw-bold">
-                <i class="bi bi-plus-lg"></i> Book New Journey
+            <a asp-action="Index" class="btn btn-primary fw-bold shadow-sm">
+                <i class="bi bi-compass"></i> Book Another Trip
             </a>
         </div>
 
         @if (TempData["SuccessMessage"] != null)
         {
-            <div class="alert alert-success alert-dismissible fade show">
-                <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
+            <div class="alert alert-success alert-dismissible fade show shadow-sm">
+                <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         }
 
         @if (TempData["ErrorMessage"] != null)
         {
-            <div class="alert alert-danger alert-dismissible fade show">
-                <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         }
 
-        @if (Model != null && Model.Any())
+        <!-- Bookings Roster -->
+        @if (Model.Any())
         {
-            <div class="row">
-                @foreach (var b in Model)
-                {
-                    var isCancelled = b.BookingStatus == "Cancelled";
-                    <div class="col-12">
-                        <div class="booking-item-card">
-                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
-                                <div>
-                                    <span class="text-muted small">Reference:</span>
-                                    <strong class="text-primary font-monospace fs-6">@b.BookingReference</strong>
-                                    <span class="status-badge @(isCancelled ? "cancelled" : "confirmed") ms-2">
-                                        @b.BookingStatus
-                                    </span>
-                                </div>
-                                <div class="text-end">
-                                    <span class="text-muted small">Total Paid:</span>
-                                    <span class="fs-5 fw-bold text-dark ms-1">RM @b.TotalAmount.ToString("F2")</span>
-                                </div>
-                            </div>
+            @foreach (var booking in Model)
+            {
+                var isCancelled = booking.BookingStatus == "Cancelled";
+                var trip = booking.Trip;
 
-                            <div class="row g-3 align-items-center">
-                                <!-- 行程信息 -->
-                                <div class="col-md-5">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div>
-                                            <div class="fw-bold fs-5" style="color: #06143b;">@b.Trip?.Route?.Origin</div>
-                                            <div class="text-muted small">@b.Trip?.DepartureTime.ToString("HH:mm, dd MMM yyyy")</div>
-                                        </div>
-                                        <i class="bi bi-arrow-right fs-4 text-primary"></i>
-                                        <div>
-                                            <div class="fw-bold fs-5" style="color: #06143b;">@b.Trip?.Route?.Destination</div>
-                                            <div class="text-muted small">@b.Trip?.ArrivalTime.ToString("HH:mm")</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- 车辆与座位 -->
-                                <div class="col-md-4">
-                                    <div class="small text-muted mb-1">
-                                        <i class="bi bi-bus-front"></i> @b.Trip?.Vehicle?.VehicleModel (@b.Trip?.Vehicle?.VehicleType)
-                                    </div>
-                                    <div class="small">
-                                        <strong>Seats:</strong> 
-                                        @foreach (var p in b.Passengers)
-                                        {
-                                            <span class="badge bg-primary me-1">@p.SeatNumber (@p.FullName)</span>
-                                        }
-                                    </div>
-                                </div>
-
-                                <!-- 操作按钮 -->
-                                <div class="col-md-3 text-md-end d-flex justify-content-md-end gap-2">
-                                    <a asp-action="Confirmation" asp-route-id="@b.BookingId" class="btn btn-outline-primary btn-sm fw-bold">
-                                        <i class="bi bi-qr-code"></i> View E-Ticket
-                                    </a>
-
-                                    @if (!isCancelled)
-                                    {
-                                        <form asp-action="CancelBooking" asp-route-id="@b.BookingId" method="post" onsubmit="return confirm('Are you sure you want to cancel this ticket? Seats will be released.');">
-                                            @Html.AntiForgeryToken()
-                                            <button type="submit" class="btn btn-outline-danger btn-sm">
-                                                Cancel
-                                            </button>
-                                        </form>
-                                    }
-                                </div>
-                            </div>
+                <div class="booking-history-card">
+                    <!-- Top Summary Line -->
+                    <div class="booking-card-top">
+                        <div>
+                            <span class="booking-ref-badge">@booking.BookingReference</span>
+                            <small class="text-muted d-block mt-1">Booked on @booking.BookingDate.ToString("ddd, dd MMM yyyy · HH:mm")</small>
+                        </div>
+                        <div>
+                            <span class="status-badge @(isCancelled ? "cancelled" : "confirmed")">
+                                <i class="bi @(isCancelled ? "bi-x-circle-fill" : "bi-check-circle-fill") me-1"></i>
+                                @booking.BookingStatus
+                            </span>
                         </div>
                     </div>
-                }
-            </div>
+
+                    <!-- Journey Route -->
+                    <div class="route-display">
+                        <span>@trip?.Route?.Origin</span>
+                        <i class="bi bi-arrow-right"></i>
+                        <span class="text-primary">@trip?.Route?.Destination</span>
+                    </div>
+
+                    <!-- Meta Information Grid -->
+                    <div class="booking-meta-grid">
+                        <div>
+                            <span class="label">Departure Schedule</span>
+                            <span class="val">@trip?.DepartureTime.ToString("dd MMM yyyy, HH:mm")</span>
+                        </div>
+                        <div>
+                            <span class="label">Assigned Seats</span>
+                            <span class="val text-primary">
+                                @string.Join(", ", booking.Passengers.Select(p => $"Seat {p.SeatNumber}"))
+                            </span>
+                        </div>
+                        <div>
+                            <span class="label">Vehicle / Coach</span>
+                            <span class="val">@trip?.Vehicle?.VehicleModel</span>
+                        </div>
+                        <div>
+                            <span class="label">Passenger Count</span>
+                            <span class="val">@booking.Passengers.Count Passenger(s)</span>
+                        </div>
+                    </div>
+
+                    <!-- Display Cancellation Reason if Cancelled -->
+                    @if (isCancelled && !string.IsNullOrWhiteSpace(booking.CancellationReason))
+                    {
+                        <div class="cancellation-reason-alert">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-info-circle-fill me-1"></i>
+                                    <strong>Cancellation Reason:</strong> @booking.CancellationReason
+                                </div>
+                                @if (booking.CancelledAt.HasValue)
+                                {
+                                    <small class="text-muted">Cancelled on @booking.CancelledAt.Value.ToString("dd MMM yyyy, HH:mm")</small>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Bottom Action Controls -->
+                    <div class="booking-actions-row">
+                        <div>
+                            <span class="text-muted small d-block">Total Paid Amount:</span>
+                            <strong class="total-price-tag text-success">RM @booking.TotalAmount.ToString("N2")</strong>
+                            <span class="badge bg-light text-muted border ms-2">@booking.PaymentMethod</span>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <!-- View Official E-Ticket -->
+                            <a asp-action="Confirmation" asp-route-id="@booking.BookingId" target="_blank" class="btn btn-outline-primary fw-bold">
+                                <i class="bi bi-qr-code"></i> View E-Ticket
+                            </a>
+
+                            <!-- Cancel Booking Trigger Button (Opens Reason Modal) -->
+                            @if (!isCancelled)
+                            {
+                                <button type="button" 
+                                        class="btn btn-outline-danger fw-bold cancel-booking-btn"
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#cancelTicketModal"
+                                        data-booking-id="@booking.BookingId"
+                                        data-booking-ref="@booking.BookingReference"
+                                        data-route="@trip?.Route?.Origin → @trip?.Route?.Destination"
+                                        data-seats="@string.Join(", ", booking.Passengers.Select(p => p.SeatNumber))">
+                                    <i class="bi bi-x-circle"></i> Cancel Ticket
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
         }
         else
         {
-            <div class="text-center py-5 bg-white rounded-4 shadow-sm border p-5">
-                <div class="text-muted display-4 mb-3"><i class="bi bi-ticket-perforated"></i></div>
-                <h4 class="fw-bold" style="color: #06143b;">No Tickets Found</h4>
-                <p class="text-muted">You haven't booked any transportation tickets yet.</p>
-                <a asp-action="Index" class="btn btn-primary fw-bold mt-2">
-                    Explore Routes & Book
+            <div class="text-center py-5 bg-white rounded-4 border shadow-sm my-4">
+                <i class="bi bi-ticket-perforated display-3 text-muted mb-3 d-block"></i>
+                <h4 class="fw-bold" style="color: #06143b;">No Transportation Bookings Found</h4>
+                <p class="text-muted mb-4">You have not booked any bus or coach journeys with this account yet.</p>
+                <a asp-action="Index" class="btn btn-primary px-4 py-2 fw-bold">
+                    <i class="bi bi-search"></i> Search Available Journeys
                 </a>
             </div>
         }
 
     </div>
 </div>
+
+<!-- ===================================================== -->
+<!-- CANCELLATION REASON MODAL                             -->
+<!-- ===================================================== -->
+<div class="modal fade" id="cancelTicketModal" tabindex="-1" aria-labelledby="cancelTicketModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <form asp-action="CancelBooking" method="post" id="cancelTicketForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="modalBookingId" />
+
+                <!-- Modal Header -->
+                <div class="modal-header bg-danger text-white px-4 py-3">
+                    <h5 class="modal-title fw-bold" id="cancelTicketModalLabel">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i> Cancel Ticket &amp; Request Refund
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body p-4">
+                    <div class="alert alert-warning border-0 small mb-3">
+                        <i class="bi bi-info-circle-fill me-1"></i>
+                        Cancelling your ticket will release your reserved seats (<strong id="modalSeats"></strong>) and initiate a payment refund.
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Booking Reference</label>
+                        <input type="text" id="modalBookingRef" class="form-control bg-light font-monospace fw-bold" readonly />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Journey Route</label>
+                        <input type="text" id="modalRoute" class="form-control bg-light fw-bold" readonly />
+                    </div>
+
+                    <!-- Quick Preset Reasons Dropdown -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Reason Category <span class="text-danger">*</span></label>
+                        <select id="reasonPresetSelect" class="form-select" onchange="applyPresetReason(this.value)">
+                            <option value="">-- Select a reason --</option>
+                            <option value="Change of personal travel plans">Change of personal travel plans</option>
+                            <option value="Schedule conflict or emergency">Schedule conflict or work emergency</option>
+                            <option value="Booked incorrect date or departure time">Booked incorrect date or departure time</option>
+                            <option value="Found alternative transportation">Found alternative transportation</option>
+                            <option value="Medical or health emergency">Medical or health emergency</option>
+                            <option value="Other">Other reason (Specify below)</option>
+                        </select>
+                    </div>
+
+                    <!-- Detailed Explanation Textarea (Mandatory) -->
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Detailed Reason Explanation <span class="text-danger">*</span></label>
+                        <textarea name="cancellationReason" 
+                                  id="cancellationReasonInput" 
+                                  class="form-control" 
+                                  rows="3" 
+                                  placeholder="Please explain why you need to cancel this booking (minimum 5 characters)..." 
+                                  required 
+                                  minlength="5" 
+                                  maxlength="400"></textarea>
+                        <div class="d-flex justify-content-between small text-muted mt-1">
+                            <span>Minimum 5 characters required.</span>
+                            <span id="charCountText">0 / 400</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer bg-light px-4 py-3">
+                    <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Keep Ticket</button>
+                    <button type="submit" class="btn btn-danger fw-bold px-4" id="confirmCancelSubmitBtn">
+                        <i class="bi bi-trash3-fill me-1"></i> Confirm Cancellation
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript to populate modal data and validate input -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Event delegation for opening cancellation modal
+        document.querySelectorAll('.cancel-booking-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const bookingId = this.getAttribute('data-booking-id');
+                const bookingRef = this.getAttribute('data-booking-ref');
+                const route = this.getAttribute('data-route');
+                const seats = this.getAttribute('data-seats');
+
+                document.getElementById('modalBookingId').value = bookingId;
+                document.getElementById('modalBookingRef').value = bookingRef;
+                document.getElementById('modalRoute').value = route;
+                document.getElementById('modalSeats').innerText = seats;
+
+                // Reset inputs
+                document.getElementById('reasonPresetSelect').value = '';
+                document.getElementById('cancellationReasonInput').value = '';
+                document.getElementById('charCountText').innerText = '0 / 400';
+            });
+        });
+
+        // Live character counter for reason textarea
+        const reasonInput = document.getElementById('cancellationReasonInput');
+        reasonInput?.addEventListener('input', function () {
+            const count = this.value.length;
+            document.getElementById('charCountText').innerText = count + ' / 400';
+        });
+
+        // Form submit validation
+        document.getElementById('cancelTicketForm')?.addEventListener('submit', function (e) {
+            const val = reasonInput.value.trim();
+            if (val.length < 5) {
+                e.preventDefault();
+                alert('Please provide a valid cancellation reason with at least 5 characters.');
+                reasonInput.focus();
+            }
+        });
+    });
+
+    // Helper to auto-fill preset reason into textarea
+    function applyPresetReason(val) {
+        const textarea = document.getElementById('cancellationReasonInput');
+        if (val && val !== 'Other') {
+            textarea.value = val;
+            document.getElementById('charCountText').innerText = val.length + ' / 400';
+        } else if (val === 'Other') {
+            textarea.value = '';
+            textarea.placeholder = 'Please describe your specific reason for cancelling...';
+            textarea.focus();
+        }
+    }
+</script>

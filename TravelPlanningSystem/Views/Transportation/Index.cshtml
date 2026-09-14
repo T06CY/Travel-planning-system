@@ -40,7 +40,6 @@
         line-height: 1.5;
     }
 
-    /* ⭐ 右侧专属动画：动态穿梭轨迹与光圈 */
     .hero-animation-box {
         position: absolute;
         right: 8%;
@@ -80,11 +79,7 @@
         100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
     }
 
-    .travel-arc {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-    }
+    .travel-arc { position: absolute; width: 100%; height: 100%; }
     .bus-moving-icon {
         position: absolute;
         font-size: 1.8rem;
@@ -115,7 +110,7 @@
         justify-content: space-between;
         align-items: flex-start;
         margin-bottom: 20px;
-        flex-wrap: gap;
+        flex-wrap: wrap;
     }
     .search-card-top h3 { font-size: 1.35rem; font-weight: 800; color: #06143b; margin: 0 0 4px; }
     .search-card-top p { color: #64748b; font-size: 0.88rem; margin: 0; }
@@ -153,28 +148,10 @@
         margin-bottom: 18px;
     }
 
-    .location-input-wrap {
-        position: relative;
-    }
-    .location-input-wrap label {
-        font-size: 0.75rem;
-        font-weight: 700;
-        color: #64748b;
-        text-transform: uppercase;
-        margin-bottom: 4px;
-        display: block;
-    }
-    .location-field {
-        position: relative;
-        display: flex;
-        align-items: center;
-    }
-    .location-field i {
-        position: absolute;
-        left: 14px;
-        color: #2563eb;
-        font-size: 1.1rem;
-    }
+    .location-input-wrap { position: relative; }
+    .location-input-wrap label { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; display: block; }
+    .location-field { position: relative; display: flex; align-items: center; }
+    .location-field i { position: absolute; left: 14px; color: #2563eb; font-size: 1.1rem; }
     .location-field input {
         width: 100%;
         padding: 13px 14px 13px 40px;
@@ -185,11 +162,7 @@
         color: #0f172a;
         transition: all 0.2s ease;
     }
-    .location-field input:focus {
-        border-color: #2563eb;
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-    }
+    .location-field input:focus { border-color: #2563eb; outline: none; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
 
     .autocomplete-list {
         position: absolute;
@@ -217,15 +190,9 @@
         gap: 10px;
         transition: background 0.15s ease;
     }
-    .autocomplete-item:hover {
-        background: #f1f5f9;
-        color: #2563eb;
-    }
+    .autocomplete-item:hover { background: #f1f5f9; color: #2563eb; }
 
-    .swap-btn-wrap {
-        padding-top: 20px;
-        text-align: center;
-    }
+    .swap-btn-wrap { padding-top: 20px; text-align: center; }
     .swap-btn {
         width: 40px;
         height: 40px;
@@ -239,25 +206,10 @@
         cursor: pointer;
         transition: all 0.3s ease;
     }
-    .swap-btn:hover {
-        background: #eef2ff;
-        color: #2563eb;
-        border-color: #2563eb;
-        transform: rotate(180deg);
-    }
+    .swap-btn:hover { background: #eef2ff; color: #2563eb; border-color: #2563eb; transform: rotate(180deg); }
 
-    .bottom-search-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 15px;
-        flex-wrap: wrap;
-    }
-    .secondary-inputs {
-        display: flex;
-        gap: 15px;
-        align-items: center;
-    }
+    .bottom-search-row { display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap; }
+    .secondary-inputs { display: flex; gap: 15px; align-items: center; }
     .search-btn-primary {
         background: #2563eb;
         color: #fff;
@@ -272,17 +224,224 @@
         box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
         transition: all 0.2s ease;
     }
-    .search-btn-primary:hover {
-        background: #1d4ed8;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+    .search-btn-primary:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4); }
+
+    .trips-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 22px;
+    }
+    
+    .pro-journey-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        padding: 22px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: 0 4px 20px rgba(6, 20, 59, 0.04);
+        transition: all 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    .pro-journey-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #3b82f6, #60a5fa);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+    .pro-journey-card:hover {
+        transform: translateY(-6px);
+        border-color: #93c5fd;
+        box-shadow: 0 16px 36px rgba(37, 99, 235, 0.12);
+    }
+    .pro-journey-card:hover::before {
+        opacity: 1;
     }
 
-    @@media (max-width: 992px) {
-        .search-grid-layout { grid-template-columns: 1fr; gap: 14px; }
-        .swap-btn-wrap { display: none; }
-        .hero-animation-box { display: none; }
+    .card-meta-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
     }
+    .vehicle-tag {
+        font-size: 0.72rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        padding: 4px 10px;
+        border-radius: 8px;
+        letter-spacing: 0.5px;
+    }
+    .vehicle-tag.vip { background: #fdf4ff; color: #a855f7; border: 1px solid #f0abfc; }
+    .vehicle-tag.coach { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+    .vehicle-tag.express { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+    
+    .travel-date-tag {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #64748b;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        padding: 3px 10px;
+        border-radius: 20px;
+    }
+
+    .route-title-box {
+        margin-bottom: 18px;
+    }
+    .route-title {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #06143b;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        line-height: 1.3;
+        margin: 0;
+    }
+    .route-title i {
+        color: #2563eb;
+        font-size: 0.95rem;
+    }
+
+    .card-timeline {
+        background: #f8fafc;
+        border: 1px solid #f1f5f9;
+        border-radius: 14px;
+        padding: 14px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+    .timeline-node { text-align: left; }
+    .timeline-node.end { text-align: right; }
+    .node-time { font-size: 1.25rem; font-weight: 800; color: #06143b; line-height: 1; display: block; margin-bottom: 3px; }
+    .node-label { font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; }
+
+    .timeline-track-mid {
+        flex: 1;
+        padding: 0 16px;
+        text-align: center;
+    }
+    .duration-text {
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: #2563eb;
+        background: #eff6ff;
+        padding: 2px 8px;
+        border-radius: 10px;
+        display: inline-block;
+        margin-bottom: 4px;
+    }
+    .timeline-bar {
+        height: 2px;
+        background: #cbd5e1;
+        position: relative;
+        margin: 4px 0;
+    }
+    .timeline-bar::before, .timeline-bar::after {
+        content: '';
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #2563eb;
+        top: -2px;
+    }
+    .timeline-bar::before { left: 0; }
+    .timeline-bar::after { right: 0; }
+
+    .card-fleet-status {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.8rem;
+        margin-bottom: 18px;
+        color: #64748b;
+    }
+    .fleet-model {
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 60%;
+    }
+    .seats-alert-badge {
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+    }
+    .seats-alert-badge.available { background: #eff6ff; color: #2563eb; }
+    .seats-alert-badge.urgent { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+    .card-bottom-checkout {
+        border-top: 1px dashed #e2e8f0;
+        padding-top: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .price-group { line-height: 1; }
+    .price-strike { font-size: 0.75rem; color: #94a3b8; text-decoration: line-through; display: block; margin-bottom: 2px; }
+    .price-now { font-size: 1.45rem; font-weight: 800; color: #06143b; }
+    .price-unit { font-size: 0.75rem; color: #64748b; font-weight: 600; }
+
+    .btn-select-journey {
+        background: #2563eb;
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.88rem;
+        padding: 10px 18px;
+        border-radius: 10px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s ease;
+    }
+    .btn-select-journey:hover {
+        background: #1d4ed8;
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+    }
+    .btn-select-journey i {
+        transition: transform 0.2s ease;
+    }
+    .btn-select-journey:hover i {
+        transform: translateX(4px);
+    }
+
+    .price-quick-chips {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .price-chip {
+        border: 1px solid #e2e8f0;
+        background: #fff;
+        color: #475569;
+        font-size: 0.8rem;
+        font-weight: 700;
+        padding: 6px 14px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .price-chip:hover { border-color: #3b82f6; color: #2563eb; background: #eff6ff; }
+    .price-chip.active { background: #2563eb; color: #fff; border-color: #2563eb; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25); }
+
+    .results-loading-overlay { opacity: 0.4; pointer-events: none; transition: opacity 0.2s ease; }
 </style>
 
 <section class="flight-style-hero">
@@ -353,8 +512,10 @@
         </div>
 
         <form id="mainSearchForm" method="get" asp-controller="Transportation" asp-action="Index">
-            <input type="hidden" asp-for="Page" value="1" />
+            <input type="hidden" asp-for="Page" value="1" id="mainSearchPage" />
             <input type="hidden" id="filterVehicleTypeHidden" asp-for="VehicleType" />
+            <input type="hidden" id="minPriceHidden" asp-for="MinPrice" />
+            <input type="hidden" id="maxPriceHidden" asp-for="MaxPrice" />
 
             <div class="search-grid-layout">
                 
@@ -400,7 +561,7 @@
                     <label>Departure Date</label>
                     <div class="location-field">
                         <i class="bi bi-calendar3"></i>
-                        <input type="date" asp-for="DepartureDate" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                        <input type="date" asp-for="DepartureDate" min="@DateTime.Today.ToString("yyyy-MM-dd")" id="departureDateInput" />
                     </div>
                 </div>
 
@@ -409,7 +570,7 @@
             <div class="bottom-search-row">
                 <div class="secondary-inputs">
                     <div>
-                        <select asp-for="SortBy" class="form-select form-select-sm border-secondary-subtle">
+                        <select asp-for="SortBy" id="sortBySelect" class="form-select form-select-sm border-secondary-subtle">
                             <option value="departure">Sort: Earliest departure</option>
                             <option value="price-low">Price: Low to High</option>
                             <option value="price-high">Price: High to Low</option>
@@ -424,7 +585,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="search-btn-primary">
+                <button type="submit" class="search-btn-primary" id="searchSubmitBtn">
                     <i class="bi bi-search"></i> Search live coaches
                 </button>
             </div>
@@ -442,22 +603,22 @@
                     <h3>Filters</h3>
                     @if (Model.HasFiltersApplied)
                     {
-                        <a href="@Url.Action("Index", "Transportation")" class="clear-filters">Clear all</a>
+                        <a href="@Url.Action("Index", "Transportation")" class="clear-filters" onclick="triggerAjaxFilter(this.href); return false;">Clear all</a>
                     }
                 </div>
 
                 <form id="advancedFilterForm" method="get" asp-controller="Transportation" asp-action="Index">
-                    <input type="hidden" asp-for="Origin" />
-                    <input type="hidden" asp-for="Destination" />
-                    <input type="hidden" asp-for="DepartureDate" />
+                    <input type="hidden" asp-for="Origin" id="advOrigin" />
+                    <input type="hidden" asp-for="Destination" id="advDestination" />
+                    <input type="hidden" asp-for="DepartureDate" id="advDate" />
                     <input type="hidden" asp-for="Page" value="1" />
 
                     <div class="filter-group">
                         <h4>Price Range (RM)</h4>
                         <div class="price-inputs">
-                            <input type="number" asp-for="MinPrice" min="0" placeholder="Min" class="form-control" />
+                            <input type="number" asp-for="MinPrice" id="sidebarMinPrice" min="0" placeholder="Min" class="form-control" />
                             <span>-</span>
-                            <input type="number" asp-for="MaxPrice" min="0" placeholder="Max" class="form-control" />
+                            <input type="number" asp-for="MaxPrice" id="sidebarMaxPrice" min="0" placeholder="Max" class="form-control" />
                         </div>
                         <span asp-validation-for="MinPrice" class="text-danger small d-block mt-1"></span>
                         <span asp-validation-for="MaxPrice" class="text-danger small d-block mt-1"></span>
@@ -465,14 +626,14 @@
 
                     <div class="filter-group">
                         <h4>Vehicle Type</h4>
-                        <select asp-for="VehicleType" class="form-select" asp-items="@(new SelectList(Model.VehicleTypes))">
+                        <select asp-for="VehicleType" id="sidebarVehicleType" class="form-select" asp-items="@(new SelectList(Model.VehicleTypes))">
                             <option value="">All types</option>
                         </select>
                     </div>
 
                     <div class="filter-group">
                         <h4>Minimum Rating</h4>
-                        <select asp-for="MinimumRating" class="form-select">
+                        <select asp-for="MinimumRating" id="sidebarRating" class="form-select">
                             <option value="">All ratings</option>
                             <option value="1">1+ Stars</option>
                             <option value="2">2+ Stars</option>
@@ -483,8 +644,8 @@
 
                     <div class="filter-group">
                         <div class="form-check">
-                            <input type="checkbox" asp-for="OnlyAvailableSeats" class="form-check-input" />
-                            <label class="form-check-label" asp-for="OnlyAvailableSeats">Only available seats</label>
+                            <input type="checkbox" asp-for="OnlyAvailableSeats" id="sidebarOnlySeats" class="form-check-input" />
+                            <label class="form-check-label" for="sidebarOnlySeats">Only available seats</label>
                         </div>
                     </div>
 
@@ -492,7 +653,24 @@
                 </form>
             </aside>
 
-            <main class="results-main">
+            <main class="results-main" id="resultsMainArea">
+
+                <div class="price-quick-chips">
+                    <span class="small fw-bold text-muted me-2"><i class="bi bi-tag-fill text-primary"></i> Quick Fares:</span>
+                    <button type="button" class="price-chip @(!Model.MinPrice.HasValue && !Model.MaxPrice.HasValue ? "active" : "")" onclick="setQuickPrice('', '')">
+                        All Prices
+                    </button>
+                    <button type="button" class="price-chip @(Model.MaxPrice == 35 ? "active" : "")" onclick="setQuickPrice('', 35)">
+                        Under RM 35 (Budget)
+                    </button>
+                    <button type="button" class="price-chip @(Model.MinPrice == 35 && Model.MaxPrice == 50 ? "active" : "")" onclick="setQuickPrice(35, 50)">
+                        RM 35 - RM 50 (Popular)
+                    </button>
+                    <button type="button" class="price-chip @(Model.MinPrice == 50 ? "active" : "")" onclick="setQuickPrice(50, '')">
+                        Above RM 50 (VIP Luxury)
+                    </button>
+                </div>
+
                 @if (Model.Trips.Any())
                 {
                     <div class="results-header">
@@ -505,84 +683,88 @@
                         {
                             var avgRating = trip.Reviews.Any() ? Math.Round(trip.Reviews.Average(r => r.Rating), 1) : 0;
                             var discountedPrice = trip.BaseFare * (1 - trip.DiscountPercentage / 100);
+                            var isVip = trip.Vehicle?.VehicleType == "VIP Van";
+                            var isExpress = trip.Vehicle?.VehicleType == "Express Bus";
 
-                            <div class="trip-card">
-                                <div class="trip-header">
-                                    <div class="route-info">
-                                        <span class="origin">@trip.Route?.Origin</span>
-                                        <div class="arrow"><i class="bi bi-arrow-right"></i></div>
-                                        <span class="destination">@trip.Route?.Destination</span>
-                                    </div>
-                                    <span class="trip-date">@trip.DepartureTime.ToString("ddd, MMM d")</span>
-                                </div>
-
-                                <div class="trip-body">
-                                    <div class="timing-section">
-                                        <div class="time-box">
-                                            <span class="label">Depart</span>
-                                            <span class="time">@trip.DepartureTime.ToString("HH:mm")</span>
-                                        </div>
-                                        <div class="duration">
-                                            <span>@Math.Round((trip.ArrivalTime - trip.DepartureTime).TotalHours, 1)h</span>
-                                        </div>
-                                        <div class="time-box">
-                                            <span class="label">Arrive</span>
-                                            <span class="time">@trip.ArrivalTime.ToString("HH:mm")</span>
-                                        </div>
+                            <div class="pro-journey-card">
+                                <div>
+                                    <div class="card-meta-top">
+                                        <span class="vehicle-tag @(isVip ? "vip" : isExpress ? "express" : "coach")">
+                                            <i class="bi @(isVip ? "bi-star-fill" : "bi-bus-front") me-1"></i>
+                                            @trip.Vehicle?.VehicleType
+                                        </span>
+                                        <span class="travel-date-tag">
+                                            <i class="bi bi-calendar3 me-1"></i>@trip.DepartureTime.ToString("ddd, dd MMM")
+                                        </span>
                                     </div>
 
-                                    <div class="vehicle-info">
-                                        <span class="vehicle-type">@trip.Vehicle?.VehicleType</span>
-                                        <span class="vehicle-model">@trip.Vehicle?.VehicleModel</span>
+                                    <div class="route-title-box">
+                                        <h3 class="route-title">
+                                            <span>@trip.Route?.Origin</span>
+                                            <i class="bi bi-arrow-right"></i>
+                                            <span class="text-primary">@trip.Route?.Destination</span>
+                                        </h3>
                                     </div>
 
-                                    <div class="availability-section">
-                                        <div class="status">
-                                            <span class="status-badge @trip.Status.ToLower()">@trip.Status</span>
+                                    <div class="card-timeline">
+                                        <div class="timeline-node">
+                                            <span class="node-time">@trip.DepartureTime.ToString("HH:mm")</span>
+                                            <span class="node-label">Depart</span>
                                         </div>
-                                        <div class="seats-available">
-                                            <i class="bi bi-chair"></i>
-                                            @if (trip.AvailableSeats > 0)
+
+                                        <div class="timeline-track-mid">
+                                            <span class="duration-text">
+                                                @Math.Round((trip.ArrivalTime - trip.DepartureTime).TotalHours, 1)h
+                                            </span>
+                                            <div class="timeline-bar"></div>
+                                            <small class="text-muted d-block" style="font-size: 0.68rem; font-weight: 700;">Direct Service</small>
+                                        </div>
+
+                                        <div class="timeline-node end">
+                                            <span class="node-time">@trip.ArrivalTime.ToString("HH:mm")</span>
+                                            <span class="node-label">Arrive</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="card-fleet-status">
+                                        <div class="fleet-model">
+                                            <i class="bi bi-bus-front text-muted me-1"></i>@trip.Vehicle?.VehicleModel
+                                        </div>
+                                        <div>
+                                            @if (trip.AvailableSeats <= 5 && trip.AvailableSeats > 0)
                                             {
-                                                <span>@trip.AvailableSeats seats left</span>
+                                                <span class="seats-alert-badge urgent">
+                                                    <i class="bi bi-fire me-1"></i>Only @trip.AvailableSeats seats left!
+                                                </span>
+                                            }
+                                            else if (trip.AvailableSeats > 0)
+                                            {
+                                                <span class="seats-alert-badge available">
+                                                    <i class="bi bi-chair me-1"></i>@trip.AvailableSeats seats left
+                                                </span>
                                             }
                                             else
                                             {
-                                                <span class="no-seats">No seats available</span>
+                                                <span class="badge bg-secondary">Sold Out</span>
                                             }
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="trip-footer">
-                                    <div class="rating-section">
-                                        @if (trip.Reviews.Any())
+                                <div class="card-bottom-checkout">
+                                    <div class="price-group">
+                                        @if (trip.DiscountPercentage > 0)
                                         {
-                                            <div class="rating">
-                                                <i class="bi bi-star-fill"></i>
-                                                <span class="rating-value">@avgRating</span>
-                                                <span class="review-count">(@trip.Reviews.Count())</span>
-                                            </div>
+                                            <span class="price-strike">RM @trip.BaseFare.ToString("F2")</span>
                                         }
-                                        else
-                                        {
-                                            <span class="no-rating text-muted small">No ratings yet</span>
-                                        }
+                                        <span class="price-now">RM @discountedPrice.ToString("F2")</span>
+                                        <span class="price-unit">/ seat</span>
                                     </div>
 
-                                    <div class="price-section">
-                                        <div class="price-box">
-                                            @if (trip.DiscountPercentage > 0)
-                                            {
-                                                <span class="original-price">RM @trip.BaseFare.ToString("F2")</span>
-                                                <span class="discount-badge">-@trip.DiscountPercentage%</span>
-                                            }
-                                            <span class="price">RM @discountedPrice.ToString("F2")</span>
-                                        </div>
-                                        <a asp-controller="Transportation" asp-action="Details" asp-route-id="@trip.TripId" class="btn btn-select">
-                                            View Details <i class="bi bi-arrow-right"></i>
-                                        </a>
-                                    </div>
+                                    <a asp-controller="Transportation" asp-action="Details" asp-route-id="@trip.TripId" class="btn-select-journey">
+                                        <span>Select Seats</span>
+                                        <i class="bi bi-arrow-right"></i>
+                                    </a>
                                 </div>
                             </div>
                         }
@@ -590,7 +772,7 @@
 
                     @if (Model.TotalPages > 1)
                     {
-                        <nav class="pagination-nav">
+                        <nav class="pagination-nav mt-4">
                             <ul class="pagination">
                                 @for (int i = 1; i <= Model.TotalPages; i++)
                                 {
@@ -599,7 +781,11 @@
                                            asp-route-origin="@Model.Origin"
                                            asp-route-destination="@Model.Destination"
                                            asp-route-departureDate="@Model.DepartureDate?.ToString("yyyy-MM-dd")"
+                                           asp-route-vehicleType="@Model.VehicleType"
+                                           asp-route-minPrice="@Model.MinPrice"
+                                           asp-route-maxPrice="@Model.MaxPrice"
                                            asp-route-page="@i"
+                                           onclick="triggerAjaxFilter(this.href); return false;"
                                            class="page-link">@i</a>
                                     </li>
                                 }
@@ -609,11 +795,11 @@
                 }
                 else
                 {
-                    <div class="no-results">
-                        <i class="bi bi-search display-4 text-muted mb-3 d-block"></i>
-                        <h3>No coach schedules found</h3>
-                        <p>Try adjusting your destination or departure date to find available trips.</p>
-                        <a href="@Url.Action("Index", "Transportation")" class="btn btn-primary">Clear all filters</a>
+                    <div class="no-results text-center py-5">
+                        <i class="bi bi-search display-3 text-muted mb-3 d-block"></i>
+                        <h3 class="fw-bold" style="color: #06143b;">No coach schedules found</h3>
+                        <p class="text-muted">Try adjusting your destination, departure date or price range.</p>
+                        <a href="@Url.Action("Index", "Transportation")" onclick="triggerAjaxFilter(this.href); return false;" class="btn btn-primary px-4 py-2 fw-bold">Clear all filters</a>
                     </div>
                 }
             </main>
@@ -622,7 +808,6 @@
 </section>
 
 <script>
-    // 地点打字实时联想与下拉交互
     setupAutocomplete('originInput', 'originDropdown');
     setupAutocomplete('destinationInput', 'destinationDropdown');
 
@@ -682,14 +867,70 @@
         setTimeout(() => { this.style.transform = 'none'; }, 300);
     });
 
-
     function filterByVehicle(type) {
-        const hiddenInput = document.getElementById('filterVehicleTypeHidden');
-        const form = document.getElementById('mainSearchForm');
+        document.getElementById('filterVehicleTypeHidden').value = type;
+        document.querySelectorAll('.pill-tab').forEach(tab => tab.classList.remove('active'));
         
-        if (hiddenInput && form) {
-            hiddenInput.value = type;
-            form.submit();
-        }
+        const currentForm = document.getElementById('mainSearchForm');
+        submitFormViaAjax(currentForm);
     }
+
+    function setQuickPrice(min, max) {
+        document.getElementById('minPriceHidden').value = min;
+        document.getElementById('maxPriceHidden').value = max;
+        
+        document.getElementById('sidebarMinPrice').value = min;
+        document.getElementById('sidebarMaxPrice').value = max;
+
+        const currentForm = document.getElementById('mainSearchForm');
+        submitFormViaAjax(currentForm);
+    }
+
+    function submitFormViaAjax(form) {
+        const formData = new FormData(form);
+        const params = new URLSearchParams(formData);
+        const targetUrl = form.action + '?' + params.toString();
+        triggerAjaxFilter(targetUrl);
+    }
+
+    function triggerAjaxFilter(url) {
+        const mainArea = document.getElementById('resultsMainArea');
+        if (!mainArea) {
+            window.location.href = url;
+            return;
+        }
+
+        mainArea.classList.add('results-loading-overlay');
+
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(res => res.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newContent = doc.getElementById('resultsMainArea');
+                
+                if (newContent) {
+                    mainArea.innerHTML = newContent.innerHTML;
+                    window.history.pushState({}, '', url);
+                } else {
+                    window.location.href = url;
+                }
+            })
+            .catch(err => {
+                window.location.href = url;
+            })
+            .finally(() => {
+                mainArea.classList.remove('results-loading-overlay');
+            });
+    }
+
+    document.getElementById('mainSearchForm')?.addEventListener('submit', function (e) {
+        e.preventDefault();
+        submitFormViaAjax(this);
+    });
+
+    document.getElementById('advancedFilterForm')?.addEventListener('submit', function (e) {
+        e.preventDefault();
+        submitFormViaAjax(this);
+    });
 </script>

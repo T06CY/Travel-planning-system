@@ -12,14 +12,13 @@
     .manifest-page { background: #f3f5fb; padding: 35px 0; min-height: 85vh; }
     .manifest-card { background: #fff; border-radius: 16px; padding: 30px; box-shadow: 0 8px 25px rgba(6,20,59,0.06); border: 1px solid #e2e8f0; }
 
-    /* ⭐ 完美横向打印引擎 (彻底撑开宽度，消除难看折行与滚动条) */
+    /* Print styling rules */
     @@media print {
         @@page {
             size: landscape;
-            margin: 0.8cm 1cm; /* 适当缩小页边距，最大化利用横向空间 */
+            margin: 0.8cm 1cm;
         }
         
-        /* 隐藏无用界面元素 */
         nav, header, footer, .navbar, .sidebar, .no-print, .btn, .dashboard-heading {
             display: none !important;
         }
@@ -31,7 +30,6 @@
             width: 100% !important;
         }
 
-        /* 强制主卡片和容器占满整张横向纸张 */
         .container, .container-fluid, .manifest-card {
             width: 100% !important;
             max-width: 100% !important;
@@ -47,7 +45,6 @@
             width: 100% !important;
         }
 
-        /* 表格 100% 宽度展开 */
         table {
             width: 100% !important;
             border-collapse: collapse !important;
@@ -73,7 +70,6 @@
             white-space: nowrap !important;
         }
 
-        /* 打印时显示的文字标签 */
         .print-only {
             display: inline !important;
         }
@@ -88,7 +84,7 @@
 <div class="manifest-page">
     <div class="container">
         
-        <!-- 顶部操作条 -->
+        <!-- Top Navigation & Action Controls -->
         <div class="d-flex justify-content-between align-items-center mb-4 no-print">
             <a asp-action="Index" class="btn btn-outline-secondary fw-bold">
                 <i class="bi bi-arrow-left"></i> Back to Operations Hub
@@ -103,13 +99,29 @@
             </div>
         </div>
 
-        <!-- 登车检票单主卡片 -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show no-print mb-4 shadow-sm">
+                <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show no-print mb-4 shadow-sm">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <!-- Boarding Manifest Card -->
         <div class="manifest-card">
             
             <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3 flex-wrap gap-2">
                 <div>
                     <h2 class="fw-bold mb-1" style="color: #06143b;">Passenger Boarding Manifest</h2>
-                    <p class="text-muted mb-0">Official Dispatch & Check-in Document • TravelMate Express</p>
+                    <p class="text-muted mb-0">Official Dispatch &amp; Passenger Manifest • TravelMate Operations</p>
                 </div>
                 <div class="text-end">
                     <span class="badge bg-primary fs-6 px-3 py-2">Trip #@trip.TripId</span>
@@ -117,7 +129,7 @@
                 </div>
             </div>
 
-            <!-- 车次信息栏 (横向舒展排版) -->
+            <!-- Trip Meta Information Banner -->
             <div class="row g-3 p-3 bg-light rounded-3 mb-4 border align-items-center">
                 <div class="col-3">
                     <span class="text-muted small d-block">Route</span>
@@ -138,20 +150,21 @@
                 </div>
             </div>
 
-            <!-- 检票清单表格 -->
+            <!-- Passenger Checklist Table -->
             <h5 class="fw-bold mb-3" style="color: #06143b;">Boarding Passenger Checklist</h5>
             
             <div class="table-responsive">
                 <table class="table align-middle">
                     <thead class="table-dark">
                         <tr>
-                            <th class="nowrap text-center" style="width: 90px;">Boarded</th>
+                            <th class="nowrap text-center" style="width: 80px;">Boarded</th>
                             <th class="nowrap text-center" style="width: 75px;">Seat</th>
                             <th>Passenger Full Name</th>
                             <th class="nowrap" style="width: 170px;">IC / Passport</th>
                             <th class="nowrap text-center" style="width: 90px;">Type</th>
-                            <th class="nowrap" style="width: 200px;">Baggage Allowance</th>
-                            <th class="nowrap" style="width: 190px;">Booking Reference</th>
+                            <th class="nowrap" style="width: 180px;">Baggage</th>
+                            <th class="nowrap" style="width: 170px;">Booking Ref</th>
+                            <th class="no-print text-end" style="width: 140px;">Admin Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -159,36 +172,82 @@
                         {
                             @foreach (var b in Model)
                             {
+                                var isCancelled = b.BookingStatus == "Cancelled";
+
                                 @foreach (var p in b.Passengers)
                                 {
-                                    <tr id="row_@p.PassengerId" class="@(p.IsBoarded ? "table-success" : "")">
-                                        <!-- 检票状态列 -->
+                                    <tr id="row_@p.PassengerId" class="@(isCancelled ? "table-danger opacity-75" : p.IsBoarded ? "table-success" : "")">
+                                        <!-- Check-in Status Column -->
                                         <td class="text-center">
-                                            <!-- 屏幕上显示可点击的勾选框（带自动保存） -->
-                                            <input type="checkbox" 
-                                                   class="boarding-checkbox form-check-input screen-only" 
-                                                   style="width: 20px; height: 20px; cursor: pointer;"
-                                                   data-id="@p.PassengerId"
-                                                   @(p.IsBoarded ? "checked" : "")
-                                                   onchange="saveBoardingStatus(@p.PassengerId, this.checked)" />
+                                            @if (!isCancelled)
+                                            {
+                                                <input type="checkbox" 
+                                                       class="boarding-checkbox form-check-input screen-only" 
+                                                       style="width: 20px; height: 20px; cursor: pointer;"
+                                                       data-id="@p.PassengerId"
+                                                       @(p.IsBoarded ? "checked" : "")
+                                                       onchange="saveBoardingStatus(@p.PassengerId, this.checked)" />
 
-                                            <!-- 打印在纸面上显示整齐的文字状态 -->
-                                            <span class="print-only fw-bold @(p.IsBoarded ? "text-success" : "text-muted")">
-                                                @(p.IsBoarded ? "☑ Boarded" : "☐ Unchecked")
-                                            </span>
+                                                <span class="print-only fw-bold @(p.IsBoarded ? "text-success" : "text-muted")">
+                                                    @(p.IsBoarded ? "☑ Boarded" : "☐ Unchecked")
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">Cancelled</span>
+                                            }
                                         </td>
+
+                                        <!-- Seat Number -->
                                         <td class="fw-bold fs-6 text-primary text-center nowrap">@p.SeatNumber</td>
+
+                                        <!-- Passenger Full Name -->
                                         <td class="fw-bold">
                                             @p.FullName
                                             @if (p.HasTravelInsurance)
                                             {
                                                 <span class="badge bg-info text-dark ms-1 no-print" style="font-size: 0.65rem;">Insured</span>
                                             }
+                                            @if (isCancelled && !string.IsNullOrWhiteSpace(b.CancellationReason))
+                                            {
+                                                <small class="d-block text-danger fw-normal" style="font-size: 0.75rem;">
+                                                    <i class="bi bi-info-circle"></i> @b.CancellationReason
+                                                </small>
+                                            }
                                         </td>
+
+                                        <!-- IC / Passport Number -->
                                         <td class="font-monospace nowrap">@p.IdNumber</td>
+
+                                        <!-- Passenger Type -->
                                         <td class="text-center nowrap"><span class="badge bg-light text-dark border">@p.PassengerType</span></td>
+
+                                        <!-- Baggage Allowance -->
                                         <td class="nowrap small">@p.BaggageOption</td>
+
+                                        <!-- Booking Reference -->
                                         <td class="font-monospace nowrap text-dark fw-bold small">@b.BookingReference</td>
+
+                                        <!-- Admin Action Column (Screen Only) -->
+                                        <td class="no-print text-end">
+                                            @if (!isCancelled)
+                                            {
+                                                <button type="button" 
+                                                        class="btn btn-sm btn-outline-danger admin-cancel-btn"
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#adminCancelModal"
+                                                        data-booking-id="@b.BookingId"
+                                                        data-booking-ref="@b.BookingReference"
+                                                        data-passenger-name="@p.FullName"
+                                                        data-seat-number="@p.SeatNumber">
+                                                    <i class="bi bi-x-circle"></i> Cancel Ticket
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-light text-muted border">Refunded</span>
+                                            }
+                                        </td>
                                     </tr>
                                 }
                             }
@@ -196,7 +255,7 @@
                         else
                         {
                             <tr>
-                                <td colspan="7" class="text-center py-5 text-muted">
+                                <td colspan="8" class="text-center py-5 text-muted">
                                     <i class="bi bi-people display-6 d-block mb-2 text-muted"></i>
                                     No passengers have booked on this trip yet.
                                 </td>
@@ -206,7 +265,7 @@
                 </table>
             </div>
 
-            <!-- 底部签字区 -->
+            <!-- Terminal Signature Footer for Physical Prints -->
             <div class="mt-4 pt-3 border-top d-flex justify-content-between text-muted small">
                 <span>Driver Signature: _______________________</span>
                 <span>Station Dispatcher: _______________________</span>
@@ -216,7 +275,116 @@
     </div>
 </div>
 
+<!-- ===================================================== -->
+<!-- ADMIN CANCELLATION MODAL DIALOG                       -->
+<!-- ===================================================== -->
+<div class="modal fade no-print" id="adminCancelModal" tabindex="-1" aria-labelledby="adminCancelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <form asp-action="CancelBooking" method="post" id="adminCancelForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="bookingId" id="adminBookingIdInput" />
+                <input type="hidden" name="returnTripId" value="@trip.TripId" />
+
+                <div class="modal-header bg-danger text-white px-4 py-3">
+                    <h5 class="modal-title fw-bold" id="adminCancelModalLabel">
+                        <i class="bi bi-shield-exclamation me-2"></i> Administrator Ticket Cancellation
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body p-4">
+                    <div class="alert alert-warning small border-0 mb-3">
+                        <i class="bi bi-exclamation-circle-fill me-1"></i>
+                        Cancelling this ticket will immediately release the seat back to public inventory and mark the booking as refunded.
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted">Booking Reference</label>
+                            <input type="text" id="adminModalBookingRef" class="form-control form-control-sm bg-light font-monospace fw-bold" readonly />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted">Passenger / Seat</label>
+                            <input type="text" id="adminModalPassengerSeat" class="form-control form-control-sm bg-light fw-bold text-primary" readonly />
+                        </div>
+                    </div>
+
+                    <!-- Dispatcher Reason Presets -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Select Audit Reason Category <span class="text-danger">*</span></label>
+                        <select class="form-select form-select-sm" id="adminReasonPreset" onchange="applyAdminReason(this.value)">
+                            <option value="">-- Choose administrative reason --</option>
+                            <option value="Customer phone / counter request for cancellation">Customer requested cancellation via counter/phone</option>
+                            <option value="Passenger no-show prior to terminal departure">Passenger no-show prior to departure cutoff</option>
+                            <option value="Operational schedule change or bus breakdown">Operational schedule change or fleet breakdown</option>
+                            <option value="Failed identity or passport security verification">Failed identity or passport verification</option>
+                            <option value="Duplicate or fraudulent reservation override">Duplicate booking or payment chargeback</option>
+                            <option value="Other">Other administrative reason (Specify below)</option>
+                        </select>
+                    </div>
+
+                    <!-- Detailed Administrative Explanation -->
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Official Cancellation Explanation <span class="text-danger">*</span></label>
+                        <textarea name="cancellationReason" 
+                                  id="adminReasonTextarea" 
+                                  class="form-control" 
+                                  rows="3" 
+                                  placeholder="Provide detailed administrative notes for this cancellation..." 
+                                  required 
+                                  minlength="5" 
+                                  maxlength="400"></textarea>
+                        <small class="text-muted d-block mt-1">Minimum 5 characters required for audit records.</small>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light px-4 py-3">
+                    <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-danger fw-bold px-4">
+                        <i class="bi bi-x-octagon-fill me-1"></i> Authorize Cancellation
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Check-in Auto-save & Admin Cancellation Modal -->
 <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Event delegation to populate administrative cancellation modal
+        document.querySelectorAll('.admin-cancel-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const bookingId = this.getAttribute('data-booking-id');
+                const bookingRef = this.getAttribute('data-booking-ref');
+                const passengerName = this.getAttribute('data-passenger-name');
+                const seatNumber = this.getAttribute('data-seat-number');
+
+                document.getElementById('adminBookingIdInput').value = bookingId;
+                document.getElementById('adminModalBookingRef').value = bookingRef;
+                document.getElementById('adminModalPassengerSeat').value = passengerName + ' (Seat ' + seatNumber + ')';
+
+                // Reset inputs
+                document.getElementById('adminReasonPreset').value = '';
+                document.getElementById('adminReasonTextarea').value = '';
+            });
+        });
+    });
+
+    // Helper to auto-fill preset reason into admin textarea
+    function applyAdminReason(val) {
+        const textarea = document.getElementById('adminReasonTextarea');
+        if (val && val !== 'Other') {
+            textarea.value = val;
+        } else if (val === 'Other') {
+            textarea.value = '';
+            textarea.placeholder = 'Type detailed administrative notes here...';
+            textarea.focus();
+        }
+    }
+
+    // Auto-save check-in boarding status via AJAX
     function saveBoardingStatus(passengerId, isBoarded) {
         const row = document.getElementById('row_' + passengerId);
         if (isBoarded) {

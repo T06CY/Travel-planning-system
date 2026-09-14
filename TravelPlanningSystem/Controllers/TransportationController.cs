@@ -15,16 +15,16 @@ namespace TravelPlanningSystem.Controllers;
 public class TransportationController(AppDbContext context) : Controller
 {
     // ==========================================
-    // 列表与检索页面 (Index)
+    // Public Catalog & Search Page (Index)
     // ==========================================
     [AllowAnonymous]
     public async Task<IActionResult> Index(TransportationSearchViewModel model)
     {
-        // 1. 确保页码与每页条数合法
+        // 1. Ensure valid page number and page size
         model.Page = Math.Max(1, model.Page);
         if (model.PageSize <= 0) model.PageSize = 12;
 
-        // 2. 价格范围校验 (Validation)
+        // 2. Validate price range constraints
         if (model.MinPrice.HasValue && model.MinPrice.Value < 0)
         {
             ModelState.AddModelError(nameof(model.MinPrice), "Minimum price cannot be less than 0.");
@@ -35,7 +35,7 @@ public class TransportationController(AppDbContext context) : Controller
             ModelState.AddModelError(nameof(model.MaxPrice), "Maximum price cannot be less than minimum price.");
         }
 
-        // 3. 获取所有可用路线以供下拉框筛选
+        // 3. Retrieve active routes for dropdown filters
         var routes = await context.Routes
             .Where(r => r.IsActive)
             .ToListAsync();
@@ -59,7 +59,7 @@ public class TransportationController(AppDbContext context) : Controller
             .OrderBy(t => t)
             .ToListAsync();
 
-        // 4. 构建基础查询
+        // 4. Construct base query with eager loading
         var query = context.Trips
             .AsNoTracking()
             .AsSplitQuery()
@@ -68,7 +68,7 @@ public class TransportationController(AppDbContext context) : Controller
             .Include(t => t.Reviews.Where(r => r.IsVisible))
             .Where(t => t.IsActive && t.Route!.IsActive && t.Vehicle!.IsActive);
 
-        // 5. 应用搜索与过滤条件
+        // 5. Apply origin, destination, and departure date filters
         if (!string.IsNullOrWhiteSpace(model.Origin))
         {
             query = query.Where(t => t.Route!.Origin == model.Origin);
@@ -96,7 +96,6 @@ public class TransportationController(AppDbContext context) : Controller
                 t.Vehicle.VehicleType.ToLower().Contains(search));
         }
 
-        // 仅在价格合法时生效过滤
         if (ModelState.IsValid)
         {
             if (model.MinPrice.HasValue)
@@ -130,7 +129,7 @@ public class TransportationController(AppDbContext context) : Controller
                 t.DepartureTime.TimeOfDay <= timeTo.ToTimeSpan());
         }
 
-        // 6. 分页与排序
+        // 6. Pagination and sorting
         model.TotalCount = await query.CountAsync();
 
         query = model.SortBy switch
@@ -155,7 +154,7 @@ public class TransportationController(AppDbContext context) : Controller
     }
 
     // ==========================================
-    // 详情页面 (Details)
+    // Trip Details & Seat Pre-check (Details)
     // ==========================================
     public async Task<IActionResult> Details(int id)
     {
@@ -175,7 +174,7 @@ public class TransportationController(AppDbContext context) : Controller
     }
 
     // ==========================================
-    // Core Module 2: 选座与预订 (GET)
+    // Seat Selection & Booking Form (GET)
     // ==========================================
     [HttpGet]
     public async Task<IActionResult> Book(int id)
@@ -189,7 +188,7 @@ public class TransportationController(AppDbContext context) : Controller
         if (trip == null || !trip.IsActive)
             return NotFound("Trip not found or no longer active.");
 
-        // 智能补全机制：若无具体座位记录，自动按车容量生成座位表
+        // Automatically generate visual seats if not initialized
         if (!trip.Seats.Any())
         {
             var seats = new List<Seat>();
@@ -230,7 +229,7 @@ public class TransportationController(AppDbContext context) : Controller
             TotalAmount = unitPrice
         };
 
-        // ⭐ 自动拉取当前登录账户的真实姓名与 Gmail
+        // Automatically populate contact details from logged-in user profile
         var identityName = User.Identity?.Name;
         ApplicationUser? loggedUser = null;
         if (!string.IsNullOrEmpty(identityName))
@@ -254,7 +253,7 @@ public class TransportationController(AppDbContext context) : Controller
     }
 
     // ==========================================
-    // Core Module 2: 提交预订订单 (POST)
+    // Submit Booking & Seat Reservation (POST)
     // ==========================================
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -274,7 +273,7 @@ public class TransportationController(AppDbContext context) : Controller
             ModelState.AddModelError("", "Please select at least one seat on the seat map.");
         }
 
-        // 多重识别当前登录用户
+        // Authenticate and match the current logged-in user
         ApplicationUser? currentUser = null;
         var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (Guid.TryParse(userIdStr, out var userGuid))
@@ -304,17 +303,16 @@ public class TransportationController(AppDbContext context) : Controller
             return RedirectToAction("Login", "Account");
         }
 
-        // ⭐ 1. 强制将联系人姓名与 Gmail 锁定为当前登录账户（后端安全保障）
+        // Lock contact name and email to verified user account
         model.ContactName = $"{currentUser.FirstName} {currentUser.LastName}".Trim();
         if (string.IsNullOrEmpty(model.ContactName)) model.ContactName = currentUser.FirstName;
         model.ContactEmail = currentUser.Email;
 
-        // ⭐ 2. 逐一校验每位乘客姓名与证件号的合规性
+        // Server-side validation for passenger full name and IC / Passport number
         for (int i = 0; i < model.Passengers.Count; i++)
         {
             var p = model.Passengers[i];
 
-            // 姓名验证：真实姓名（只允许字母与空格，2~80个字符）
             if (string.IsNullOrWhiteSpace(p.FullName) || p.FullName.Trim().Length < 2)
             {
                 ModelState.AddModelError("", $"Passenger {i + 1} (Seat {p.SeatNumber}): Full name is required (minimum 2 letters).");
@@ -324,7 +322,6 @@ public class TransportationController(AppDbContext context) : Controller
                 ModelState.AddModelError("", $"Passenger {i + 1} (Seat {p.SeatNumber}): Full name must contain letters and spaces only.");
             }
 
-            // 证件号验证：身份证或护照格式 (6~20位字母数字破折号)
             if (string.IsNullOrWhiteSpace(p.IdNumber) || p.IdNumber.Trim().Length < 6)
             {
                 ModelState.AddModelError("", $"Passenger {i + 1} (Seat {p.SeatNumber}): Valid IC or Passport number is required (minimum 6 characters).");
@@ -335,7 +332,7 @@ public class TransportationController(AppDbContext context) : Controller
             }
         }
 
-        // 3. 验证所选座位是否依然可用
+        // Verify that selected seats are still available in inventory
         var selectedSeats = trip.Seats
             .Where(s => model.SelectedSeatNumbers!.Contains(s.SeatNumber))
             .ToList();
@@ -353,7 +350,7 @@ public class TransportationController(AppDbContext context) : Controller
             return View(model);
         }
 
-        // 4. 费用计算
+        // Fee calculations: base fare, baggage add-ons, insurance, and promo discounts
         decimal seatPrice = trip.BaseFare * (1 - trip.DiscountPercentage / 100);
         decimal baseTotal = seatPrice * selectedSeats.Count;
         decimal baggageTotal = model.Passengers.Sum(p => p.BaggagePrice);
@@ -369,7 +366,7 @@ public class TransportationController(AppDbContext context) : Controller
 
         decimal grandTotal = Math.Max(0, baseTotal + baggageTotal + insuranceTotal - discount);
 
-        // 5. 创建预订记录实体 (TransportationBooking)
+        // Construct booking record
         var booking = new TransportationBooking
         {
             BookingReference = "TB-" + DateTime.UtcNow.ToString("yyyyMMdd") + "-" + Guid.NewGuid().ToString("N")[..5].ToUpper(),
@@ -391,7 +388,7 @@ public class TransportationController(AppDbContext context) : Controller
             UpdatedAt = DateTime.UtcNow
         };
 
-        // 6. 添加乘客名册并锁定座位
+        // Attach passengers and reserve physical seats
         foreach (var pInput in model.Passengers)
         {
             var targetSeat = selectedSeats.FirstOrDefault(s => s.SeatNumber == pInput.SeatNumber);
@@ -425,7 +422,7 @@ public class TransportationController(AppDbContext context) : Controller
     }
 
     // ==========================================
-    // Core Module 2: 电子车票确认页 (GET)
+    // E-Ticket & Boarding Pass Confirmation (GET)
     // ==========================================
     [HttpGet]
     public async Task<IActionResult> Confirmation(int id)
@@ -444,7 +441,7 @@ public class TransportationController(AppDbContext context) : Controller
     }
 
     // ==========================================
-    // Core Module 2: 我的车票列表 (GET)
+    // Passenger My Bookings Roster (GET)
     // ==========================================
     [HttpGet]
     public async Task<IActionResult> MyBookings()
@@ -483,12 +480,19 @@ public class TransportationController(AppDbContext context) : Controller
     }
 
     // ==========================================
-    // Core Module 2: 取消预订 / 退票 (POST)
+    // Cancel Booking with Mandatory Reason (POST)
     // ==========================================
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CancelBooking(int id)
+    public async Task<IActionResult> CancelBooking(int id, string cancellationReason)
     {
+        // 1. Validate that the user provided a cancellation reason
+        if (string.IsNullOrWhiteSpace(cancellationReason) || cancellationReason.Trim().Length < 5)
+        {
+            TempData["ErrorMessage"] = "Please provide a valid cancellation reason (minimum 5 characters).";
+            return RedirectToAction(nameof(MyBookings));
+        }
+
         var booking = await context.TransportationBookings
             .Include(b => b.Trip).ThenInclude(t => t!.Seats)
             .Include(b => b.Passengers)
@@ -503,10 +507,14 @@ public class TransportationController(AppDbContext context) : Controller
             return RedirectToAction(nameof(MyBookings));
         }
 
+        // 2. Update booking status, record cancellation reason and trigger refund status
         booking.BookingStatus = "Cancelled";
         booking.PaymentStatus = "Refunded";
+        booking.CancellationReason = cancellationReason.Trim();
+        booking.CancelledAt = DateTime.UtcNow;
         booking.UpdatedAt = DateTime.UtcNow;
 
+        // 3. Release physical seats back to available inventory
         if (booking.Trip != null)
         {
             var seatNumbers = booking.Passengers.Select(p => p.SeatNumber).ToList();
@@ -524,13 +532,13 @@ public class TransportationController(AppDbContext context) : Controller
         }
 
         await context.SaveChangesAsync();
-        TempData["SuccessMessage"] = "Booking cancelled successfully. Seats have been released and refund is processed.";
+        TempData["SuccessMessage"] = "Your booking was successfully cancelled. Seats have been released and refund has been initiated.";
 
         return RedirectToAction(nameof(MyBookings));
     }
 
     // ==========================================
-    // Core Module 1/3: 提交车次评价 (POST)
+    // Submit Trip Review & Star Rating (POST)
     // ==========================================
     [HttpPost]
     [ValidateAntiForgeryToken]
