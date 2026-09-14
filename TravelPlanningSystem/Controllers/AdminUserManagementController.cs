@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 using System.Security.Claims;
 using TravelPlanningSystem.Data;
 using TravelPlanningSystem.Models;
@@ -154,7 +155,17 @@ public class AdminUserManagementController(AppDbContext context) : Controller
             CreatedAt = DateTime.UtcNow
         });
 
-        await context.SaveChangesAsync();
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateException exception) when (IsDuplicateEmailException(exception))
+        {
+            ModelState.AddModelError(nameof(model.Email), "That email address is already in use.");
+            await LoadRolesAsync();
+            return View(model);
+        }
+
         TempData["Message"] = "Staff user created successfully.";
         return RedirectToAction(nameof(Index));
     }
@@ -254,4 +265,7 @@ public class AdminUserManagementController(AppDbContext context) : Controller
     {
         ViewBag.StaffRoles = await context.StaffRoles.AsNoTracking().OrderBy(r => r.RoleName).ToListAsync();
     }
+
+    private static bool IsDuplicateEmailException(DbUpdateException exception)
+        => exception.InnerException is SqlException { Number: 2601 or 2627 };
 }
