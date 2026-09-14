@@ -1,5 +1,6 @@
 ﻿@model TravelPlanningSystem.ViewModels.AdminDashboardViewModel
 @inject TravelPlanningSystem.Data.AppDbContext DbContext
+@using Microsoft.EntityFrameworkCore
 
 @{
     ViewData["Title"] = "Admin Dashboard";
@@ -169,7 +170,7 @@
                 </div>
             </a>
 
-            <!-- TRANSPORTATION (已激活) -->
+            <!-- TRANSPORTATION -->
             <a asp-controller="AdminTransportation" asp-action="Index" class="team-module-card text-decoration-none">
                 <div class="team-module-icon transport-module">
                     <i class="bi bi-bus-front"></i>
@@ -196,18 +197,92 @@
     </div>
 
     <!-- ===================================================== -->
-    <!-- ⭐ TRANSPORTATION MANAGEMENT (交通专属统计总览板块)  -->
+    <!-- ⭐ TRANSPORTATION MANAGEMENT                         -->
     <!-- ===================================================== -->
     @{
         var transRoutesCount = DbContext.Routes.Count(r => r.IsActive);
         var transVehiclesCount = DbContext.Vehicles.Count(v => v.IsActive);
-        var transTripsCount = DbContext.Trips.Count(t => t.IsActive);
-        var transBookingsCount = DbContext.TransportationBookings.Count();
-        var transRevenue = DbContext.TransportationBookings.Where(b => b.BookingStatus == "Confirmed").Sum(b => (decimal?)b.TotalAmount) ?? 0m;
+        var transTrips = DbContext.Trips
+            .Include(t => t.Route)
+            .Include(t => t.Vehicle)
+            .Where(t => t.IsActive)
+            .ToList();
+        var transTripsCount = transTrips.Count;
 
-        var transConfirmed = DbContext.TransportationBookings.Count(b => b.BookingStatus == "Confirmed");
-        var transCancelled = DbContext.TransportationBookings.Count(b => b.BookingStatus == "Cancelled");
-        var recentTransBookings = DbContext.TransportationBookings
+        var transBookings = DbContext.TransportationBookings
+            .Include(b => b.Passengers)
+            .ToList();
+        var transBookingsCount = transBookings.Count;
+        var transRevenue = transBookings.Where(b => b.BookingStatus == "Confirmed").Sum(b => b.TotalAmount);
+        var transConfirmed = transBookings.Count(b => b.BookingStatus == "Confirmed");
+        var transCancelled = transBookings.Count(b => b.BookingStatus == "Cancelled");
+
+        var transAvgFare = transTrips.Any() ? transTrips.Average(t => t.BaseFare) : 0m;
+        var transTotalSeats = transTrips.Sum(t => t.TotalSeats);
+        var transAvailableSeats = transTrips.Sum(t => t.AvailableSeats);
+        var transReservedSeats = transTotalSeats - transAvailableSeats;
+        var transDelayedTrips = transTrips.Count(t => t.Status == "Delayed");
+        var transCancelledTrips = transTrips.Count(t => t.Status == "Cancelled");
+
+        var tripsByVehicleType = transTrips
+            .GroupBy(t => t.Vehicle?.VehicleType ?? "Standard Coach")
+            .Select(g => new
+            {
+                Label = g.Key,
+                Count = g.Count(),
+                Percentage = transTripsCount > 0 ? Math.Round((decimal)g.Count() * 100m / transTripsCount, 1) : 0m
+            })
+            .OrderByDescending(x => x.Count)
+            .ToList();
+
+        var topRoutes = transTrips
+            .Where(t => t.Route != null)
+            .GroupBy(t => $"{t.Route!.Origin} → {t.Route.Destination}")
+            .Select(g => new
+            {
+                Label = g.Key,
+                Count = g.Count()
+            })
+            .OrderByDescending(x => x.Count)
+            .Take(6)
+            .ToList();
+
+        var seatsByVehicle = transTrips
+            .GroupBy(t => t.Vehicle?.VehicleType ?? "Standard Coach")
+            .Select(g => new
+            {
+                Label = g.Key,
+                Total = g.Sum(t => t.TotalSeats),
+                Available = g.Sum(t => t.AvailableSeats),
+                Reserved = g.Sum(t => t.TotalSeats - t.AvailableSeats)
+            })
+            .OrderByDescending(x => x.Total)
+            .ToList();
+
+        var vehicleColors = new[] { "#315ff4", "#e4a514", "#8a5bd6", "#10b981", "#f43f5e" };
+        var totalVehicleReserved = seatsByVehicle.Sum(x => x.Reserved);
+
+        string transDonutGradient;
+        if (totalVehicleReserved == 0 || !seatsByVehicle.Any())
+        {
+            transDonutGradient = "conic-gradient(#e7edf6 0 100%)";
+        }
+        else
+        {
+            var segments = new List<string>();
+            decimal currentP = 0m;
+            for (int i = 0; i < seatsByVehicle.Count; i++)
+            {
+                var p = Math.Round((decimal)seatsByVehicle[i].Reserved * 100m / totalVehicleReserved, 2);
+                var nextP = currentP + p;
+                var color = vehicleColors[i % vehicleColors.Length];
+                segments.Add($"{color} {currentP}% {nextP}%");
+                currentP = nextP;
+            }
+            transDonutGradient = $"conic-gradient({string.Join(", ", segments)})";
+        }
+
+        var recentTransBookings = transBookings
             .OrderByDescending(b => b.BookingDate)
             .Take(5)
             .ToList();
@@ -231,7 +306,6 @@
         </a>
     </div>
 
-    <!-- 4 大交通运营 KPI 指标卡片 -->
     <div class="dashboard-stat-grid">
         <div class="dashboard-stat-card stat-blue">
             <div>
@@ -255,20 +329,9 @@
             </div>
         </div>
 
-        <div class="dashboard-stat-card stat-pink">
-            <div>
-                <span>Total Bookings</span>
-                <h2>@transBookingsCount</h2>
-                <small>Tickets issued</small>
-            </div>
-            <div class="stat-icon">
-                <i class="bi bi-ticket-perforated"></i>
-            </div>
-        </div>
-
         <div class="dashboard-stat-card stat-purple">
             <div>
-                <span>Total Revenue</span>
+                <span>Gross Revenue</span>
                 <h2>RM @transRevenue.ToString("N2")</h2>
                 <small>Excluding cancelled tickets</small>
             </div>
@@ -276,20 +339,104 @@
                 <i class="bi bi-cash-stack"></i>
             </div>
         </div>
+
+        <div class="dashboard-stat-card stat-pink">
+            <div>
+                <span>Seats Assigned</span>
+                <h2>@transReservedSeats</h2>
+                <small>Passenger seats reserved</small>
+            </div>
+            <div class="stat-icon">
+                <i class="bi bi-person-check"></i>
+            </div>
+        </div>
     </div>
 
-    <!-- 交通状态徽章 -->
+    <section class="dashboard-panel flight-analytics-panel">
+        <div class="dashboard-panel-heading">
+            <div>
+                <h3>Transportation analytics</h3>
+                <p>Demand, capacity and schedule analysis for the local booking inventory.</p>
+            </div>
+            <a asp-controller="AdminTransportation" asp-action="Index">View operations <i class="bi bi-arrow-right"></i></a>
+        </div>
+
+        <div class="flight-analytics-kpis">
+            <div><span>Average fare</span><strong>RM @transAvgFare.ToString("N2")</strong></div>
+            <div><span>Available seats</span><strong>@transAvailableSeats / @transTotalSeats</strong></div>
+            <div><span>Delayed departures</span><strong>@transDelayedTrips</strong></div>
+            <div><span>Cancelled departures</span><strong>@transCancelledTrips</strong></div>
+        </div>
+
+        <div class="flight-analytics-columns">
+            <div>
+                <h4>Trips by vehicle type</h4>
+                @if (!tripsByVehicleType.Any())
+                {
+                    <p class="analytics-empty">No active transportation schedules yet.</p>
+                }
+                @foreach (var item in tripsByVehicleType)
+                {
+                    <div class="analytics-bar-row">
+                        <span>@item.Label</span><strong>@item.Count <small>(@item.Percentage%)</small></strong>
+                        <div><i style="width:@item.Percentage%"></i></div>
+                    </div>
+                }
+            </div>
+            <div>
+                <h4>Top routes</h4>
+                @if (!topRoutes.Any())
+                {
+                    <p class="analytics-empty">Routes appear after schedules are published.</p>
+                }
+                @foreach (var item in topRoutes)
+                {
+                    <div class="analytics-route-row">
+                        <span>@item.Label</span><strong>@item.Count</strong>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="flight-cabin-report">
+            <div class="flight-cabin-report-heading">
+                <div>
+                    <h4>Seat demand by vehicle fleet</h4>
+                    <p>Reserved seats across active coach &amp; van departures.</p>
+                </div>
+                <span class="flight-report-total">@totalVehicleReserved reserved</span>
+            </div>
+            <div class="flight-cabin-report-body">
+                <div class="flight-cabin-pie" style="background:@transDonutGradient" role="img" aria-label="Reserved seats by vehicle type"></div>
+                <div class="flight-cabin-legend">
+                    @for (var vIdx = 0; vIdx < seatsByVehicle.Count; vIdx++)
+                    {
+                        var vSeat = seatsByVehicle[vIdx];
+                        var vPercent = totalVehicleReserved == 0 ? 0 : Math.Round(vSeat.Reserved * 100m / totalVehicleReserved, 1);
+                        var vColor = vehicleColors[vIdx % vehicleColors.Length];
+                        <div class="flight-cabin-legend-row">
+                            <span><i style="background:@vColor"></i>@vSeat.Label</span>
+                            <strong>@vSeat.Reserved <small>(@vPercent%)</small></strong>
+                            <em>@vSeat.Available available</em>
+                        </div>
+                    }
+                </div>
+            </div>
+            <small class="flight-report-note">Capacity is split by vehicle type using the fleet layout. Cancelled bookings are excluded.</small>
+        </div>
+    </section>
+
     <div class="booking-status-grid mb-4">
-        <div class="booking-status-card">
+        <a asp-controller="AdminTransportation" asp-action="Index" class="booking-status-card">
             <div class="booking-status-icon confirmed-icon">
                 <i class="bi bi-check-circle"></i>
             </div>
             <div>
-                <span>Confirmed</span>
+                <span>Confirmed Bookings</span>
                 <strong>@transConfirmed</strong>
             </div>
-        </div>
-        <div class="booking-status-card">
+        </a>
+        <a asp-controller="AdminTransportation" asp-action="Index" class="booking-status-card">
             <div class="booking-status-icon cancelled-icon">
                 <i class="bi bi-x-circle"></i>
             </div>
@@ -297,10 +444,9 @@
                 <span>Cancelled / Refunded</span>
                 <strong>@transCancelled</strong>
             </div>
-        </div>
+        </a>
     </div>
 
-    <!-- 最新交通预订列表 -->
     <section class="dashboard-panel mb-5">
         <div class="dashboard-panel-heading">
             <div>
@@ -778,7 +924,7 @@
     </div>
 
     <!-- ===================================================== -->
-    <!-- HOTEL MANAGEMENT                                      -->
+    <!-- HOTEL MANAGEMENT                                     -->
     <!-- ===================================================== -->
     <div class="section-heading mt-5">
         <div>
@@ -931,7 +1077,6 @@
             }
     }
 </style>
-
 
 <style>
     .activity-analytics-grid {

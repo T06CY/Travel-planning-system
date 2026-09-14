@@ -4,7 +4,6 @@ using TravelPlanningSystem.Data;
 using TravelPlanningSystem.Models.Transportation;
 using TravelPlanningSystem.Services;
 
-// 使用别名，避免与 ASP.NET Core 的 Route 路由类命名冲突
 using TransportRoute = TravelPlanningSystem.Models.Transportation.Route;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -46,7 +45,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 var app = builder.Build();
 
-// --- 数据库迁移、字段自动修复与数据初始化 ---
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -64,7 +62,7 @@ using (var scope = app.Services.CreateScope())
             Console.Error.WriteLine("Database migration warning: " + migrationException.Message);
         }
 
-        // 自动给 HotelRooms / Rooms 表补上缺失的 RoomType 字段（解决 Hotel 报错）
+
         await context.Database.ExecuteSqlRawAsync(@"
             IF OBJECT_ID(N'[dbo].[HotelRooms]', N'U') IS NOT NULL 
                AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[HotelRooms]') AND name = 'RoomType')
