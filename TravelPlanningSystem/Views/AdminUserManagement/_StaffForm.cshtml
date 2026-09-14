@@ -35,17 +35,38 @@
     <div class="col-md-6"><label asp-for="Status" class="form-label"></label><select asp-for="Status" class="form-select" required><option value="">Select status</option><option>Active</option><option>Inactive</option><option>Suspended</option></select><span asp-validation-for="Status" class="text-danger"></span></div>
     @if (ViewContext.RouteData.Values["action"]?.ToString() == "CreateStaff")
     {
-        <div class="col-12"><label asp-for="Password" class="form-label"></label><input asp-for="Password" class="form-control" type="password" autocomplete="new-password" minlength="8" required /><small class="text-muted">Use at least 8 characters.</small><span asp-validation-for="Password" class="text-danger"></span></div>
+        <div class="col-12">
+            <label asp-for="Password" class="form-label"></label>
+            <div class="input-group">
+                <input asp-for="Password" class="form-control" type="password" autocomplete="new-password" minlength="8" required />
+                <button type="button" class="btn btn-outline-secondary password-toggle" data-password-target="Password" aria-label="Show password">
+                    <i class="bi bi-eye"></i>
+                </button>
+            </div>
+            <small class="text-muted">Use at least 8 characters.</small>
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
     }
 </div>
 
 <script>
     (() => {
         const form = document.currentScript.closest('form');
+        const passwordToggle = form?.querySelector('.password-toggle');
         const country = form?.querySelector('.staff-country-code');
         const local = form?.querySelector('.staff-local-phone');
         const value = form?.querySelector('.staff-phone-value');
         if (!form || !country || !local || !value) return;
+
+        passwordToggle?.addEventListener('click', () => {
+            const input = document.getElementById(passwordToggle.dataset.passwordTarget);
+            const icon = passwordToggle.querySelector('i');
+            const isPassword = input.type === 'password';
+
+            input.type = isPassword ? 'text' : 'password';
+            icon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+            passwordToggle.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+        });
 
         form.addEventListener('submit', event => {
             const digits = local.value.replace(/\D/g, '');

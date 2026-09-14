@@ -58,16 +58,40 @@
     <div class="col-md-4"><label asp-for="LoyaltyTier" class="form-label"></label><select asp-for="LoyaltyTier" class="form-select"><option value="Member">Member</option><option value="VIP">VIP</option></select><span asp-validation-for="LoyaltyTier" class="text-danger"></span></div>
     <div class="col-md-4"><label asp-for="RewardPoints" class="form-label"></label><input asp-for="RewardPoints" type="number" class="form-control" min="0" required /></div>
     <div class="col-md-4"><label asp-for="AccountStatus" class="form-label"></label><select asp-for="AccountStatus" class="form-select" required><option>Active</option><option>Suspended</option><option>Inactive</option></select><span asp-validation-for="AccountStatus" class="text-danger"></span></div>
-    <div class="col-12"><label asp-for="Password" class="form-label"></label><input asp-for="Password" class="form-control" type="password" autocomplete="new-password" minlength="8" /><small class="text-muted">Leave blank when editing to keep the current password.</small><span asp-validation-for="Password" class="text-danger"></span></div>
+    @if (ViewContext.RouteData.Values["action"]?.ToString() == "CreateMember")
+    {
+        <div class="col-12">
+            <label asp-for="Password" class="form-label"></label>
+            <div class="input-group">
+                <input asp-for="Password" class="form-control" type="password" autocomplete="new-password" minlength="8" required />
+                <button type="button" class="btn btn-outline-secondary password-toggle" data-password-target="Password" aria-label="Show password">
+                    <i class="bi bi-eye"></i>
+                </button>
+            </div>
+            <small class="text-muted">Use at least 8 characters.</small>
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+    }
 </div>
 
 <script>
     (() => {
         const form = document.currentScript.closest('form');
+        const passwordToggle = form?.querySelector('.password-toggle');
         const country = form?.querySelector('.member-country-code');
         const local = form?.querySelector('.member-local-phone');
         const value = form?.querySelector('.member-phone-value');
         if (!form || !country || !local || !value) return;
+
+        passwordToggle?.addEventListener('click', () => {
+            const input = document.getElementById(passwordToggle.dataset.passwordTarget);
+            const icon = passwordToggle.querySelector('i');
+            const isPassword = input.type === 'password';
+
+            input.type = isPassword ? 'text' : 'password';
+            icon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+            passwordToggle.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+        });
 
         form.addEventListener('submit', event => {
             const digits = local.value.replace(/\D/g, '');

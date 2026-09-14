@@ -95,9 +95,6 @@ public class AdminUserManagementController(AppDbContext context) : Controller
         user.LoyaltyTier = model.LoyaltyTier;
         user.RewardPoints = model.RewardPoints;
         user.AccountStatus = model.AccountStatus;
-        if (!string.IsNullOrWhiteSpace(model.Password))
-            user.PasswordHash = PasswordHashing.Hash(model.Password);
-
         await context.SaveChangesAsync();
         TempData["Message"] = "Member updated successfully.";
         return RedirectToAction(nameof(Index));
@@ -211,9 +208,6 @@ public class AdminUserManagementController(AppDbContext context) : Controller
         staff.Department = model.Department.Trim();
         staff.RoleId = model.RoleId;
         staff.Status = model.Status;
-        if (!string.IsNullOrWhiteSpace(model.Password))
-            staff.PasswordHash = PasswordHashing.Hash(model.Password);
-
         await context.SaveChangesAsync();
         TempData["Message"] = "Staff user updated successfully.";
         return RedirectToAction(nameof(Index));
