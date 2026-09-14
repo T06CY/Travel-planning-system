@@ -379,6 +379,37 @@ namespace TravelPlanningSystem.Controllers
                 return RedirectToAction(nameof(ResetPassword));
             }
 
+            if (string.Equals(purpose, "profile-password-change", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!_otpService.TryGetPending<PendingProfilePasswordChange>(challengeId, out var passwordChange) || passwordChange is null)
+                    return RedirectToAction(nameof(Profile));
+
+                if (passwordChange.IsStaff)
+                {
+                    var staff = await _context.StaffUsers.FirstOrDefaultAsync(s => s.StaffId == passwordChange.AccountId);
+                    if (staff is null)
+                        return RedirectToAction(nameof(Profile));
+
+                    staff.PasswordHash = passwordChange.PasswordHash;
+                }
+                else
+                {
+                    var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == passwordChange.AccountId);
+                    if (user is null)
+                        return RedirectToAction(nameof(Profile));
+
+                    user.PasswordHash = passwordChange.PasswordHash;
+                }
+
+                await _context.SaveChangesAsync();
+                _otpService.RemovePending(challengeId);
+                TempData.Remove("OtpChallengeId");
+                TempData.Remove("OtpPurpose");
+                TempData.Remove("OtpEmail");
+                TempData["ProfileMessage"] = "Your password was changed successfully.";
+                return RedirectToAction(nameof(Profile));
+            }
+
             if (string.Equals(purpose, "register", StringComparison.OrdinalIgnoreCase))
             {
                 if (!_otpService.TryGetPending<PendingRegistration>(challengeId, out var pending) || pending is null)
@@ -549,6 +580,8 @@ namespace TravelPlanningSystem.Controllers
                     return View(model);
                 }
 
+                var changingStaffPassword = !string.IsNullOrWhiteSpace(model.Password);
+
                 staff.FirstName = model.FirstName ?? staff.FirstName;
                 staff.LastName = model.LastName ?? staff.LastName;
                 staff.PhoneNumber = string.IsNullOrWhiteSpace(model.PhoneNumber) ? null : model.PhoneNumber.Trim();
@@ -569,6 +602,7 @@ namespace TravelPlanningSystem.Controllers
                 }
 
                 await _context.SaveChangesAsync();
+                TempData["ProfileMessage"] = "Your profile was updated successfully.";
 
                 var staffClaims = new List<Claim>
                 {
@@ -586,6 +620,16 @@ namespace TravelPlanningSystem.Controllers
                     CookieAuthenticationDefaults.AuthenticationScheme,
                     new ClaimsPrincipal(staffIdentity));
 
+                if (changingStaffPassword)
+                {
+                    return await BeginOtpAsync(staff.Email, "profile-password-change", new PendingProfilePasswordChange
+                    {
+                        AccountId = staff.StaffId,
+                        IsStaff = true,
+                        PasswordHash = PasswordHashing.Hash(model.Password!)
+                    }, model);
+                }
+
                 return RedirectToAction("Profile");
             }
 
@@ -595,6 +639,8 @@ namespace TravelPlanningSystem.Controllers
 
             if (!ModelState.IsValid)
                 return View(model);
+
+            var changingUserPassword = !string.IsNullOrWhiteSpace(model.Password);
 
             // Handle file upload
             if (model.Upload != null && model.Upload.Length > 0)
@@ -620,10 +666,8 @@ namespace TravelPlanningSystem.Controllers
             user.LastName = model.LastName ?? user.LastName;
             user.PhoneNumber = model.PhoneNumber ?? user.PhoneNumber;
             user.DateOfBirth = model.DateOfBirth ?? user.DateOfBirth;
-            if (!string.IsNullOrWhiteSpace(model.Password))
-                user.PasswordHash = PasswordHashing.Hash(model.Password);
-
             await _context.SaveChangesAsync();
+            TempData["ProfileMessage"] = "Your profile was updated successfully.";
 
             // refresh auth cookie so the layout immediately shows the updated picture
             var updatedClaims = new List<Claim>
@@ -637,6 +681,15 @@ namespace TravelPlanningSystem.Controllers
 
             var newIdentity = new ClaimsIdentity(updatedClaims, CookieAuthenticationDefaults.AuthenticationScheme);
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(newIdentity));
+
+            if (changingUserPassword)
+            {
+                return await BeginOtpAsync(user.Email, "profile-password-change", new PendingProfilePasswordChange
+                {
+                    AccountId = user.UserId,
+                    PasswordHash = PasswordHashing.Hash(model.Password!)
+                }, model);
+            }
 
             return RedirectToAction("Profile");
         }
@@ -689,7 +742,12 @@ namespace TravelPlanningSystem.Controllers
                 TempData.Remove("OtpPurpose");
                 TempData.Remove("OtpEmail");
                 ModelState.AddModelError(string.Empty, "The verification email could not be sent. Check the email configuration and try again.");
-                return purpose == "register" ? View("Register", errorModel) : View("Login", errorModel);
+                return purpose switch
+                {
+                    "register" => View("Register", errorModel),
+                    "profile-password-change" => View("Profile", errorModel),
+                    _ => View("Login", errorModel)
+                };
             }
 
             return RedirectToAction("VerifyOtp");
@@ -728,6 +786,13 @@ namespace TravelPlanningSystem.Controllers
         private sealed class PendingPasswordReset
         {
             public Guid UserId { get; set; }
+        }
+
+        private sealed class PendingProfilePasswordChange
+        {
+            public Guid AccountId { get; set; }
+            public bool IsStaff { get; set; }
+            public string PasswordHash { get; set; } = string.Empty;
         }
 
         private sealed class PendingRegistration
