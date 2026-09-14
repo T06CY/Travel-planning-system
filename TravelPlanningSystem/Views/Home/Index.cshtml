@@ -1,7 +1,75 @@
 ﻿@{
-    ViewData["Title"] = "Home";
+    ViewData["Title"] = "Home - Plan Smarter, Travel Better";
 }
 
+<style>
+    /* Popular Routes Showcase Cards */
+    .popular-routes-section {
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .home-route-card {
+        background: #fff;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 20px rgba(6, 20, 59, 0.05);
+        transition: all 0.25s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .home-route-card:hover {
+        transform: translateY(-5px);
+        border-color: #93c5fd;
+        box-shadow: 0 14px 35px rgba(37, 99, 235, 0.12);
+    }
+    .route-card-banner {
+        padding: 16px 20px;
+        color: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .banner-penang { background: linear-gradient(135deg, #1e3a8a, #3b82f6); }
+    .banner-genting { background: linear-gradient(135deg, #6b21a8, #a855f7); }
+    .banner-cameron { background: linear-gradient(135deg, #065f46, #10b981); }
+    .banner-melaka { background: linear-gradient(135deg, #c2410c, #f97316); }
+
+    .route-badge-type {
+        font-size: 0.72rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .route-badge-time {
+        font-size: 0.75rem;
+        background: rgba(0,0,0,0.2);
+        padding: 3px 8px;
+        border-radius: 12px;
+    }
+    .route-card-body {
+        padding: 20px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .route-card-body h4 {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #06143b;
+        margin-bottom: 8px;
+    }
+    .route-card-body h4 i {
+        color: #2563eb;
+        font-size: 0.95rem;
+    }
+</style>
+
+<!-- 1. Hero Section -->
 <section class="hero">
     <div class="hero-overlay"></div>
 
@@ -18,12 +86,12 @@
                 </p>
 
                 <div class="hero-buttons">
-                    <a class="btn main-btn" asp-controller="Flight" asp-action="Index">
-                        Plan My Trip <i class="bi bi-arrow-right"></i>
+                    <a class="btn main-btn" asp-controller="Transportation" asp-action="Index">
+                        Book Coach &amp; Van <i class="bi bi-bus-front ms-1"></i>
                     </a>
 
-                    <a class="btn outline-btn" asp-controller="Activity" asp-action="Index">
-                        Explore Activities <i class="bi bi-arrow-right"></i>
+                    <a class="btn outline-btn" asp-controller="Flight" asp-action="Index">
+                        Explore Flights <i class="bi bi-airplane ms-1"></i>
                     </a>
                 </div>
             </div>
@@ -33,8 +101,8 @@
                     <h4>Weekend Escape?</h4>
                     <p>Find short getaways<br />near you</p>
 
-                    <a asp-controller="Activity" asp-action="Index">
-                        Discover Now <i class="bi bi-arrow-right"></i>
+                    <a asp-controller="Transportation" asp-action="Index">
+                        Discover Coaches <i class="bi bi-arrow-right"></i>
                     </a>
 
                     <div class="bag-img">🧳</div>
@@ -50,27 +118,152 @@
     </div>
 </section>
 
+<!-- 2. Animated Travel Route Section -->
 <section class="route-animation-section" aria-label="Travel route animation">
     <div class="route-animation-card">
         <div class="route-animation-copy">
             <span class="route-eyebrow"><i class="bi bi-compass"></i> YOUR NEXT ADVENTURE</span>
             <h2>Take the scenic route.</h2>
-            <p>Explore new places, compare flight schedules and make every journey memorable.</p>
-            <div class="route-highlights"><span><i class="bi bi-calendar2-check"></i> Flexible dates</span><span><i class="bi bi-tags"></i> Clear fares</span><span><i class="bi bi-shield-check"></i> Secure booking</span></div>
-            <a class="route-cta" asp-controller="Flight" asp-action="Index">Plan your trip <i class="bi bi-arrow-right"></i></a>
+            <p>Explore new places, compare coach schedules and make every journey memorable.</p>
+            <div class="route-highlights">
+                <span><i class="bi bi-calendar2-check"></i> Flexible dates</span>
+                <span><i class="bi bi-tags"></i> Transparent fares</span>
+                <span><i class="bi bi-shield-check"></i> Secure booking</span>
+            </div>
+            <a class="route-cta" asp-controller="Transportation" asp-action="Index">
+                Explore intercity routes <i class="bi bi-arrow-right"></i>
+            </a>
         </div>
         <div class="route-animation" aria-hidden="true">
             <div class="route-grid"></div>
-            <svg class="route-map-line" viewBox="0 0 620 260" preserveAspectRatio="none"><path d="M42 201 C145 226 192 55 305 113 S455 205 576 48"></path></svg>
+            <svg class="route-map-line" viewBox="0 0 620 260" preserveAspectRatio="none">
+                <path d="M42 201 C145 226 192 55 305 113 S455 205 576 48"></path>
+            </svg>
             <span class="route-stop stop-kl"><i class="bi bi-geo-alt-fill"></i><b>Kuala Lumpur</b></span>
-            <span class="route-stop stop-sg"><i class="bi bi-geo-alt-fill"></i><b>Singapore</b></span>
-            <span class="route-stop stop-tokyo"><i class="bi bi-geo-alt-fill"></i><b>Tokyo</b></span>
-            <span class="route-plane"><i class="bi bi-airplane-fill"></i></span>
-            <span class="route-distance"><i class="bi bi-stars"></i> Go further</span>
+            <span class="route-stop stop-sg"><i class="bi bi-geo-alt-fill"></i><b>Penang</b></span>
+            <span class="route-stop stop-tokyo"><i class="bi bi-geo-alt-fill"></i><b>Genting</b></span>
+            <span class="route-plane"><i class="bi bi-bus-front-fill"></i></span>
+            <span class="route-distance"><i class="bi bi-stars"></i> Direct express</span>
         </div>
     </div>
 </section>
 
+<!-- 3. Popular Coach & VIP Van Routes Showcase -->
+<section class="popular-routes-section py-5">
+    <div class="container-fluid px-5">
+        <div class="section-heading mb-4">
+            <div class="line"></div>
+            <i class="bi bi-bus-front"></i>
+            <h2>Popular Coach &amp; VIP Van Routes</h2>
+            <div class="line"></div>
+            <p>Discover top-rated intercity routes with real-time seat availability &amp; instant booking</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Route 1: KL to Penang -->
+            <div class="col-lg-3 col-md-6">
+                <div class="home-route-card">
+                    <div class="route-card-banner banner-penang">
+                        <span class="route-badge-type">Luxury Coach (2+1 VIP)</span>
+                        <span class="route-badge-time"><i class="bi bi-clock"></i> 4.5 Hours</span>
+                    </div>
+                    <div class="route-card-body">
+                        <div>
+                            <h4>Kuala Lumpur <i class="bi bi-arrow-right"></i> Penang</h4>
+                            <p class="text-muted small">Daily departures via Butterworth &amp; Ipoh with reclining massage seats and onboard WiFi.</p>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                            <div>
+                                <small class="text-muted d-block">Fares from</small>
+                                <strong class="fs-5 text-primary">RM 45.00</strong>
+                            </div>
+                            <a asp-controller="Transportation" asp-action="Index" asp-route-origin="Kuala Lumpur" asp-route-destination="Penang" class="btn btn-sm btn-outline-primary fw-bold">
+                                Book Now <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Route 2: KL to Genting Highlands -->
+            <div class="col-lg-3 col-md-6">
+                <div class="home-route-card">
+                    <div class="route-card-banner banner-genting">
+                        <span class="route-badge-type">VIP Van Luxury</span>
+                        <span class="route-badge-time"><i class="bi bi-clock"></i> 1.0 Hour</span>
+                    </div>
+                    <div class="route-card-body">
+                        <div>
+                            <h4>Kuala Lumpur <i class="bi bi-arrow-right"></i> Genting</h4>
+                            <p class="text-muted small">Fast mountain shuttle direct to Awana Skyway via Toyota Hiace &amp; Alphard Executive fleet.</p>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                            <div>
+                                <small class="text-muted d-block">Fares from</small>
+                                <strong class="fs-5 text-primary">RM 35.00</strong>
+                            </div>
+                            <a asp-controller="Transportation" asp-action="Index" asp-route-origin="Kuala Lumpur" asp-route-destination="Genting Highlands" class="btn btn-sm btn-outline-primary fw-bold">
+                                Book Now <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Route 3: KL to Cameron Highlands -->
+            <div class="col-lg-3 col-md-6">
+                <div class="home-route-card">
+                    <div class="route-card-banner banner-cameron">
+                        <span class="route-badge-type">VIP Van Luxury</span>
+                        <span class="route-badge-time"><i class="bi bi-clock"></i> 3.5 Hours</span>
+                    </div>
+                    <div class="route-card-body">
+                        <div>
+                            <h4>Kuala Lumpur <i class="bi bi-arrow-right"></i> Cameron</h4>
+                            <p class="text-muted small">Scenic tea plantation route to Tanah Rata with premium leather seats and climate control.</p>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                            <div>
+                                <small class="text-muted d-block">Fares from</small>
+                                <strong class="fs-5 text-primary">RM 50.00</strong>
+                            </div>
+                            <a asp-controller="Transportation" asp-action="Index" asp-route-origin="Kuala Lumpur" asp-route-destination="Cameron Highlands" class="btn btn-sm btn-outline-primary fw-bold">
+                                Book Now <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Route 4: KL to Melaka -->
+            <div class="col-lg-3 col-md-6">
+                <div class="home-route-card">
+                    <div class="route-card-banner banner-melaka">
+                        <span class="route-badge-type">Express Bus Direct</span>
+                        <span class="route-badge-time"><i class="bi bi-clock"></i> 2.0 Hours</span>
+                    </div>
+                    <div class="route-card-body">
+                        <div>
+                            <h4>Kuala Lumpur <i class="bi bi-arrow-right"></i> Melaka</h4>
+                            <p class="text-muted small">Historical heritage express service to Melaka Sentral with on-time departures every hour.</p>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                            <div>
+                                <small class="text-muted d-block">Fares from</small>
+                                <strong class="fs-5 text-primary">RM 28.00</strong>
+                            </div>
+                            <a asp-controller="Transportation" asp-action="Index" asp-route-origin="Kuala Lumpur" asp-route-destination="Melaka" class="btn btn-sm btn-outline-primary fw-bold">
+                                Book Now <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 4. All Services Exploration Section -->
 <section class="services">
     <div class="section-heading">
         <div class="line"></div>
@@ -86,7 +279,7 @@
                 <div class="service-card flight-card">
                     <div class="service-img">✈️</div>
                     <h3>Flight Booking</h3>
-                    <p>Find and book the best flights at amazing prices.</p>
+                    <p>Find and book the best domestic and international flights.</p>
                     <a asp-controller="Flight" asp-action="Index">
                         <i class="bi bi-arrow-right"></i>
                     </a>
@@ -97,7 +290,7 @@
                 <div class="service-card hotel-card">
                     <div class="service-img">🏨</div>
                     <h3>Hotel Reservation</h3>
-                    <p>Discover comfortable stays that suit your style.</p>
+                    <p>Discover comfortable boutique and luxury hotel stays.</p>
                     <a asp-controller="Hotel" asp-action="Index">
                         <i class="bi bi-arrow-right"></i>
                     </a>
@@ -106,9 +299,9 @@
 
             <div class="col-lg-3 col-md-6">
                 <div class="service-card transport-card">
-                    <div class="service-img">🚗</div>
-                    <h3>Transportation</h3>
-                    <p>Book airport transfers, taxis, buses and more.</p>
+                    <div class="service-img">🚌</div>
+                    <h3>Express Buses &amp; Vans</h3>
+                    <p>Book intercity luxury coaches and VIP vans with instant e-tickets.</p>
                     <a asp-controller="Transportation" asp-action="Index">
                         <i class="bi bi-arrow-right"></i>
                     </a>
@@ -119,7 +312,7 @@
                 <div class="service-card activity-card">
                     <div class="service-img">🎈</div>
                     <h3>Activities</h3>
-                    <p>Explore top attractions and fun local experiences.</p>
+                    <p>Explore top attractions and unforgettable local experiences.</p>
                     <a asp-controller="Activity" asp-action="Index">
                         <i class="bi bi-arrow-right"></i>
                     </a>
@@ -130,9 +323,9 @@
         <div class="features">
             <span><i class="bi bi-shield-check"></i> Secure Payments</span>
             <span>•</span>
-            <span>24/7 Support</span>
+            <span>24/7 Customer Support</span>
             <span>•</span>
-            <span>Best Price Guarantee</span>
+            <span>Best Fare Guarantee</span>
         </div>
     </div>
 </section>
