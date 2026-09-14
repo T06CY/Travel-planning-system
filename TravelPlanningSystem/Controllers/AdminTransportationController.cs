@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using TravelPlanningSystem.Data;
 using TravelPlanningSystem.Models.Transportation;
 using TravelPlanningSystem.ViewModels;
@@ -9,8 +10,11 @@ using TransportRoute = TravelPlanningSystem.Models.Transportation.Route;
 namespace TravelPlanningSystem.Controllers;
 
 [Authorize]
-public class AdminTransportationController(AppDbContext context) : Controller
+public class AdminTransportationController(AppDbContext context, IMemoryCache cache) : Controller
 {
+    private const string CacheKeyRoutes = "Transportation_Active_Routes";
+    private const string CacheKeyVehicleTypes = "Transportation_Vehicle_Types";
+
     // =========================================================================
     // Core Module 3: Transportation Operations Dashboard & KPI Hub
     // =========================================================================
@@ -46,6 +50,7 @@ public class AdminTransportationController(AppDbContext context) : Controller
 
     // =========================================================================
     // Core Module 3: Fleet Management - Register New Vehicle (POST)
+    // Includes Cache Invalidation to refresh public dropdowns instantly
     // =========================================================================
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -67,6 +72,10 @@ public class AdminTransportationController(AppDbContext context) : Controller
 
             context.Vehicles.Add(vehicle);
             await context.SaveChangesAsync();
+
+            // Cache Invalidation: Evict cached vehicle types to ensure fresh data
+            cache.Remove(CacheKeyVehicleTypes);
+
             TempData["SuccessMessage"] = $"Vehicle '{vehicle.LicensePlate} - {vehicle.VehicleModel}' added to fleet successfully!";
         }
 
@@ -75,6 +84,7 @@ public class AdminTransportationController(AppDbContext context) : Controller
 
     // =========================================================================
     // Core Module 3: Route Network - Establish New Route (POST)
+    // Includes Cache Invalidation to refresh public dropdowns instantly
     // =========================================================================
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -86,9 +96,7 @@ public class AdminTransportationController(AppDbContext context) : Controller
             {
                 Origin = vm.NewRoute.Origin.Trim(),
                 Destination = vm.NewRoute.Destination.Trim(),
-                // DistanceKm is of type decimal in the entity model
                 DistanceKm = (decimal)(vm.NewRoute.DistanceKm > 0 ? vm.NewRoute.DistanceKm : 100),
-                // EstimatedDurationHours is of type double in the entity model
                 EstimatedDurationHours = (double)(vm.NewRoute.EstimatedDurationHours > 0 ? vm.NewRoute.EstimatedDurationHours : 2.0),
                 Stops = string.IsNullOrWhiteSpace(vm.NewRoute.Stops) ? "Direct" : vm.NewRoute.Stops.Trim(),
                 IsActive = true,
@@ -97,6 +105,10 @@ public class AdminTransportationController(AppDbContext context) : Controller
 
             context.Routes.Add(route);
             await context.SaveChangesAsync();
+
+            // Cache Invalidation: Evict cached routes to ensure fresh data
+            cache.Remove(CacheKeyRoutes);
+
             TempData["SuccessMessage"] = $"New Route '{route.Origin} → {route.Destination}' established!";
         }
 
@@ -133,7 +145,6 @@ public class AdminTransportationController(AppDbContext context) : Controller
                 CreatedAt = DateTime.UtcNow
             };
 
-            // Automatically generate the visual seat map for the scheduled trip
             for (int i = 1; i <= vehicle.SeatingCapacity; i++)
             {
                 int row = (i - 1) / 3 + 1;
@@ -188,7 +199,6 @@ public class AdminTransportationController(AppDbContext context) : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CancelBooking(int bookingId, string cancellationReason, int? returnTripId = null)
     {
-        // 1. Validate that the administrator provided a valid cancellation explanation
         if (string.IsNullOrWhiteSpace(cancellationReason) || cancellationReason.Trim().Length < 5)
         {
             TempData["ErrorMessage"] = "Please provide an administrative cancellation reason (minimum 5 characters).";
@@ -197,7 +207,6 @@ public class AdminTransportationController(AppDbContext context) : Controller
                 : RedirectToAction(nameof(Index));
         }
 
-        // 2. Fetch target booking with associated trip seats and passengers
         var booking = await context.TransportationBookings
             .Include(b => b.Trip).ThenInclude(t => t!.Seats)
             .Include(b => b.Passengers)
@@ -214,7 +223,6 @@ public class AdminTransportationController(AppDbContext context) : Controller
                 : RedirectToAction(nameof(Index));
         }
 
-        // 3. Mark booking as cancelled and record administrative audit details
         var adminName = User.Identity?.Name ?? "Administrator";
         booking.BookingStatus = "Cancelled";
         booking.PaymentStatus = "Refunded";
@@ -222,7 +230,6 @@ public class AdminTransportationController(AppDbContext context) : Controller
         booking.CancelledAt = DateTime.UtcNow;
         booking.UpdatedAt = DateTime.UtcNow;
 
-        // 4. Release physical seats back to active inventory
         if (booking.Trip != null)
         {
             var seatNumbers = booking.Passengers.Select(p => p.SeatNumber).ToList();
@@ -273,6 +280,7 @@ public class AdminTransportationController(AppDbContext context) : Controller
         var trip = await context.Trips
             .Include(t => t.Route)
             .Include(t => t.Vehicle)
+            .Include(t => t.Seats)
             .FirstOrDefaultAsync(t => t.TripId == tripId);
 
         if (trip == null) return NotFound();
@@ -283,7 +291,6 @@ public class AdminTransportationController(AppDbContext context) : Controller
             .ToListAsync();
 
         var builder = new System.Text.StringBuilder();
-        // UTF-8 BOM ensures that Microsoft Excel displays characters correctly without encoding issues
         builder.AppendLine("Seat,Passenger Name,IC/Passport,Type,Baggage,Insurance,Booking Reference,Contact Phone");
 
         foreach (var b in bookings)

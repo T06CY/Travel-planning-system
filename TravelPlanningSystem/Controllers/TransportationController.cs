@@ -1,22 +1,31 @@
+using System.Data;
+using System.Security.Claims;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
-using System.Text.RegularExpressions;
+using Microsoft.Extensions.Caching.Memory;
 using TravelPlanningSystem.Data;
 using TravelPlanningSystem.Models;
 using TravelPlanningSystem.Models.Transportation;
 using TravelPlanningSystem.ViewModels;
 
+// Alias to resolve name collision between ASP.NET Core Routing.Route and Transportation.Route
+using TransportRoute = TravelPlanningSystem.Models.Transportation.Route;
+
 namespace TravelPlanningSystem.Controllers;
 
 [Authorize]
-public class TransportationController(AppDbContext context) : Controller
+public class TransportationController(AppDbContext context, IMemoryCache cache) : Controller
 {
-    // ==========================================
-    // Public Catalog & Search Page (Index)
-    // ==========================================
+    // Memory cache keys for semi-static catalog data
+    private const string CacheKeyRoutes = "Transportation_Active_Routes";
+    private const string CacheKeyVehicleTypes = "Transportation_Vehicle_Types";
+
+    // =========================================================================
+    // Public Catalog & Search Page with High-Performance Memory Caching (Index)
+    // =========================================================================
     [AllowAnonymous]
     public async Task<IActionResult> Index(TransportationSearchViewModel model)
     {
@@ -35,10 +44,16 @@ public class TransportationController(AppDbContext context) : Controller
             ModelState.AddModelError(nameof(model.MaxPrice), "Maximum price cannot be less than minimum price.");
         }
 
-        // 3. Retrieve active routes for dropdown filters
-        var routes = await context.Routes
-            .Where(r => r.IsActive)
-            .ToListAsync();
+        // 3. High-Frequency Cache: Retrieve routes with in-memory caching
+        var routes = await cache.GetOrCreateAsync(CacheKeyRoutes, async entry =>
+        {
+            entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
+            entry.SlidingExpiration = TimeSpan.FromMinutes(3);
+            return await context.Routes
+                .AsNoTracking()
+                .Where(r => r.IsActive)
+                .ToListAsync();
+        }) ?? new List<TransportRoute>();
 
         model.Origins = routes
             .Select(r => r.Origin)
@@ -52,14 +67,21 @@ public class TransportationController(AppDbContext context) : Controller
             .OrderBy(d => d)
             .ToList();
 
-        model.VehicleTypes = await context.Vehicles
-            .Where(v => v.IsActive)
-            .Select(v => v.VehicleType)
-            .Distinct()
-            .OrderBy(t => t)
-            .ToListAsync();
+        // 4. High-Frequency Cache: Retrieve vehicle types with in-memory caching
+        model.VehicleTypes = await cache.GetOrCreateAsync(CacheKeyVehicleTypes, async entry =>
+        {
+            entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
+            entry.SlidingExpiration = TimeSpan.FromMinutes(3);
+            return await context.Vehicles
+                .AsNoTracking()
+                .Where(v => v.IsActive)
+                .Select(v => v.VehicleType)
+                .Distinct()
+                .OrderBy(t => t)
+                .ToListAsync();
+        }) ?? new List<string>();
 
-        // 4. Construct base query with eager loading
+        // 5. Construct base query for trip departures
         var query = context.Trips
             .AsNoTracking()
             .AsSplitQuery()
@@ -68,7 +90,7 @@ public class TransportationController(AppDbContext context) : Controller
             .Include(t => t.Reviews.Where(r => r.IsVisible))
             .Where(t => t.IsActive && t.Route!.IsActive && t.Vehicle!.IsActive);
 
-        // 5. Apply origin, destination, and departure date filters
+        // 6. Apply search and filtering criteria
         if (!string.IsNullOrWhiteSpace(model.Origin))
         {
             query = query.Where(t => t.Route!.Origin == model.Origin);
@@ -129,7 +151,7 @@ public class TransportationController(AppDbContext context) : Controller
                 t.DepartureTime.TimeOfDay <= timeTo.ToTimeSpan());
         }
 
-        // 6. Pagination and sorting
+        // 7. Pagination and sorting
         model.TotalCount = await query.CountAsync();
 
         query = model.SortBy switch
@@ -153,9 +175,9 @@ public class TransportationController(AppDbContext context) : Controller
         return View(model);
     }
 
-    // ==========================================
+    // =========================================================================
     // Trip Details & Seat Pre-check (Details)
-    // ==========================================
+    // =========================================================================
     public async Task<IActionResult> Details(int id)
     {
         var trip = await context.Trips
@@ -173,9 +195,9 @@ public class TransportationController(AppDbContext context) : Controller
         return View(trip);
     }
 
-    // ==========================================
+    // =========================================================================
     // Seat Selection & Booking Form (GET)
-    // ==========================================
+    // =========================================================================
     [HttpGet]
     public async Task<IActionResult> Book(int id)
     {
@@ -252,9 +274,10 @@ public class TransportationController(AppDbContext context) : Controller
         return View(viewModel);
     }
 
-    // ==========================================
-    // Submit Booking & Seat Reservation (POST)
-    // ==========================================
+    // =========================================================================
+    // Core Module 2: Concurrency-Safe Seat Reservation (POST)
+    // Uses Serializable Transaction to completely prevent seat collisions/overbooking
+    // =========================================================================
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Book(TransportationBookingViewModel model)
@@ -271,6 +294,12 @@ public class TransportationController(AppDbContext context) : Controller
         if (model.SelectedSeatNumbers == null || !model.SelectedSeatNumbers.Any())
         {
             ModelState.AddModelError("", "Please select at least one seat on the seat map.");
+        }
+
+        // Maximum seat limit per booking (Max 5 seats)
+        if (model.SelectedSeatNumbers != null && model.SelectedSeatNumbers.Count > 5)
+        {
+            ModelState.AddModelError("", "You can select a maximum of 5 seats per reservation.");
         }
 
         // Authenticate and match the current logged-in user
@@ -303,18 +332,11 @@ public class TransportationController(AppDbContext context) : Controller
             return RedirectToAction("Login", "Account");
         }
 
-        // Enforce maximum seat selection limit (Max 5 seats per reservation)
-        if (model.SelectedSeatNumbers != null && model.SelectedSeatNumbers.Count > 5)
-        {
-            ModelState.AddModelError("", "You can select a maximum of 5 seats per reservation.");
-        }
-
-        // Lock contact name and email to verified user account
         model.ContactName = $"{currentUser.FirstName} {currentUser.LastName}".Trim();
         if (string.IsNullOrEmpty(model.ContactName)) model.ContactName = currentUser.FirstName;
         model.ContactEmail = currentUser.Email;
 
-        // Server-side validation for passenger full name and IC / Passport number
+        // Server-side passenger details validation
         for (int i = 0; i < model.Passengers.Count; i++)
         {
             var p = model.Passengers[i];
@@ -338,16 +360,6 @@ public class TransportationController(AppDbContext context) : Controller
             }
         }
 
-        // Verify that selected seats are still available in inventory
-        var selectedSeats = trip.Seats
-            .Where(s => model.SelectedSeatNumbers!.Contains(s.SeatNumber))
-            .ToList();
-
-        if (selectedSeats.Any(s => !s.IsAvailable || s.Status == "Booked"))
-        {
-            ModelState.AddModelError("", "One or more selected seats have just been booked by another passenger. Please select other seats.");
-        }
-
         if (!ModelState.IsValid)
         {
             model.Trip = trip;
@@ -356,80 +368,133 @@ public class TransportationController(AppDbContext context) : Controller
             return View(model);
         }
 
-        // Fee calculations: base fare, baggage add-ons, insurance, and promo discounts
-        decimal seatPrice = trip.BaseFare * (1 - trip.DiscountPercentage / 100);
-        decimal baseTotal = seatPrice * selectedSeats.Count;
-        decimal baggageTotal = model.Passengers.Sum(p => p.BaggagePrice);
-        decimal insuranceTotal = model.Passengers.Sum(p => p.HasInsurance ? 5.00m : 0m);
+        // 1. Begin atomic serializable transaction for high concurrency protection
+        await using var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
 
-        decimal discount = 0;
-        if (!string.IsNullOrWhiteSpace(model.PromoCode))
+        try
         {
-            var code = model.PromoCode.Trim().ToUpper();
-            if (code == "TRAVEL2026") discount = Math.Round(baseTotal * 0.15m, 2);
-            else if (code == "PROMO10") discount = Math.Min(baseTotal, 10.00m);
-        }
+            // 2. Query target seats directly within the transaction to acquire row locks
+            var selectedSeats = await context.Seats
+                .Where(s => s.TripId == trip.TripId && model.SelectedSeatNumbers!.Contains(s.SeatNumber))
+                .ToListAsync();
 
-        decimal grandTotal = Math.Max(0, baseTotal + baggageTotal + insuranceTotal - discount);
+            // 3. Concurrency Check: Detect if any seat was booked by another concurrent passenger
+            var conflictedSeats = selectedSeats
+                .Where(s => !s.IsAvailable || s.Status != "Available")
+                .Select(s => s.SeatNumber)
+                .ToList();
 
-        // Construct booking record
-        var booking = new TransportationBooking
-        {
-            BookingReference = "TB-" + DateTime.UtcNow.ToString("yyyyMMdd") + "-" + Guid.NewGuid().ToString("N")[..5].ToUpper(),
-            TripId = trip.TripId,
-            UserId = currentUser.UserId,
-            ContactName = model.ContactName,
-            ContactEmail = model.ContactEmail,
-            ContactPhone = model.ContactPhone,
-            BaseFareTotal = baseTotal,
-            BaggageFeeTotal = baggageTotal,
-            InsuranceFeeTotal = insuranceTotal,
-            PromoCode = model.PromoCode,
-            DiscountAmount = discount,
-            TotalAmount = grandTotal,
-            BookingStatus = "Confirmed",
-            PaymentStatus = "Paid",
-            PaymentMethod = model.PaymentMethod,
-            BookingDate = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
-        // Attach passengers and reserve physical seats
-        foreach (var pInput in model.Passengers)
-        {
-            var targetSeat = selectedSeats.FirstOrDefault(s => s.SeatNumber == pInput.SeatNumber);
-            booking.Passengers.Add(new TransportationPassenger
+            if (conflictedSeats.Any())
             {
-                FullName = pInput.FullName.Trim(),
-                IdNumber = pInput.IdNumber.Trim().ToUpper(),
-                PassengerType = pInput.PassengerType ?? "Adult",
-                SeatId = targetSeat?.SeatId,
-                SeatNumber = pInput.SeatNumber,
-                BaggageOption = pInput.BaggageOption ?? "Standard (20kg Included)",
-                BaggagePrice = pInput.BaggagePrice,
-                HasTravelInsurance = pInput.HasInsurance,
-                InsurancePrice = pInput.HasInsurance ? 5.00m : 0m,
-                SpecialRequests = pInput.SpecialRequests
-            });
-        }
+                await transaction.RollbackAsync();
+                ModelState.AddModelError("", $"Seat collision: Seat(s) {string.Join(", ", conflictedSeats)} have just been reserved by another passenger. Please choose other seats.");
 
-        foreach (var seat in selectedSeats)
+                model.Trip = trip;
+                model.Seats = trip.Seats.OrderBy(s => s.SeatId).ToList();
+                model.BaseFarePerSeat = trip.BaseFare * (1 - trip.DiscountPercentage / 100);
+                return View(model);
+            }
+
+            // 4. Inventory check: Verify enough available seats remain
+            if (trip.AvailableSeats < selectedSeats.Count)
+            {
+                await transaction.RollbackAsync();
+                ModelState.AddModelError("", "Not enough available seats left on this trip.");
+
+                model.Trip = trip;
+                model.Seats = trip.Seats.OrderBy(s => s.SeatId).ToList();
+                model.BaseFarePerSeat = trip.BaseFare * (1 - trip.DiscountPercentage / 100);
+                return View(model);
+            }
+
+            // 5. Fee calculations
+            decimal seatPrice = trip.BaseFare * (1 - trip.DiscountPercentage / 100);
+            decimal baseTotal = seatPrice * selectedSeats.Count;
+            decimal baggageTotal = model.Passengers.Sum(p => p.BaggagePrice);
+            decimal insuranceTotal = model.Passengers.Sum(p => p.HasInsurance ? 5.00m : 0m);
+
+            decimal discount = 0;
+            if (!string.IsNullOrWhiteSpace(model.PromoCode))
+            {
+                var code = model.PromoCode.Trim().ToUpper();
+                if (code == "TRAVEL2026") discount = Math.Round(baseTotal * 0.15m, 2);
+                else if (code == "PROMO10") discount = Math.Min(baseTotal, 10.00m);
+            }
+
+            decimal grandTotal = Math.Max(0, baseTotal + baggageTotal + insuranceTotal - discount);
+
+            // 6. Create booking record
+            var booking = new TransportationBooking
+            {
+                BookingReference = "TB-" + DateTime.UtcNow.ToString("yyyyMMdd") + "-" + Guid.NewGuid().ToString("N")[..5].ToUpper(),
+                TripId = trip.TripId,
+                UserId = currentUser.UserId,
+                ContactName = model.ContactName,
+                ContactEmail = model.ContactEmail,
+                ContactPhone = model.ContactPhone,
+                BaseFareTotal = baseTotal,
+                BaggageFeeTotal = baggageTotal,
+                InsuranceFeeTotal = insuranceTotal,
+                PromoCode = model.PromoCode,
+                DiscountAmount = discount,
+                TotalAmount = grandTotal,
+                BookingStatus = "Confirmed",
+                PaymentStatus = "Paid",
+                PaymentMethod = model.PaymentMethod,
+                BookingDate = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            foreach (var pInput in model.Passengers)
+            {
+                var targetSeat = selectedSeats.FirstOrDefault(s => s.SeatNumber == pInput.SeatNumber);
+                booking.Passengers.Add(new TransportationPassenger
+                {
+                    FullName = pInput.FullName.Trim(),
+                    IdNumber = pInput.IdNumber.Trim().ToUpper(),
+                    PassengerType = pInput.PassengerType ?? "Adult",
+                    SeatId = targetSeat?.SeatId,
+                    SeatNumber = pInput.SeatNumber,
+                    BaggageOption = pInput.BaggageOption ?? "Standard (20kg Included)",
+                    BaggagePrice = pInput.BaggagePrice,
+                    HasTravelInsurance = pInput.HasInsurance,
+                    InsurancePrice = pInput.HasInsurance ? 5.00m : 0m,
+                    SpecialRequests = pInput.SpecialRequests
+                });
+            }
+
+            // 7. Update physical seat states and decrement inventory inside transaction
+            foreach (var seat in selectedSeats)
+            {
+                seat.IsAvailable = false;
+                seat.Status = "Booked";
+            }
+
+            trip.AvailableSeats = Math.Max(0, trip.AvailableSeats - selectedSeats.Count);
+
+            context.TransportationBookings.Add(booking);
+            await context.SaveChangesAsync();
+
+            // 8. Commit atomic transaction
+            await transaction.CommitAsync();
+
+            return RedirectToAction(nameof(Confirmation), new { id = booking.BookingId });
+        }
+        catch
         {
-            seat.IsAvailable = false;
-            seat.Status = "Booked";
+            await transaction.RollbackAsync();
+            ModelState.AddModelError("", "A concurrency conflict occurred while locking your seats. Please select your seats again.");
+
+            model.Trip = trip;
+            model.Seats = trip.Seats.OrderBy(s => s.SeatId).ToList();
+            model.BaseFarePerSeat = trip.BaseFare * (1 - trip.DiscountPercentage / 100);
+            return View(model);
         }
-
-        trip.AvailableSeats = Math.Max(0, trip.AvailableSeats - selectedSeats.Count);
-
-        context.TransportationBookings.Add(booking);
-        await context.SaveChangesAsync();
-
-        return RedirectToAction(nameof(Confirmation), new { id = booking.BookingId });
     }
 
-    // ==========================================
+    // =========================================================================
     // E-Ticket & Boarding Pass Confirmation (GET)
-    // ==========================================
+    // =========================================================================
     [HttpGet]
     public async Task<IActionResult> Confirmation(int id)
     {
@@ -446,9 +511,9 @@ public class TransportationController(AppDbContext context) : Controller
         return View(booking);
     }
 
-    // ==========================================
+    // =========================================================================
     // Passenger My Bookings Roster (GET)
-    // ==========================================
+    // =========================================================================
     [HttpGet]
     public async Task<IActionResult> MyBookings()
     {
@@ -485,14 +550,13 @@ public class TransportationController(AppDbContext context) : Controller
         return View(bookings);
     }
 
-    // ==========================================
+    // =========================================================================
     // Cancel Booking with Mandatory Reason (POST)
-    // ==========================================
+    // =========================================================================
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CancelBooking(int id, string cancellationReason)
     {
-        // 1. Validate that the user provided a cancellation reason
         if (string.IsNullOrWhiteSpace(cancellationReason) || cancellationReason.Trim().Length < 5)
         {
             TempData["ErrorMessage"] = "Please provide a valid cancellation reason (minimum 5 characters).";
@@ -513,14 +577,12 @@ public class TransportationController(AppDbContext context) : Controller
             return RedirectToAction(nameof(MyBookings));
         }
 
-        // 2. Update booking status, record cancellation reason and trigger refund status
         booking.BookingStatus = "Cancelled";
         booking.PaymentStatus = "Refunded";
         booking.CancellationReason = cancellationReason.Trim();
         booking.CancelledAt = DateTime.UtcNow;
         booking.UpdatedAt = DateTime.UtcNow;
 
-        // 3. Release physical seats back to available inventory
         if (booking.Trip != null)
         {
             var seatNumbers = booking.Passengers.Select(p => p.SeatNumber).ToList();
@@ -543,9 +605,9 @@ public class TransportationController(AppDbContext context) : Controller
         return RedirectToAction(nameof(MyBookings));
     }
 
-    // ==========================================
+    // =========================================================================
     // Submit Trip Review & Star Rating (POST)
-    // ==========================================
+    // =========================================================================
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddReview(TransportationReviewViewModel model)
