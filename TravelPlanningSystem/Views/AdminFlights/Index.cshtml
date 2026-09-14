@@ -1,28 +1,52 @@
 @model TravelPlanningSystem.ViewModels.AdminFlightIndexViewModel
 @using TravelPlanningSystem.Models
+@using TravelPlanningSystem.ViewModels
 @{
     ViewData["Title"] = "Flight Management";
+    var createFlight = new FlightFormViewModel();
+    var airlines = ViewBag.Airlines as List<Airline> ?? new List<Airline>();
+    var createDepartureValue = createFlight.DepartureTime.ToString("yyyy-MM-ddTHH:mm");
+    var createArrivalValue = createFlight.ArrivalTime.ToString("yyyy-MM-ddTHH:mm");
+    var flightIndexUrl = Url.Action("Index", "AdminFlights");
 }
 <link rel="stylesheet" href="~/css/flight.css" asp-append-version="true" />
 
 <div class="flight-admin-page">
-    <div class="admin-page-header"><div><span class="flight-eyebrow">AIRLINE OPERATIONS</span><h1>Flight Management</h1><p>Review flight demand and manage local prices, seat capacity, schedules and availability.</p></div></div>
-    @if (TempData["Message"] is not null) { <div class="flight-alert success">@TempData["Message"]</div> }
-    @if (TempData["Error"] is not null) { <div class="flight-alert danger">@TempData["Error"]</div> }
+    <div class="admin-page-header"><div><span class="flight-eyebrow">AIRLINE OPERATIONS</span><h1>Flight Management</h1><p>Review flight demand and manage local prices, seat capacity, schedules and availability.</p></div><button type="button" class="primary-flight-btn" data-bs-toggle="modal" data-bs-target="#createFlightModal"><i class="bi bi-plus-lg"></i> Create flight</button></div>
+    @if (TempData["Message"] is not null)
+    {
+        <div class="flight-alert success">@TempData["Message"]</div>
+    }
+    @if (TempData["Error"] is not null)
+    {
+        <div class="flight-alert danger">@TempData["Error"]</div>
+    }
 
     <div class="admin-flight-card">
         <form method="get" class="admin-filter-bar">
             <div class="flight-field"><label>Search</label><input name="search" value="@ViewBag.Search" placeholder="Flight, airline or route" /></div>
-            <div class="flight-field"><label>Status</label><select name="status"><option value="">All statuses</option>@foreach (var item in Enum.GetValues<FlightStatus>()){if (ViewBag.Status?.ToString() == item.ToString()){<option value="@item" selected>@item</option>}else{<option value="@item">@item</option>}}</select></div>
-            <div class="flight-field"><label>Departure date</label><input type="date" name="date" value="@ViewBag.Date" /></div>
-            <button class="primary-flight-btn" type="submit"><i class="bi bi-search"></i> Filter</button>
-            <a asp-action="Index" class="secondary-flight-btn">Clear</a>
-        </form>
+            <div class="flight-field"><label>Status</label><select name="status"><option value="">All statuses</option>@foreach (var item in Enum.GetValues<FlightStatus>()){if (ViewBag.Status?.ToString() == item.ToString()){
+                <option value="@item" selected>@item</option>
+            }else
+            {
 
-        <div class="admin-table-wrap"><table class="admin-flight-table">
-            <thead><tr><th>Flight</th><th>Route</th><th>Schedule</th><th>Price</th><th>Capacity</th><th>Status</th><th>Actions</th></tr></thead>
-            <tbody>
-            @if (!Model.Flights.Any()) { <tr><td colspan="7"><div class="empty-flights"><i class="bi bi-airplane"></i><div><strong>No flights found</strong><p>No local flight schedule matches the current filters.</p></div></div></td></tr> }
+                <option value="@item">@item</option>
+            }
+        }
+    </select></div>
+    <div class="flight-field"><label>Departure date</label><input type="date" name="date" value="@ViewBag.Date" /></div>
+    <button class="primary-flight-btn" type="submit"><i class="bi bi-search"></i> Filter</button>
+    <a asp-action="Index" class="secondary-flight-btn">Clear</a>
+</form>
+
+<div class="admin-table-wrap">
+    <table class="admin-flight-table">
+        <thead><tr><th>Flight</th><th>Route</th><th>Schedule</th><th>Price</th><th>Capacity</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+            @if (!Model.Flights.Any())
+            {
+                <tr><td colspan="7"><div class="empty-flights"><i class="bi bi-airplane"></i><div><strong>No flights found</strong><p>No local flight schedule matches the current filters.</p></div></div></td></tr>
+            }
             @foreach (var flight in Model.Flights)
             {
                 var reservedSeats = Math.Max(0, flight.SeatCapacity - flight.AvailableSeats);
@@ -30,7 +54,14 @@
                 var highDemand = demandPercent >= 80;
                 var discountedPrice = FlightFareRules.GetPrice(flight.Price, FlightFareRules.Economy, flight.DiscountPercent);
                 <tr>
-                    <td><div class="admin-airline-cell">@if(!string.IsNullOrWhiteSpace(flight.FlightLogoUrl ?? flight.Airline?.LogoUrl)){<img src="@(flight.FlightLogoUrl ?? flight.Airline?.LogoUrl)" alt="" />}else{<span class="airline-fallback">@flight.Airline?.AirlineCode</span>}<div><strong>@flight.FlightNumber</strong><small>@flight.Airline?.AirlineName</small></div></div></td>
+                    <td><div class="admin-airline-cell">@if(!string.IsNullOrWhiteSpace(flight.FlightLogoUrl ?? flight.Airline?.LogoUrl)){
+                        <img src="@(flight.FlightLogoUrl ?? flight.Airline?.LogoUrl)" alt="" />
+                    }else
+                    {
+
+                        <span class="airline-fallback">@flight.Airline?.AirlineCode</span>
+                    }
+                    <div><strong>@flight.FlightNumber</strong><small>@flight.Airline?.AirlineName</small></div></div></td>
                     <td><strong>@flight.From → @flight.To</strong><small class="table-subtext">@flight.AircraftModel</small></td>
                     <td><strong>@flight.DepartureTime.ToString("dd MMM yyyy")</strong><small class="table-subtext">@flight.DepartureTime.ToString("HH:mm") – @flight.ArrivalTime.ToString("HH:mm")</small></td>
                     <td>
@@ -51,17 +82,29 @@
                     <td><strong>@flight.AvailableSeats / @flight.SeatCapacity</strong><small class="table-subtext">available</small></td>
                     <td>
                         <span class="booking-status status-@flight.Status.ToString().ToLowerInvariant()">@flight.Status</span>
-                        @if (highDemand) {<span class="high-demand-badge" title="@reservedSeats of @flight.SeatCapacity seats reserved"><i class="bi bi-fire"></i> High demand</span>}
+                        @if (highDemand)
+                        {
+                            <span class="high-demand-badge" title="@reservedSeats of @flight.SeatCapacity seats reserved"><i class="bi bi-fire"></i> High demand</span>
+                        }
                         <small class="demand-subtext">@demandPercent.ToString("0")% booked</small>
-                        @if(!flight.IsActive){<small class="inactive-label">Inactive</small>}
+                        @if (!flight.IsActive)
+                        {
+                            <small class="inactive-label">Inactive</small>
+                        }
                         <form asp-action="UpdateStatus" method="post" class="inline-status-form">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="id" value="@flight.FlightId" />
                             <select name="status" aria-label="Status for @flight.FlightNumber">
                                 @foreach (var item in Enum.GetValues<FlightStatus>())
                                 {
-                                    if (item == flight.Status) { <option value="@item" selected>@item</option> }
-                                    else { <option value="@item">@item</option> }
+                                    if (item == flight.Status)
+                                    {
+                                        <option value="@item" selected>@item</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@item">@item</option>
+                                    }
                                 }
                             </select>
                             <button type="submit" title="Save status"><i class="bi bi-arrow-repeat"></i></button>
@@ -70,30 +113,153 @@
                     <td><form asp-action="UpdateInventory" method="post" class="inline-inventory-form">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@flight.FlightId" /><label><span>Base price</span><input name="price" type="number" min="0.01" step="0.01" value="@flight.Price" aria-label="Base price" /></label><label><span>Discount %</span><input name="discountPercent" type="number" min="0" max="100" step="0.5" value="@flight.DiscountPercent" aria-label="Discount percent" /></label><label><span>Capacity</span><input name="seatCapacity" type="number" min="1" max="600" value="@flight.SeatCapacity" aria-label="Seat capacity" /></label><button type="submit" title="Save base price, discount and capacity"><i class="bi bi-check-lg"></i></button><a asp-action="Delete" asp-route-id="@flight.FlightId" class="danger" title="Remove cached flight"><i class="bi bi-trash"></i></a></form></td>
                 </tr>
             }
-            </tbody>
-        </table></div>
-        @{ var currentPage = (int?)ViewBag.Page ?? 1; var totalPages = (int?)ViewBag.TotalPages ?? 1; var totalRecords = (int?)ViewBag.TotalRecords ?? 0; var firstRecord = totalRecords == 0 ? 0 : ((currentPage - 1) * 30) + 1; var lastRecord = Math.Min(currentPage * 30, totalRecords); }
-        <div class="admin-pagination-bar">
-            <span>Showing @firstRecord–@lastRecord of @totalRecords flights</span>
-            @if (totalPages > 1)
-            {
-                <nav class="admin-pagination" aria-label="Flight pages">
-                    <a class="@(currentPage == 1 ? "disabled" : "")" asp-action="Index" asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.Status" asp-route-date="@ViewBag.Date" asp-route-page="@(currentPage - 1)">Previous</a>
-                    @if (currentPage > 3)
-                    {
-                        <a asp-action="Index" asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.Status" asp-route-date="@ViewBag.Date" asp-route-page="1">1</a><span class="pagination-ellipsis">…</span>
-                    }
-                    @for (var pageNumber = Math.Max(1, currentPage - 2); pageNumber <= Math.Min(totalPages, currentPage + 2); pageNumber++)
-                    {
-                        <a class="@(pageNumber == currentPage ? "active" : "")" asp-action="Index" asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.Status" asp-route-date="@ViewBag.Date" asp-route-page="@pageNumber">@pageNumber</a>
-                    }
-                    @if (currentPage < totalPages - 2)
-                    {
-                        <span class="pagination-ellipsis">…</span><a asp-action="Index" asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.Status" asp-route-date="@ViewBag.Date" asp-route-page="@totalPages">@totalPages</a>
-                    }
-                    <a class="@(currentPage == totalPages ? "disabled" : "")" asp-action="Index" asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.Status" asp-route-date="@ViewBag.Date" asp-route-page="@(currentPage + 1)">Next</a>
-                </nav>
-            }
-        </div>
-    </div>
+        </tbody>
+    </table>
 </div>
+@{
+    var currentPage = (int?)ViewBag.Page ?? 1; var totalPages = (int?)ViewBag.TotalPages ?? 1; var totalRecords = (int?)ViewBag.TotalRecords ?? 0; var firstRecord = totalRecords == 0 ? 0 : ((currentPage - 1) * 30) + 1; var lastRecord = Math.Min(currentPage * 30, totalRecords);
+}
+<div class="admin-pagination-bar">
+    <span>Showing @firstRecord–@lastRecord of @totalRecords flights</span>
+    @if (totalPages > 1)
+    {
+        <nav class="admin-pagination" aria-label="Flight pages">
+            <a class="@(currentPage == 1 ? "disabled" : "")" asp-action="Index" asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.Status" asp-route-date="@ViewBag.Date" asp-route-page="@(currentPage - 1)">Previous</a>
+            @if (currentPage > 3)
+            {
+                <a asp-action="Index" asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.Status" asp-route-date="@ViewBag.Date" asp-route-page="1">1</a><span class="pagination-ellipsis">…</span>
+            }
+            @for (var pageNumber = Math.Max(1, currentPage - 2); pageNumber <= Math.Min(totalPages, currentPage + 2); pageNumber++)
+            {
+                <a class="@(pageNumber == currentPage ? "active" : "")" asp-action="Index" asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.Status" asp-route-date="@ViewBag.Date" asp-route-page="@pageNumber">@pageNumber</a>
+            }
+            @if (currentPage < totalPages - 2)
+            {
+                <span class="pagination-ellipsis">…</span><a asp-action="Index" asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.Status" asp-route-date="@ViewBag.Date" asp-route-page="@totalPages">@totalPages</a>
+            }
+            <a class="@(currentPage == totalPages ? "disabled" : "")" asp-action="Index" asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.Status" asp-route-date="@ViewBag.Date" asp-route-page="@(currentPage + 1)">Next</a>
+        </nav>
+    }
+</div>
+</div>
+
+<div class="modal fade" id="createFlightModal" tabindex="-1" aria-labelledby="createFlightModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div><span class="flight-eyebrow">NEW SCHEDULE</span><h2 class="modal-title" id="createFlightModalLabel">Create flight</h2></div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="createFlightForm" asp-controller="AdminFlights" asp-action="CreatePopup" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div id="createFlightErrors" class="flight-alert error d-none" role="alert">
+                        <strong>Unable to create the flight.</strong>
+                        <ul class="mb-0 mt-2"></ul>
+                    </div>
+
+                    <div class="admin-form-grid">
+                        <div class="flight-field"><label for="CreateFlightNumber">Flight number</label><input id="CreateFlightNumber" name="FlightNumber" type="text" placeholder="Example: MH601" pattern="[A-Za-z0-9-]{2,15}" maxlength="15" required /><small>Use 2–15 letters, numbers or hyphens.</small></div>
+                        <div class="flight-field"><label for="CreateAirlineId">Airline</label><select id="CreateAirlineId" name="AirlineId" required><option value="">Select airline</option>@foreach (var airline in airlines){
+                            <option value="@airline.AirlineId">@airline.AirlineName (@airline.AirlineCode)</option>
+                        }
+                    </select></div>
+                    <div class="flight-field"><label for="CreateFrom">Origin</label><select id="CreateFrom" name="From" required><option value="">Select origin</option>@foreach (var airport in Model.Airports){
+                        <option value="@airport.City">@airport.City (@airport.AirportCode)</option>
+                    }
+                </select></div>
+                <div class="flight-field"><label for="CreateTo">Destination</label><select id="CreateTo" name="To" required><option value="">Select destination</option>@foreach (var airport in Model.Airports){
+                    <option value="@airport.City">@airport.City (@airport.AirportCode)</option>
+                }
+            </select></div>
+            <div class="flight-field"><label for="CreateDepartureTime">Departure time</label><input id="CreateDepartureTime" name="DepartureTime" type="datetime-local" value="@createDepartureValue" required /></div>
+            <div class="flight-field"><label for="CreateArrivalTime">Arrival time</label><input id="CreateArrivalTime" name="ArrivalTime" type="datetime-local" value="@createArrivalValue" required /></div>
+            <div class="flight-field"><label for="CreateAircraftModel">Aircraft model</label><input id="CreateAircraftModel" name="AircraftModel" type="text" value="@createFlight.AircraftModel" pattern="[A-Za-z0-9 .'-]{2,80}" maxlength="80" required /></div>
+            <div class="flight-field"><label for="CreateSeatCapacity">Seat capacity</label><input id="CreateSeatCapacity" name="SeatCapacity" type="number" min="1" max="600" value="@createFlight.SeatCapacity" required /></div>
+            <div class="flight-field"><label for="CreatePrice">Price per passenger (RM)</label><input id="CreatePrice" name="Price" type="number" min="0.01" max="999999" step="0.01" required /></div>
+            <div class="flight-field"><label for="CreateDiscountPercent">Discount (%)</label><input id="CreateDiscountPercent" name="DiscountPercent" type="number" min="0" max="100" step="0.5" value="@createFlight.DiscountPercent" required /></div>
+            <div class="flight-field"><label for="CreateStatus">Status</label><select id="CreateStatus" name="Status">@foreach (var item in Enum.GetValues<FlightStatus>()){if(item == createFlight.Status){
+                <option value="@item" selected>@item</option>
+            }else
+            {
+
+                <option value="@item">@item</option>
+            }
+        }
+    </select></div>
+    <div class="flight-field"><label for="CreateFlightImage">Flight image <span class="text-muted">(optional)</span></label><input id="CreateFlightImage" name="FlightImage" type="file" accept=".jpg,.jpeg,.png,.webp" /><small>Optional JPG, PNG or WebP image, maximum 5 MB. If omitted, the airline logo is used.</small></div>
+    <div class="checkbox-field"><input id="CreateIsActive" name="IsActive" type="checkbox" value="true" checked /><input name="IsActive" type="hidden" value="false" /><label for="CreateIsActive">Active and visible in flight search</label></div>
+</div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="secondary-flight-btn" data-bs-dismiss="modal">Cancel</button>
+    <button id="createFlightSubmit" class="primary-flight-btn" type="submit"><i class="bi bi-check-lg"></i> Create flight</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('createFlightForm');
+        const errorBox = document.getElementById('createFlightErrors');
+        const errorList = errorBox?.querySelector('ul');
+        const submitButton = document.getElementById('createFlightSubmit');
+        const modalElement = document.getElementById('createFlightModal');
+
+        if (!form || !errorBox || !errorList || !submitButton) return;
+
+        const showErrors = function (errors) {
+            errorList.replaceChildren();
+            (errors || ['Please check the flight details and try again.']).forEach(function (message) {
+                const item = document.createElement('li');
+                item.textContent = message;
+                errorList.appendChild(item);
+            });
+            errorBox.classList.remove('d-none');
+        };
+
+        form.addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                return;
+            }
+
+            errorBox.classList.add('d-none');
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="bi bi-arrow-repeat"></i> Creating...';
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                });
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    showErrors(result.errors);
+                    return;
+                }
+
+                window.location.href = '@flightIndexUrl';
+            } catch {
+                showErrors(['The server could not be reached. Please try again.']);
+            } finally {
+                submitButton.disabled = false;
+                submitButton.innerHTML = '<i class="bi bi-check-lg"></i> Create flight';
+            }
+        });
+
+        modalElement?.addEventListener('hidden.bs.modal', function () {
+            form.reset();
+            form.classList.remove('was-validated');
+            errorBox.classList.add('d-none');
+            errorList.replaceChildren();
+        });
+    });
+</script>
