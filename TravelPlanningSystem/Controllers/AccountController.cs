@@ -540,6 +540,8 @@ namespace TravelPlanningSystem.Controllers
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
                 DateOfBirth = user.DateOfBirth,
+                PreferredCurrency = user.PreferredCurrency,
+                PreferredLanguage = user.PreferredLanguage,
                 ProfilePictureUrl = user.ProfilePictureUrl
             };
 
@@ -666,6 +668,8 @@ namespace TravelPlanningSystem.Controllers
             user.LastName = model.LastName ?? user.LastName;
             user.PhoneNumber = model.PhoneNumber ?? user.PhoneNumber;
             user.DateOfBirth = model.DateOfBirth ?? user.DateOfBirth;
+            user.PreferredCurrency = model.PreferredCurrency;
+            user.PreferredLanguage = model.PreferredLanguage;
             await _context.SaveChangesAsync();
             TempData["ProfileMessage"] = "Your profile was updated successfully.";
 

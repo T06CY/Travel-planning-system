@@ -27,6 +27,14 @@ namespace TravelPlanningSystem.ViewModels.ProfileViewModel
         [Display(Name = "Date of birth")]
         public DateTime? DateOfBirth { get; set; }
 
+        [Required, StringLength(3)]
+        [Display(Name = "Preferred currency")]
+        public string PreferredCurrency { get; set; } = "USD";
+
+        [Required, StringLength(10)]
+        [Display(Name = "Preferred language")]
+        public string PreferredLanguage { get; set; } = "en-US";
+
         [Display(Name = "Profile picture URL")]
         public string? ProfilePictureUrl { get; set; }
 
